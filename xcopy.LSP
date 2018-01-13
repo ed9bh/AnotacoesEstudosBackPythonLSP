@@ -1,6 +1,6 @@
 (defun c:xcopy(/ pol polE C LstC <n> SS)
   (vl-load-com)
-  (setq pol(entsel"\nSelecione o poligono de copia: ")
+  (setq pol(entsel"\nSelecione o poligono de seleção: ")
 	)
   (if(/=(vlax-get(vlax-ename->vla-object(car pol))'ObjectName)"AcDbPolyline")(progn(alert"Poligono invalido, crie uma Polyline(lwpolyline)!!!")(quit)))
   (vla-zoomextents(vlax-get-acad-object))
@@ -25,7 +25,7 @@
     (progn
       (command"copybase" "0,0" SS "")
       (princ)
-      (vla-zoomprevious(vlax-get-acad-object))
+      (vla-zoomextents(vlax-get-acad-object))
       )
     )
   (princ)
