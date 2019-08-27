@@ -4,7 +4,7 @@
   (vl-load-com)
   (setq plBjt(entsel"\nSelecione a polyline: ")
 	ptDist(abs(getreal"\nDigite a distancia entre os vertices: "))
-	porInc(abs(getreal"\tDigite a porcentagem maxima de inclinaÁ„o: "))
+	porInc(abs(getreal"\tDigite a porcentagem maxima de inclina√ß√£o: "))
 	plEBjt(vlax-ename->vla-object(car plBjt))
 	plLength(vlax-get plEBjt 'Length)
 	)
@@ -85,10 +85,10 @@ DESENVOLVEDOR: ERIC DRUMOND - 07/2013
 CONTATO:
 	EMAIL:	ericdrumond@gmail.com
 	
-Este Lisp foi importante pra vocÍ e quer fazer uma doaÁ„o?
+Este Lisp foi importante pra voc√™ e quer fazer uma doa√ß√£o?
 https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=CVRHG2B25BPXW&lc=BR&item_name=Desenvolvimento%20AutoLisp&currency_code=BRL&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 
 -----------------------------------------------------------------------------------------------
-OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M¡S N√O TIRE A PROPRIEDADE DESTE LISP. :)
+OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M√ÅS N√ÉO TIRE A PROPRIEDADE DESTE LISP. :)
 -----------------------------------------------------------------------------------------------
 |;
