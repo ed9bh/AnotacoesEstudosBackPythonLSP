@@ -4,7 +4,7 @@
   (setq
     r
      (getpoint
-       "\nOpções para as imagens[Desativar todas / Ativar todas / draworder Back]<Ponto inicial do retangulo de seleção>: "
+       "\nOpÃ§Ãµes para as imagens[Desativar todas / Ativar todas / draworder Back]<Ponto inicial do retangulo de seleÃ§Ã£o>: "
        )
     )
   (cond
