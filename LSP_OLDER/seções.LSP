@@ -4,9 +4,9 @@
     model
      (vla-get-modelspace(vla-get-activedocument(vlax-get-acad-object)))
     pA
-     (getpoint"\nClique no ponto inicial da SeÁ„o: ")
+     (getpoint"\nClique no ponto inicial da Se√ß√£o: ")
     pB
-     (getpoint pA"\tClique no ponto final da seÁ„o: ")
+     (getpoint pA"\tClique no ponto final da se√ß√£o: ")
     MDT
      (if MDT
        MDT
@@ -80,7 +80,7 @@
     )
   (setq
     BasePoint
-     (getpoint"\nClique no ponto de insers„o da seÁ„o: ")
+     (getpoint"\nClique no ponto de insers√£o da se√ß√£o: ")
     PointList
      (apply'append(setq PointListT(mapcar'(lambda(x)(list(+(car BasePoint)(car x))(+(-(cadr x)ElevMin)(cadr BasePoint))0.000))DistElevList)))
     )
