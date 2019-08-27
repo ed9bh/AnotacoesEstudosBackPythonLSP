@@ -1,11 +1,11 @@
-;Lista as Coordenadas de uma Polylinha em um Bloco de Notas. OpÁ„o para diferenciar eixo de perfil.
+;Lista as Coordenadas de uma Polylinha em um Bloco de Notas. Op√ß√£o para diferenciar eixo de perfil.
 
 (defun c:xlist()
   (vl-load-com)
   (setvar"cmdecho"0)
   (setq plBjt(entsel"\nSelecione a polylinha: ")
 	opc(progn(initget 1 "pLanta pErfil")(getkword"\npLanta ou pErfil? "))
-	salve(progn(initget 1 "Sim Nao N„o")(getkword"\nSalvar lista?[<Sim/Nao>]: "))
+	salve(progn(initget 1 "Sim Nao N√£o")(getkword"\nSalvar lista?[<Sim/Nao>]: "))
 	arq+(if(= salve "Sim")
 	      (open
 		(setq arq-(vl-filename-mktemp nil nil".asc"))
@@ -91,8 +91,8 @@ DESENVOLVEDOR: ERIC DRUMOND - 07/2013
 CONTATO:
 	EMAIL:	ericdrumond@gmail.com
 	
-Este Lisp foi importante pra vocÍ e quer fazer uma doaÁ„o? https://goo.gl/5yor73
+Este Lisp foi importante pra voc√™ e quer fazer uma doa√ß√£o? https://goo.gl/5yor73
 -----------------------------------------------------------------------------------------------
-OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M¡S N√O TIRE A PROPRIEDADE DESTE LISP. :)
+OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M√ÅS N√ÉO TIRE A PROPRIEDADE DESTE LISP. :)
 -----------------------------------------------------------------------------------------------
 |;
