@@ -92,9 +92,9 @@
   (vlax-invoke(vla-addobject(vla-GetExtensionDictionary space)"ACAD_SORTENTS" "AcDbSortentsTable")'MoveToBottom(list hatch));;;DRAWORDER SEND TO BACK /// MoveToTop
   ;;;
   (princ(strcat
-	  "\nPropriedades do poligono - Extens„o(m): "(rtos(vlax-get pl 'Length)2)
-	  ;" - ¡rea(m≤): "(if(= opl"2D")(rtos(vlax-get pl 'Area)2)"...")
-	  " - ¡rea(m≤): "(rtos(vlax-get hatch 'Area)2)
+	  "\nPropriedades do poligono - Extens√£o(m): "(rtos(vlax-get pl 'Length)2)
+	  ;" - √Årea(m¬≤): "(if(= opl"2D")(rtos(vlax-get pl 'Area)2)"...")
+	  " - √Årea(m¬≤): "(rtos(vlax-get hatch 'Area)2)
 	  " - Layer: "(vlax-get pl 'Layer)
 	  " - Cor: "(rtos(vlax-get pl 'Color)2 0)
 	  )
