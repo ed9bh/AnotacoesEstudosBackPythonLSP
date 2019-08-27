@@ -1,4 +1,4 @@
-(defun c:xarea();define área
+(defun c:xarea();define Ã¡rea
   (vl-load-com)
   (setvar"cmdecho"0)(setvar"dimzin"0)
   (if os(setvar"osmode"os))
@@ -6,12 +6,12 @@
   (setq
     limitEn(entsel"\nSelecione o limite da area: ")
     limitVl(if limitEn(vlax-ename->vla-object(car limitEn))(quit))
-    prin(progn(princ"\nArea atual(m²): ")(princ(rtos(vlax-get limitVL'Area)2 2)))
+    prin(progn(princ"\nArea atual(mÂ²): ")(princ(rtos(vlax-get limitVL'Area)2 2)))
     pA(getpoint"\nPrimeiro ponto da linha de divisa: ")
     pB(getpoint pA"\tPonto final da linha de divisa: ")
     model(vla-get-modelspace(vla-get-activedocument(vlax-get-acad-object)))
     lin(vla-addline model(vlax-3d-point pA)(vlax-3d-point pB))
-    areaD(getreal"\nDigite o valor da área a alcançar(m²): ")
+    areaD(getreal"\nDigite o valor da Ã¡rea a alcanÃ§ar(mÂ²): ")
     intPoints(vlax-invoke lin 'IntersectWith limitVl acExtendThisEntity)
     p1(list(nth 0 intPoints)(nth 1 intPoints))
     p2(list(nth 3 intPoints)(nth 4 intPoints))
@@ -60,7 +60,7 @@
   (if(< areaD areaO)(setq men T)(setq men NIL))
   ;;;
   (while(/= (rtos areaD 2 2) (rtos areaO 2 2))
-    (princ(strcat"Aguarde essa operação poderá demorar...Diferença entre áreas -> "(rtos(abs(- areaD areaO))2 2)"..."))(princ"\r")
+    (princ(strcat"Aguarde essa operaÃ§Ã£o poderÃ¡ demorar...DiferenÃ§a entre Ã¡reas -> "(rtos(abs(- areaD areaO))2 2)"..."))(princ"\r")
     (cond
       ((<(abs(- areaO areaD))1)(setq mpP 0.00000999 mpN -0.00000999))
       ((and(=(minusp(- areaO areaD))t)(= men t))(setq mpP 0.0000999 mpN -0.0000999))
@@ -137,7 +137,7 @@
   ;;;
   (entdel(vlax-vla-object->ename lin))
   (gc)
-  (princ(strcat"\nArea Total Alcançada(m²) = "(rtos areaO 2 2)"\nPerimetro(m) = "(rtos perim 2 2)))
+  (princ(strcat"\nArea Total AlcanÃ§ada(mÂ²) = "(rtos areaO 2 2)"\nPerimetro(m) = "(rtos perim 2 2)))
   (setvar"osmode"os)(setq os nil)
   (setvar"cmdecho"1)
   (princ)
