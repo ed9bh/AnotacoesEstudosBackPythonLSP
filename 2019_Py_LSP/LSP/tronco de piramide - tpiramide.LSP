@@ -1,0 +1,28 @@
+(vl-load-all(findfile"P:/Stds/LISP PSI/Biblioteca Comandos/BIBLIOTECA DE FUN합ES.VLX"))
+(defun c:tpiramide()
+  (prot-edg-ultrasecurit)
+  (setvar"cmdecho"0)
+  (setvar"dimzin"0)
+  (initget 1"D S")
+  (setq opt(getkword"\nDigitar ou Selecionar os objetos? (D/S): "))
+  (cond
+    ((= opt "D")(setq s<(getreal"\nDigite 햞ea Menor: ")
+		      s>(getreal"\nDigite 햞ea Maior: "))
+     )
+    ((= opt "S")(progn(setq a<(entsel"\nSelecione a 햞ea Menor: ")
+			    a>(entsel"\nSelecione a 햞ea Maior: "))
+		  (command"area""o"a<)(setq s<(getvar"area"))
+		  (command"area""o"a>)(setq s>(getvar"area"))
+		  )
+     )
+    )
+  
+  (setq h(getreal"\nDigite a Altura: "))
+  
+  (setq v(*(/ h 3)(+ s> s<(sqrt(* s> s<)))))
+  
+  (princ(strcat(rtos v 2 4)"m�"))
+  (setvar"dimzin"1)
+  (setvar"cmdecho"1)
+  (princ)
+  )
