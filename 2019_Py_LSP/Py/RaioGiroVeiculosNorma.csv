@@ -1,0 +1,15 @@
+Veiculo;Codigo;Raio Giro Minimo;Raio Giro Maximo;CTR
+Veiculos Leves;VP;7.30;7.90;6.40
+Caminhão Comun;CO;12.80;13.40;11.58
+Onibus;O;12.80;14.40;11.52
+Semi-Reboque;SR;13.20;14.10;12.50
+Reboque;RE;13.70;13.88;12.50
+Onibus Intermunicipal;BUS-45;13.72;14.58;12.44
+Onibus Articulado;A-BUS;12.20;13.50;10.97
+Semi-Reboque Intermediario;WB-12;13.72;12.44;10.97
+Semi-Reboque Intermediario;WB-15;13.72;13.93;12.50
+Semi-Reboque Interestadual;WB-19;13.72;14.14;12.50
+Semi-Reboque Interestadual;WB-20;13.72;14.14;12.50
+Reboque Duplo;WB-20D;13.72;13.87;12.50
+Reboque Triplo;WB-30T;13.72;13.87;12.50
+Duplo Articulado;WB-33D;18.29;18.04;-
