@@ -1,6 +1,6 @@
 (defun c:xcopy(/ pol polE C LstC <n> SS)
   (vl-load-com)
-  (setq pol(entsel"\nSelecione o poligono de seleção: ")
+  (setq pol(entsel"\nSelecione o poligono de seleÃ§Ã£o: ")
 	)
   (if(/=(vlax-get(vlax-ename->vla-object(car pol))'ObjectName)"AcDbPolyline")(progn(alert"Poligono invalido, crie uma Polyline(lwpolyline)!!!")(quit)))
   (vla-zoomextents(vlax-get-acad-object))
