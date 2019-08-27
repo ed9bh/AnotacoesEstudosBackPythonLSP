@@ -6,10 +6,10 @@
 	estINI(if(= estINI nil)0 estINI)
 	dist(getreal"\tDigite a distancia entre as estacas [20]: ")
 	dist(if(= dist nil)20 dist)
-	inter(if(= dist 20)(progn(initget 1 "5 10 N„o")(getkword"\nDeseja inserir estacas intermediarias?[5/10/N„o]: "))nil)
-	>i<(cond((= inter "N„o")"AB")((= inter "5")"A")((= inter "10")"B"))
+	inter(if(= dist 20)(progn(initget 1 "5 10 N√£o")(getkword"\nDeseja inserir estacas intermediarias?[5/10/N√£o]: "))nil)
+	>i<(cond((= inter "N√£o")"AB")((= inter "5")"A")((= inter "10")"B"))
 	<i> 0
-	inter(if(/= inter "N„o")(read inter)nil)
+	inter(if(/= inter "N√£o")(read inter)nil)
 	dist(cond((= inter nil)dist)((= inter 5)(/ dist 4))((= inter 10)(/ dist 2)))
 	eixoSS nil
 	)
@@ -135,10 +135,10 @@ DESENVOLVEDOR: ERIC DRUMOND - 06/2013
 CONTATO:
 	EMAIL:	ericdrumond@gmail.com
 	
-Este Lisp foi importante pra vocÍ e quer fazer uma doaÁ„o?
+Este Lisp foi importante pra voc√™ e quer fazer uma doa√ß√£o?
 https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=CVRHG2B25BPXW&lc=BR&item_name=Desenvolvimento%20AutoLisp&currency_code=BRL&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 
 -----------------------------------------------------------------------------------------------
-OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M¡S N√O TIRE A PROPRIEDADE DESTE LISP. :)
+OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M√ÅS N√ÉO TIRE A PROPRIEDADE DESTE LISP. :)
 -----------------------------------------------------------------------------------------------
 |;
