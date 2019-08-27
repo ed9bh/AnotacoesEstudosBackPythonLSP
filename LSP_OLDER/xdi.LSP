@@ -1,16 +1,16 @@
 ;|
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-ESTE LISP FOI DESENVOLVIDO PARA OTIMIZAR A OBTEN«√O DAS DISTANCIAS DE FORMA MAIS INTELIGENTE E AGIL.                               
-ESTA ROTINA FOI FEITA PARA DEDUZIR SUAS OP«’ES, VOC  PODE SELECIONAR UMA ENTIDADE E OBTER TODO O COMPRIMENTO DELA DE UMA UNICA VEZ,
+ESTE LISP FOI DESENVOLVIDO PARA OTIMIZAR A OBTEN√á√ÉO DAS DISTANCIAS DE FORMA MAIS INTELIGENTE E AGIL.                               
+ESTA ROTINA FOI FEITA PARA DEDUZIR SUAS OP√á√ïES, VOC√ä PODE SELECIONAR UMA ENTIDADE E OBTER TODO O COMPRIMENTO DELA DE UMA UNICA VEZ,
 OU DENTRO DE UMA ENTIDADE DESCOBRIR UMA DISTANCIA DE UM PONTO "A" AO "B", TAMBEM PODE SER USADO DE FORMA TRADICIONAL DA DISTANCIA. 
-INFORMA INCLINA«√O EM UMA DISTANCIAS EM 3D E TAMB…M INDICA ¡REA DE UMA ENTIDADE FECHADA.                                           
+INFORMA INCLINA√á√ÉO EM UMA DISTANCIAS EM 3D E TAMB√âM INDICA √ÅREA DE UMA ENTIDADE FECHADA.                                           
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 |;
 
 (defun c:xdi(/ obj objE pt1 pt2 dist dist2D dist3D azi inc area est1 est2)
   (vl-load-com)
   (mapcar'(lambda(x)(setvar(car x)(cadr x)))'(("lunits"2)("aunits"1)("angdir"1)("angbase"1.5708)("insunits"0)("dimzin"0)))
-  (setq obj(progn(princ"\nSelecione a entidade a medir ou <enter/bot„o dir.>: ")(ssget":s"'((0 . "line,lwpolyline,circle,spline,arc"))))
+  (setq obj(progn(princ"\nSelecione a entidade a medir ou <enter/bot√£o dir.>: ")(ssget":s"'((0 . "line,lwpolyline,circle,spline,arc"))))
 	obj(if obj (ssname obj 0) nil)
 	objE(if obj (vlax-ename->vla-object obj) nil)
 	objName(if objE(vlax-get objE 'ObjectName))
@@ -19,8 +19,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 	pt2A nil
 	)
   (if obj
-    (setq pt1(getpoint"\nClique no ponto inicial ou <enter/bot„o dir.> para comprimento total da entidade: ")
-	  pt2(if pt1(getpoint"\tClique no ponto final ou <enter/bot„o dir.>: "))
+    (setq pt1(getpoint"\nClique no ponto inicial ou <enter/bot√£o dir.> para comprimento total da entidade: ")
+	  pt2(if pt1(getpoint"\tClique no ponto final ou <enter/bot√£o dir.>: "))
 	  pt2A pt2
 	  pt2(if(and(/= pt1 nil)(= pt2 nil))(vlax-curve-getstartpoint objE)pt2)
 	  )
@@ -75,9 +75,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 	    inc(*(/(-(caddr pt2)(caddr pt1))dist2D)100)
 	    )
       (princ
-	(strcat"\nDistancia 2D: "(rtos dist2D 2)" - Azimute: "(vl-string-translate"d""∞"(angtos azi 1))
+	(strcat"\nDistancia 2D: "(rtos dist2D 2)" - Azimute: "(vl-string-translate"d""¬∞"(angtos azi 1))
 	       " - Delta X: "(rtos deltaX 2)" / Delta Y: "(rtos deltaY 2)
-	       (if(= dist2d dist3D)""(strcat"\nDistancia 3D: "(rtos dist3D 2)" - IclinaÁ„o: "(rtos inc 2)"% - Delta Z: "(rtos(-(caddr pt2)(caddr pt1))2)))
+	       (if(= dist2d dist3D)""(strcat"\nDistancia 3D: "(rtos dist3D 2)" - Iclina√ß√£o: "(rtos inc 2)"% - Delta Z: "(rtos(-(caddr pt2)(caddr pt1))2)))
 	       )
 	)
       )
@@ -92,8 +92,8 @@ DESENVOLVEDOR: ERIC DRUMOND - 07/2013
 CONTATO:
 	EMAIL:	ericdrumond@gmail.com
 	
-Este Lisp foi importante pra vocÍ e quer fazer uma doaÁ„o? https://goo.gl/5yor73
+Este Lisp foi importante pra voc√™ e quer fazer uma doa√ß√£o? https://goo.gl/5yor73
 -----------------------------------------------------------------------------------------------
-OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M¡S N√O TIRE A PROPRIEDADE DESTE LISP. :)
+OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M√ÅS N√ÉO TIRE A PROPRIEDADE DESTE LISP. :)
 -----------------------------------------------------------------------------------------------
 |;
