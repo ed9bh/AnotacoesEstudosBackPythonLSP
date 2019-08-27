@@ -135,7 +135,7 @@
 	       )
 	)
   (mapcar'(lambda(d)(vlax-put pvlao d (vlax-get vlao d)))'("Layer" "LineType"));"Color"
-  (princ(strcat"\n\nExtens„o do trajeto = "(rtos(vla-get-length pvlao))))
+  (princ(strcat"\n\nExtens√£o do trajeto = "(rtos(vla-get-length pvlao))))
   (princ)
   )
 
@@ -176,6 +176,6 @@
 	       )
 	)
   (mapcar'(lambda(d)(vlax-put pvlao d (vlax-get vlao d)))'("Layer" "LineType"));"Color"
-  (princ(strcat"\n\nExtens„o do centro = "(rtos(vla-get-length pvlao))))
+  (princ(strcat"\n\nExtens√£o do centro = "(rtos(vla-get-length pvlao))))
   (princ)
   )
