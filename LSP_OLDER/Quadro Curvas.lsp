@@ -71,7 +71,7 @@
     )
   ;;;
   ;;;
-  ;CABE«ALHO DO QUADRO DE CURVAS
+  ;CABE√áALHO DO QUADRO DE CURVAS
   (qpi_cabecalho qinsertpoint (vla-get-layer vleixo))
   (setq qinsertpoint(list(car qinsertpoint)(+(cadr qinsertpoint)-15)(caddr qinsertpoint)))
   ;INICIO
@@ -201,7 +201,7 @@
     tablist(vl-list*(vla-get-layer vleixo)tablist)
     arq(open(strcat(getvar'dwgprefix)(vla-get-layer vleixo)"-QuadroCurvas.txt")"w")
     )
-  (mapcar'(lambda(x)(write-line(vl-string-translate"d""∞"(vl-string-translate"."","x))arq))(reverse tablist))
+  (mapcar'(lambda(x)(write-line(vl-string-translate"d""¬∞"(vl-string-translate"."","x))arq))(reverse tablist))
   (close arq)
   (vl-catch-all-apply'vlax-invoke(list(setq app(vla-getInterfaceObject(vlax-get-acad-object)"Shell.Application"))'open
 				      (strcat(getvar'dwgprefix)(vla-get-layer vleixo)"-QuadroCurvas.txt"))
@@ -210,7 +210,7 @@
   (princ)
   )
 
-;;;CABE«ALHO
+;;;CABE√áALHO
 (defun qpi_cabecalho(bpoint ID);(qpi_cabecalho bpoint ID)
   (vla-addline model(vlax-3d-point(list(+(car bpoint)76.42839999999998)(+(cadr bpoint)-9.000000000000000)))(vlax-3d-point(list(+(car bpoint)76.42840000000001)(+(cadr bpoint)-12.00000000000000))))
   (vla-addline model(vlax-3d-point(list(+(car bpoint)65.35699999999998)(+(cadr bpoint)-9.000000000000000)))(vlax-3d-point(list(+(car bpoint)65.35700000000002)(+(cadr bpoint)-12.00000000000000))))
@@ -237,11 +237,11 @@
   (vla-addtext model"PC"(vlax-3d-point(list(+(car bpoint)14.28570000000002)(+(cadr bpoint)-11.25000000000000)))1.0000)
   (vla-addtext model"ELEMENTOS DE CURVAS"(vlax-3d-point(list(+(car bpoint)51.10709999208808)(+(cadr bpoint)-6.750000000000000)))1.0000)
   (vla-addtext model"ESTACAS / COORDENADAS"(vlax-3d-point(list(+(car bpoint)11.10710000000000)(+(cadr bpoint)-8.250000000000000)))1.0000)
-  (vla-addtext model"PONTOS NOT¡VEIS"(vlax-3d-point(list(+(car bpoint)15.60710000000000)(+(cadr bpoint)-5.250000000000000)))1.0000)
+  (vla-addtext model"PONTOS NOT√ÅVEIS"(vlax-3d-point(list(+(car bpoint)15.60710000000000)(+(cadr bpoint)-5.250000000000000)))1.0000)
   (vla-addtext model"CURVA"(vlax-3d-point(list(+(car bpoint)1.250000000000014)(+(cadr bpoint)-8.250000000000000)))1.0000)
   (vla-addtext model"QUADRO DE CURVAS"(vlax-3d-point(list(+(car bpoint)31.74999999208810)(+(cadr bpoint)-2.250000000000000)))1.0000)
   )
-;;;CABE«ALHO
+;;;CABE√áALHO
 
 ;PRIMEIRA LINHA
 (defun qpi_lfirst(bpoint IE IX IY)
