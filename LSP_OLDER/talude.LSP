@@ -4,13 +4,13 @@
 
 (defun c:Talude();;;Talude
   (command"undo""be")
-  (setq pline(entsel"\nSelecione POLILINHA de Crista ou PÈ: ")
+  (setq pline(entsel"\nSelecione POLILINHA de Crista ou P√©: ")
 	limite(entsel"\nSelecione o limite 1: ")
-	;limiteB(entsel"\nSelecione o limite 2(n„o obrigatorio): ")
+	;limiteB(entsel"\nSelecione o limite 2(n√£o obrigatorio): ")
 	)
-  (princ"\nSelecione o limite 2(n„o obrigatorio): ")
+  (princ"\nSelecione o limite 2(n√£o obrigatorio): ")
   (setq limiteB(ssget)
-	tdist(getreal "\nDistancia entre traÁos de talude <2>: ")
+	tdist(getreal "\nDistancia entre tra√ßos de talude <2>: ")
 	osmode(getvar"osmode")
 	)
   
@@ -31,7 +31,7 @@
   (grdraw coordmid ca 6)
   (grdraw coordmid cb 5)
   (initget 1 "Azul Magenta")
-  (setq opc(getkword "\nDireÁ„o [Azul / Magenta]: "))
+  (setq opc(getkword "\nDire√ß√£o [Azul / Magenta]: "))
   (command"zoom""o"pline pline"")
 
   ;;;
