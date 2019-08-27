@@ -9,14 +9,14 @@
     (if(=(vla-get-ObjectName plug1)"AcDbLine")
       (progn
 	(initget 1 "Sim Nao")
-	(if(=(getkword"\nEsta entidade não é uma polylinha, deseja convertela para polylinha? [Sim/Nao]: ")"Sim")
+	(if(=(getkword"\nEsta entidade nÃ£o Ã© uma polylinha, deseja convertela para polylinha? [Sim/Nao]: ")"Sim")
 	  (progn(command"pedit"(vlax-vla-object->ename plug1)"")(setq plug1(vlax-ename->vla-object(entlast)))))))
     )
   (if(/=(vla-get-ObjectName plug2)"AcDbPolyline")
     (if(=(vla-get-ObjectName plug2)"AcDbLine")
       (progn
 	(initget 1 "Sim Nao")
-	(if(=(getkword"\nEsta entidade não é uma polylinha, deseja convertela para polylinha? [Sim/Nao]: ")"Sim")
+	(if(=(getkword"\nEsta entidade nÃ£o Ã© uma polylinha, deseja convertela para polylinha? [Sim/Nao]: ")"Sim")
 	  (progn(command"pedit"(vlax-vla-object->ename plug2)"")(setq plug2(vlax-ename->vla-object(entlast)))))))
     )
   (if(and(=(vla-get-ObjectName plug1)"AcDbPolyline")(=(vla-get-ObjectName plug2)"AcDbPolyline"))
