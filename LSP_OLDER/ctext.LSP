@@ -2,8 +2,8 @@
 ;(load(findfile"S:/Library/Lisp-Ausenco/Biblioteca de Comandos/BIBLIOTECA_2.FAS"))
 ;(load(findfile"S:/Library/Lisp-Ausenco/Biblioteca de Comandos/BIBFORMULAS.FAS"))
   (command"undo""be")
-  (setq p1(getpoint"\n1บ ponto da janela: ")
-	p2(getcorner p1"\n2บ ponto da janela: ")
+  (setq p1(getpoint"\n1ยบ ponto da janela: ")
+	p2(getcorner p1"\n2ยบ ponto da janela: ")
 	txts(ssget"w" p1 p2(list(cons 0 "text")))
 	<n> 0
 	)
