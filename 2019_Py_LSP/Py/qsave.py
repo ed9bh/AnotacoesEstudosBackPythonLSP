@@ -1,33 +1,40 @@
+# By EDG 2019
 # %%
-# from win32com.client import Dispatch, GetActiveObject as GAO, selecttlb
 from win32com.client import GetActiveObject as GAO
-from datetime import datetime
-from time import sleep
+from time import sleep, localtime
 # %%
-acad = GAO('AutoCAD.Application.23')
-sleep(10)
-#doc = acad.ActiveDocument
-#model = doc.ModelSpace
+
+
+def qsave():
+    global count, final, WaitTime
+    acad = GAO('AutoCAD.Application.23')
+    sleep(9)
+    doc = acad.ActiveDocument
+    title = doc.WindowTitle
+    #model = doc.ModelSpace
+    doc.SendCommand('_QSAVE\n')
+    now = f'{localtime().tm_hour:02d}:{localtime().tm_min:02d}:{localtime().tm_sec:02d}'
+    print(f'Save {count} complete...{now} : {title}!!!')
+
+
 # %%
-count = 0
-final = 12
-WaitTime = 300
-while count is not final:
-    now = str(datetime.now().hour) + ':' + str(datetime.now().minute)
-    try:
-        doc = acad.ActiveDocument
-        doc.SendCommand('_QSAVE\n')
-        print(f'Save {count} complete...{now}')
-        doc = None
-        pass
-    except Exception as error:
-        print(error)
-        pass
-    count += 1
-    if count != final:
-        sleep(WaitTime)
-    else:
-        break
+if __name__ == '__main__':
+    count = 0
+    final = 12
+    WaitTime = 600
+    while count is not final:
+        try:
+            qsave()
+            pass
+        except Exception as error:
+            print(error)
+            pass
+        count += 1
+        if count != final:
+            sleep(WaitTime)
+        else:
+            break
     pass
 print('Comando finalizado...')
+sleep(9)
 # (setq model(vla-get-modelspace(setq doc(vla-get-activedocument(setq cad(vlax-get-acad-object))))))
