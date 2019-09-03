@@ -1,0 +1,14 @@
+(setq vla-obj (vla-add(vla-get-layers(vla-get-activedocument(vlax-get-acad-object))) "TESTE"))
+
+vla-put-color vla-obj 1
+vla-put-linetype vla-obj "Continuous"
+vla-put-layeron vla-obj :vlax-false
+vla-put-layeron vla-obj :vlax-true
+vla-put-freeze vla-obj :vlax-true
+vla-put-freeze vla-obj :vlax-false
+vla-put-Lock vla-obj :vlax-false
+vla-put-Lock vla-obj :vlax-true
+vla-put-plottable vla-obj :vlax-true
+vla-put-plottable vla-obj :vlax-false
+vla-put-LineWeight vla-obj 5
+vla-delete vla-obj

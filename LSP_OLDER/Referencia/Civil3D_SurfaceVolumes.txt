@@ -1,0 +1,1 @@
+(vlax-dump-object(vlax-get(vlax-ename->vla-object(car(entsel)))'Statistics)t)

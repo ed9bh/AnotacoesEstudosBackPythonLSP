@@ -1,0 +1,10 @@
+(vlax-invoke
+  (vla-addobject
+    (vla-GetExtensionDictionary
+      (vla-get-modelspace(vla-get-activedocument(vlax-get-acad-object)))
+      )
+    "ACAD_SORTENTS" "AcDbSortentsTable"
+    )
+  'MoveToBottom;'MoveToTop
+  (list(vlax-ename->vla-object(car(entsel))))
+  )

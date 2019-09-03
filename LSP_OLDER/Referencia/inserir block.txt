@@ -1,0 +1,9 @@
+(defun c:aaa()
+  (setq
+    model(vla-get-modelspace(vla-get-activedocument(vlax-get-acad-object)))
+    point(vlax-3d-point(getpoint"\tPonto Inserção : "))
+    );(vlax-dump-object(vlax-ename->vla-object(car(entsel)))t)
+  ;(vla-Add (vla-get-Blocks(vla-get-ActiveDocument(vlax-get-acad-object))) (vlax-3d-point point) "A$C136E1960")
+  (vla-AddMInsertBlock model point "A$C136E1960" 1 1 1 0 1 1 1 1)
+  (princ)
+  )

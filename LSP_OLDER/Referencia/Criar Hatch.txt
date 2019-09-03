@@ -1,0 +1,16 @@
+(setq hatch
+       (vla-addhatch
+	 (vla-get-modelspace(vla-get-activedocument(vlax-get-acad-object)))
+	 achatchpatterntypepredefined
+	 "SOLID"
+	 :vlax-true
+	 )
+      );;;CRIAR OBJETO HATCH
+
+(vlax-invoke
+  hatch
+  'AppendOuterLoop
+  (list(vlax-ename->vla-object(car(entsel))))
+  );;;CRIAR ENTIDADE HATCH
+
+(vla-evaluate hatch);;;SOLTAR OBJETO HATCH

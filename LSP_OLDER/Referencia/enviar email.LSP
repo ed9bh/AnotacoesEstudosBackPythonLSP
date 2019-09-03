@@ -1,0 +1,8 @@
+(defun emailme()
+  (setq mail(vlax-invoke(vlax-get-or-create-object"Outlook.Application")'CreateItem 0))
+  (vlax-put-property mail 'Subject "Lisp Finalizado")
+  (vlax-put-property mail 'To "eric.drumond@ausenco.com")
+  (vlax-put-property mail 'Body "xxxxxxxx")
+  (vlax-invoke mail 'Send)
+  (princ)
+  );(emailme)

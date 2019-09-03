@@ -1,0 +1,6 @@
+(setq
+  ss(vla-add (vla-get-SelectionSets (vla-get-activedocument (vlax-get-acad-object) ) ) "SSET")
+  aaa(vla-select ss acSelectionSetWindow (vlax-3d-point (getpoint"\nPonto 1")) (vlax-3d-point (getpoint"\nPonto 2")) )
+  )
+(vla-get-count ss)
+(vlax-dump-object (vlax-invoke-method ss 'Item 1) t)
