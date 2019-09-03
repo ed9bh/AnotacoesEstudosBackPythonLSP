@@ -1,4 +1,3 @@
-# By EDG 2019
 # %%
 from win32com.client import GetActiveObject as GAO
 from time import sleep, localtime
