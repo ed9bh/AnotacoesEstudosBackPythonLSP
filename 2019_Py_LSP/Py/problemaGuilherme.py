@@ -3,7 +3,6 @@ from numpy import pi, sin, cos, arccos as acos, abs, radians, arctan2 as atan2
 
 # %%
 # Constantes
-rad = pi / 180
 R = 6371.0
 
 # %%
@@ -56,8 +55,6 @@ citys = {
         'Coords': {'lat': -33, 'lon': 18.5},
     },
 }
-aaa = 0
-bbb = 0
 
 # %%
 
