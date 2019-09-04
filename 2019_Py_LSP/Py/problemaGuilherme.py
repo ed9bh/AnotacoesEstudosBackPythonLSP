@@ -1,5 +1,4 @@
 # %%
-# Formula : https://pt.quora.com/Como-voc%C3%AA-calcula-a-dist%C3%A2ncia-entre-duas-localiza%C3%A7%C3%B5es-geogr%C3%A1ficas-expressas-em-coordenadas-de-latitude-e-longitude-usando-Python-ou-Java
 from numpy import pi, sin, cos, arccos as acos, abs, radians, arctan2 as atan2
 
 # %%
