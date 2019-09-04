@@ -11,6 +11,6 @@ Mais dois Lisp's de codigo fechado e combinados com Python podem ser baixados gr
 *Mescla AutoLISP / Python
  - Lista de pontos do Excel para AutoCAD : https://www.youtube.com/watch?v=eiq1cEHiSOs
  - Transformar Desenho de AutoCAD em Mapa do Google Earth : https://www.youtube.com/watch?v=eiq1cEHiSOs
- *AutoLISP
+*AutoLISP
  - Notas de Serviço Civil 3D : https://www.youtube.com/watch?v=a5Olpr-mdCQ
  - Fit Sample Line : https://www.youtube.com/watch?v=lojuowcMsuA
