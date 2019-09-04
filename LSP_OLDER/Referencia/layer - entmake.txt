@@ -1,0 +1,1 @@
+(entmake'((0 . "LAYER")(100 . "AcDbSymbolTableRecord")(100 . "AcDbLayerTableRecord")(2 . "MALHA")(6 . "Continuous")(62 . 250)(70 . 0)))

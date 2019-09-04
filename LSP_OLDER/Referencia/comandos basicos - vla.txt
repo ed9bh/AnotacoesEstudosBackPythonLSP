@@ -1,0 +1,26 @@
+(vla-getentity
+  (vla-get-utility
+    (vla-get-activedocument
+      (vlax-get-acad-object))
+    )
+  'obj 'ip
+  "\nEntsel: "
+  )
+
+;Mirror
+(vla-mirror obj (vlax-3d-point'(0 0 0)) (vlax-3d-point'(0 1 0)))
+
+;Move
+(vla-move obj (vlax-3d-point'(0 0 0)) (vlax-3d-point'(0 100 0)))
+
+;Copy
+(vla-copy obj)
+
+;Delete
+(vla-delete obj)
+
+;Rotate
+(vla-rotate obj (vlax-3d-point'(0 0 0)) (/ pi 2))
+
+;Scale
+(vla-scaleentity obj (vlax-3d-point'(0 0 0)) 10)

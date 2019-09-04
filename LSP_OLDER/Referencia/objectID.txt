@@ -1,0 +1,14 @@
+(defun GetObjectID ( obj doc )
+ ;; Lee Mac
+ (if
+   (eq "X64"
+     (strcase
+       (getenv "PROCESSOR_ARCHITECTURE")
+     )
+   )
+   (vlax-invoke-method
+     (vla-get-Utility doc) 'GetObjectIdString obj :vlax-false
+   )
+   (itoa (vla-get-Objectid obj))
+ )
+)

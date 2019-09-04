@@ -1,0 +1,43 @@
+(defun c:vol()
+  (vl-load-com)(setvar"cmdecho"0)
+  (setq arq(open"S:\\Proj\\1014-01-MANABI\\CAD\\WORK AREA\\J\\Checklist\\volumes.txt""r")
+	dwgname(substr(getvar"dwgname") 1 23)
+	volume nil
+	)
+  (while(setq l(read-line arq))
+    (setq name(substr l 1(vl-string-search"\t"l))
+	  l(substr l(+(vl-string-search"\t"l)2)(strlen l))
+	  vparc(read(vl-string-translate",""."(substr l 1(vl-string-search"\t"l))))
+	  l(substr l(+(vl-string-search"\t"l)2)(strlen l))
+	  vacum(read(vl-string-translate",""."(substr l 1(vl-string-search"\t"l))))
+	  )
+    (if(= dwgname name)(setq volume(list name vparc vacum)))
+    )
+  (close arq)
+  (command"layout""set"(car(layoutlist)))
+  (vla-zoomwindow(vlax-get-acad-object)(vlax-3d-point'(860.902 438.529))(vlax-3d-point'(1055.744 460.142)))
+  ;;;
+  (setq vpOld(vlax-get(vlax-ename->vla-object(ssname(ssget"w"'(1017.138 447.995)'(1041.000 452.995)'((0 . "text")))0))'TextString)
+	vaOld(vlax-get(vlax-ename->vla-object(ssname(ssget"w"'(1017.138 442.995)'(1041.000 447.995)'((0 . "text")))0))'TextString)
+	)
+  ;;;
+  (vlax-put(vlax-ename->vla-object(ssname(ssget"w"'(1017.138 447.995)'(1041.000 452.995)'((0 . "text")))0))'TextString(vl-string-translate"."","(rtos(cadr volume)2 2)))
+  (vlax-put(vlax-ename->vla-object(ssname(ssget"w"'(1017.138 442.995)'(1041.000 447.995)'((0 . "text")))0))'TextString(vl-string-translate"."","(rtos(caddr volume)2 2)))
+  (setq blk(vlax-ename->vla-object(ssname(ssget"x"'((0 . "insert")(2 . "CARIMBO MANABI")))0)))
+  (setq kmatt(if(=(substr(vla-get-textstring(nth 4(vlax-safearray->list(vlax-variant-value(vla-getattributes blk)))))1 20)"FOLHA DE ALINHAMENTO")
+	       (substr(vla-get-textstring(nth 4(vlax-safearray->list(vlax-variant-value(vla-getattributes blk)))))22)
+	       (substr(vla-get-textstring(nth 4(vlax-safearray->list(vlax-variant-value(vla-getattributes blk)))))16)
+	       )
+	)
+  (vlax-put(vlax-ename->vla-object(ssname(ssget"w"'(866.340 448.443)'(1006.713 452.820)'((0 . "text,mtext")))0))'TextString(strcat"VOLUME DE CORTE "kmatt))
+  (if(or(/= vaOld(vl-string-translate"."","(rtos(caddr volume)2 2)))(/= vpOld(vl-string-translate"."","(rtos(cadr volume)2 2))))
+    (alert
+      (strcat
+	"VOLUME DO TRECHO - "kmatt":\n\n"
+	"Volume parcial Antigo: "vpOld" - Volume parcial Novo: "(vl-string-translate"."","(rtos(cadr volume)2 2))"\n"
+	"Volume acumulado Antigo: "vaOld" - Volume acumulado Novo: "(vl-string-translate"."","(rtos(caddr volume)2 2))
+	)
+      )
+    )
+  (setvar"cmdecho"1)(princ)
+  )

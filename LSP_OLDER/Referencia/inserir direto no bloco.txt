@@ -1,0 +1,1 @@
+(vla-add(vla-get-blocks(vla-get-activedocument(vlax-get-acad-object))) (vlax-3d-point'(0. 0. 0.)) \\NomeDoBloco\\)
