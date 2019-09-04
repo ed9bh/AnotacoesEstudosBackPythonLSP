@@ -9,7 +9,7 @@ R = 6371.0
 # Funcoes
 
 
-def Formula_001(lat1, lon1, lat2, lon2):
+def Distance(lat1, lon1, lat2, lon2):
     dlat = lat1 - lat2
     dlon = lon1 - lon2
     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
@@ -62,13 +62,13 @@ for i in baseCity:
     BaseName = baseCity[i]['Name']
     BaseLat = radians(baseCity[i]['Coords']['lat'])
     BaseLon = radians(baseCity[i]['Coords']['lon'])
-    print(f'{BaseName} : {BaseLat} / {BaseLon}')
+    #print(f'{BaseName} : {BaseLat} / {BaseLon}')
     for j in citys:
         Name = citys[j]['Name']
         Lat = radians(citys[j]['Coords']['lat'])
         Lon = radians(citys[j]['Coords']['lon'])
 
-        dist = Formula_001(BaseLat, BaseLon, Lat, Lon)
+        dist = Distance(BaseLat, BaseLon, Lat, Lon)
 
         print('A distancia entre {0} e a cidade {1} é de {2:0.3f}'.format(
             BaseName,
