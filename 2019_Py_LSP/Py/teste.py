@@ -43,3 +43,24 @@ y = np.cos(x**2 / 3 + 4)
 print(x, y)
 plt.plot(x, y)
 #%%
+
+from numpy import cos, sin, pi, arccos as acos
+
+#%%
+rad = pi / 180
+bh = [-20, -45]
+cidade = ['Buenos', 'Paris', 'Montreal', 'Tokio','Sydney ', 'New York', 'Cape Town']
+lat = [-34.6, 49, 45, 36, -33, 40, -33]
+lon = [-58.4, 4., -72, 140, 151, -74, 18.5]
+aaa = 0
+bbb = 0
+
+#%%
+for i in range(0 , len(cidade)):
+    try:
+        ccc = (sin(bh[0] * rad) * sin(lat[i] * rad)) + (cos(bh[0] * rad) * cos(lat[i] * rad) * cos((bh[0] - lon[i]) * rad))
+        ddd = acos(ccc) / rad
+        print(ccc)
+        print(ddd)
+    except:
+        pass
