@@ -10,6 +10,7 @@ R = 6371.0
 
 
 def Distance(lat1, lon1, lat2, lon2):
+    global R
     dlat = lat1 - lat2
     dlon = lon1 - lon2
     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
