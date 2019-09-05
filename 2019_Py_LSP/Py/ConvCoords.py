@@ -1,6 +1,9 @@
 # %%
 # pip install utm
 from utm import from_latlon as convCoords
+from os import chdir
+#%%
+chdir('C:\\Users\\GOMEE11\\Documents')
 # %%
 
 try:
