@@ -29,17 +29,23 @@ checkpoint_serie = {}
 
 
 def locateBase():
+    print('Listando arquivos...')
     global srt_files, tor_files, interess_files
-    srt_files = glob('*.srt')
-    tor_files = glob('*.torrent')
-    srt_files.sort()
-    tor_files.sort()
-    interess_files = srt_files + tor_files
+    try:
+        srt_files = glob('*.srt')
+        tor_files = glob('*.torrent')
+        srt_files.sort()
+        tor_files.sort()
+        interess_files = srt_files + tor_files
+        pass
+    except:
+        pass
     sleep(3)
     pass
 
 
 def unzipFiles():
+    print('Descompactando arquivos...')
     zip_files = glob('*.zip')
     rar_files = glob('*.rar')
     for z in zip_files:
@@ -64,7 +70,7 @@ def unzipFiles():
             pass
         pass
     chdir(BaseDownloadFolder)
-    sleep(3)
+    sleep(60)
     pass
 
 
