@@ -400,7 +400,7 @@ if __name__ == '__main__':
         chdir(BaseDownloadFolder)
         deleteline_DICT_JSON(d)
 
-        clearMess()
+    clearMess()
 
 # %%
 # Testes# %%
