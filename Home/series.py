@@ -20,7 +20,6 @@ BaseSecondKeep = r'A:\Series'
 BaseIncomplete = r'\\DNS-320\P2P\incomplete'
 # %%
 # Variaveis
-
 srt_files, tor_files, interess_files = None, None, None
 checkpoint_file = 'checkpoint.json'
 checkpoint_serie = {}
@@ -390,15 +389,14 @@ if __name__ == '__main__':
     chave = True
     if chave is True:
         chdir(BaseCompletDownload)
-        corrigir = glob(pathname='*.mkv') + \
-            glob(pathname='*.mp4') + glob(pathname='*.avi')
+        corrigir = glob(pathname='**/*.mkv', recursive=True) + glob(pathname='**/*.mp4', recursive=True) + glob(pathname='**/*.avi', recursive=True)
         errados = ['Nine.Nine']
         corretos = ['Nine-Nine']
-        for c in corrigir:
+        for k in corrigir:
             for e, c in zip(errados, corretos):
-                new = c.replace(e, c)
+                new = k.replace(e, c)
                 try:
-                    rename(c, new)
+                    rename(k, new)
                     pass
                 except:
                     pass
