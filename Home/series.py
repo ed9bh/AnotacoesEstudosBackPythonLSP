@@ -1,6 +1,6 @@
 # %%
 # Modulos
-from os import chdir, remove, rename, walk, listdir
+from os import chdir, mkdir, remove, rename, walk, listdir
 from os.path import isfile, isdir
 from shutil import move, copyfile
 from glob import glob
@@ -12,18 +12,18 @@ from json import load, dump
 from rarfile import RarFile
 # %%
 # Diretorios
-dir_001 = r'C:\Users\ericd\Downloads\Filmes\Series'
-dir_002 = r'\\DNS-320\P2P\Torrent'
-dir_003 = r'\\DNS-320\P2P\Complete'
-dir_004 = r'\\DNS-320\Volume_1\VIDEOS\Series'
-dir_005 = r'A:\Series'
-dir_006 = r'\\DNS-320\P2P\incomplete'
+BaseDownloadFolder = r'C:\Users\ericd\Downloads\Filmes\Series'
+BaseTorrentToDownload = r'\\DNS-320\P2P\Torrent'
+BaseCompletDownload = r'\\DNS-320\P2P\Complete'
+BaseFirstPermanentBackup = r'\\DNS-320\Volume_1\VIDEOS\Series'
+BaseSecondKeep = r'A:\Series'
+BaseIncomplete = r'\\DNS-320\P2P\incomplete'
 # %%
 # Funções
 
 srt_files, tor_files, interess_files = None, None, None
-file_checkpoint = 'checkpoint.json'
-series_checkpoint = {}
+checkpoint_file = 'checkpoint.json'
+checkpoint_serie = {}
 
 
 def locateBase():
@@ -49,11 +49,11 @@ def unzipFiles():
         with RarFile(r) as target:
             target.extractall()
         pass
-    for root, folder, arch in walk(dir_001):
+    for root, folder, arch in walk(BaseDownloadFolder):
         print(root)
         for k in glob(root + '\\*'):
             try:
-                move(k, dir_001)
+                move(k, BaseDownloadFolder)
             except:
                 pass
             pass
@@ -88,21 +88,21 @@ def checkpoint():
             se_ep = se_ep.replace('E', '_E')
             final_name = title + '_' + se_ep
 
-            series_checkpoint[count] = {}
-            series_checkpoint[count]['Title'] = title
-            series_checkpoint[count]['Season'] = season[0]
-            series_checkpoint[count]['Episode'] = epsode[0]
-            series_checkpoint[count]['raw_name'] = raw_name
-            series_checkpoint[count]['OriginalTorName'] = t
-            series_checkpoint[count]['OriginalSrtName'] = s
-            series_checkpoint[count]['NewVidName'] = final_name
-            series_checkpoint[count]['NewSrtName'] = final_name + '.srt'
+            checkpoint_serie[count] = {}
+            checkpoint_serie[count]['Title'] = title
+            checkpoint_serie[count]['Season'] = season[0]
+            checkpoint_serie[count]['Episode'] = epsode[0]
+            checkpoint_serie[count]['raw_name'] = raw_name
+            checkpoint_serie[count]['OriginalTorName'] = t
+            checkpoint_serie[count]['OriginalSrtName'] = s
+            checkpoint_serie[count]['NewVidName'] = final_name
+            checkpoint_serie[count]['NewSrtName'] = final_name + '.srt'
 
             count += 1
             pass
         pass
-    with open(file_checkpoint, 'w+') as CHECK:
-        dump(series_checkpoint, CHECK)
+    with open(checkpoint_file, 'w+') as CHECK:
+        dump(checkpoint_serie, CHECK)
         pass
     sleep(3)
     pass
@@ -122,19 +122,74 @@ def garbage():
 
 
 def deleteline_DICT_JSON(x):
-    global series_checkpoint
-    del(series_checkpoint[x])
-    with open(file_checkpoint, 'w') as target:
-        dump(series_checkpoint)
+    global checkpoint_serie
+    del(checkpoint_serie[x])
+    with open(checkpoint_file, 'w') as target:
+        dump(checkpoint_serie, target)
         pass
+    pass
+
+
+def load_checkpoint():
+    global checkpoint_serie
+    with open(checkpoint_file, 'r') as target:
+        checkpoint_serie = load(target)
+    pass
+
+
+def folderCreation(reg):
+    global BaseFirstPermanentBackup
+    TitleDirStorage = BaseFirstPermanentBackup + \
+        '\\' + checkpoint_serie[reg]['Title']
+    SeasonDirStorage = TitleDirStorage + '\\' + checkpoint_serie[reg]['Season']
+    TitleDir = BaseSecondKeep + '\\' + checkpoint_serie[reg]['Title']
+    SeasonDir = TitleDir + '\\' + checkpoint_serie[reg]['Season']
+    for d in [TitleDirStorage, TitleDir, SeasonDirStorage, SeasonDir]:
+        if isdir(d) == False:
+            try:
+                mkdir(d)
+                pass
+            except Exception as error:
+                print(error)
+            pass
+        pass
+    pass
+
+
+def srtMoveCopy(reg):
+    origin = BaseDownloadFolder + '\\' + \
+        checkpoint_serie[reg]['OriginalSrtName']
+    destinyStorage = BaseFirstPermanentBackup + \
+        '\\' + checkpoint_serie[reg]['NewSrtName'] + '.str'
+    destiny = BaseSecondKeep + '\\' + \
+        checkpoint_serie[reg]['NewSrtName'] + '.str'
+    copyfile(origin, destiny)
+    move(origin, destinyStorage)
+    pass
+
+
+def torMove(reg):
+    origin = BaseDownloadFolder + '\\' + \
+        checkpoint_serie[reg]['OriginalTorName']
+    destiny = BaseTorrentToDownload + '\\' + \
+        checkpoint_serie[reg]['OriginalTorName']
+    move(origin, destiny)
+    pass
+
+
+def vidMoveCopy(reg, ext):
+    pass
+
+
+def clearMess():
+    remove(BaseDownloadFolder + '\\' + checkpoint_file)
+    pass
 
 
 # %%
-chdir(dir_001)
+chdir(BaseDownloadFolder)
 unzipFiles()
 locateBase()
 garbage()
-locateBase()
-# %%
 locateBase()
 checkpoint()
