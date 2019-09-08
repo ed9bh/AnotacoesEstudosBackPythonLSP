@@ -252,7 +252,10 @@ def vidMoveCopy(reg, folder):
 
     # Copia video...
     try:
+        print('Copiando para pasta Series...')
+        print(f'Iniciado em {datetime.now()}')
         copyfile(origin, destiny)
+        print(f'Finalizado em {datetime.now()}')
         pass
     except Exception as error:
         print('Erro ocorrido : ', str(error))
@@ -260,7 +263,10 @@ def vidMoveCopy(reg, folder):
     sleep(3)
     # Move video...
     try:
+        print('Copiando para Backup...')
+        print(f'Iniciado em {datetime.now()}')
         move(origin, destinyStorage)
+        print(f'Finalizado em {datetime.now()}')
         pass
     except Exception as error:
         print('Erro ocorrido : ', str(error))
@@ -338,6 +344,23 @@ if __name__ == '__main__':
 
         pass
 
+    # Tratamento para nomes errados
+    chave = True
+    if chave is True:
+        chdir(BaseCompletDownload)
+        corrigir = glob(pathname='*.mkv') + glob(pathname='*.mp4') + glob(pathname='*.avi')
+        errados = ['Nine.Nine']
+        corretos = ['Nine-Nine']
+        for c in corrigir:
+            for e, c in zip(errados, corretos):
+                new = c.replace(e, c)
+                try:
+                    rename(c, new)
+                    pass
+                except:
+                    pass
+
+    # Move os Videos para a pasta correta...
     sleep(600 * 6)
 
     done = []
@@ -347,16 +370,16 @@ if __name__ == '__main__':
         vidName = checkpoint_serie[item]['OriginalSrtName']
         vidName = vidName.replace('.srt', '')
         vidNewName = checkpoint_serie[item]['NewVidName']
-        for i in vidExt:
-            if isfile(BaseCompletDownload + '\\' + vidName + i) and not vidName.endswith('.mp4'):
-                checkpoint_serie[item]['OriginalVidName'] = vidName + i
-                checkpoint_serie[item]['NewVidName'] = vidNewName + i
-                print(checkpoint_serie[item]['OriginalVidName'])
-                print(checkpoint_serie[item]['NewVidName'])
-                pass
-            pass
-        
+
         for root, folder, arq in walk(BaseCompletDownload):
+            for i in vidExt:
+                if isfile(root + '\\' + vidName + i) and not vidName.endswith('.mp4'):
+                    checkpoint_serie[item]['OriginalVidName'] = vidName + i
+                    checkpoint_serie[item]['NewVidName'] = vidNewName + i
+                    print(checkpoint_serie[item]['OriginalVidName'])
+                    print(checkpoint_serie[item]['NewVidName'])
+                    pass
+                pass
             try:
                 if isfile(root + '\\' + checkpoint_serie[item]['OriginalVidName']):
                     vidMoveCopy(item, root)
@@ -369,51 +392,50 @@ if __name__ == '__main__':
             pass
         pass
 
-for d in done:
-    deleteline_DICT_JSON(d)
-
-clearMess()
-
-# %%
-quit()
-# %%
-# Testes
-# %%
-done = []
-for item in checkpoint_serie:
-    vidExt = ['.mp4', '.mkv', '.avi']
-    vidName = checkpoint_serie[item]['OriginalSrtName']
-    vidName = vidName.replace('.srt', '')
-    vidNewName = checkpoint_serie[item]['NewVidName']
-    for i in vidExt:
-        if isfile(BaseCompletDownload + '\\' + vidName + i) and not vidName.endswith('.mp4'):
-            checkpoint_serie[item]['OriginalVidName'] = vidName + i
-            checkpoint_serie[item]['NewVidName'] = vidNewName + i
-            print(checkpoint_serie[item]['OriginalVidName'])
-            print(checkpoint_serie[item]['NewVidName'])
-            pass
+    for item in checkpoint_serie:
+        playlist(item)
         pass
-    
-    for root, folder, arq in walk(BaseCompletDownload):
-        try:
-            if isfile(root + '\\' + checkpoint_serie[item]['OriginalVidName']):
-                vidMoveCopy(item, root)
-                playlist(item)
-                done.append(item)
-                pass
-            pass
-        except Exception as error:
-            print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
-        pass
-    pass
 
-for d in done:
-    deleteline_DICT_JSON(d)
- 
+    for d in done:
+        chdir(BaseDownloadFolder)
+        deleteline_DICT_JSON(d)
+
+        clearMess()
 
 # %%
-# chdir(BaseCompletDownload)
-# corrigir = glob('*.mp4')
-# for c in corrigir:
-#     new = c.replace('Nine.Nine', 'Nine-Nine')
-#     rename(c, new)
+# Testes# %%
+# done = []
+# for item in checkpoint_serie:
+#     vidExt = ['.mp4', '.mkv', '.avi']
+#     vidName = checkpoint_serie[item]['OriginalSrtName']
+#     vidName = vidName.replace('.srt', '')
+#     vidNewName = checkpoint_serie[item]['NewVidName']
+
+#     for root, folder, arq in walk(BaseCompletDownload):
+#         for i in vidExt:
+#             if isfile(root + '\\' + vidName + i) and not vidName.endswith('.mp4'):
+#                 checkpoint_serie[item]['OriginalVidName'] = vidName + i
+#                 checkpoint_serie[item]['NewVidName'] = vidNewName + i
+#                 print(checkpoint_serie[item]['OriginalVidName'])
+#                 print(checkpoint_serie[item]['NewVidName'])
+#                 pass
+#             pass
+#         try:
+#             if isfile(root + '\\' + checkpoint_serie[item]['OriginalVidName']):
+#                 vidMoveCopy(item, root)
+#                 playlist(item)
+#                 done.append(item)
+#                 pass
+#             pass
+#         except Exception as error:
+#             print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
+#         pass
+#     pass
+
+# for item in checkpoint_serie:
+#     playlist(item)
+#     pass
+
+# for d in done:
+#     chdir(BaseDownloadFolder)
+#     deleteline_DICT_JSON(d)
