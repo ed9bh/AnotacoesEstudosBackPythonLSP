@@ -51,21 +51,26 @@ def unzipFiles():
         with RarFile(r) as target:
             target.extractall()
         pass
+    sleep(9)
     for root, folder, arch in walk(BaseDownloadFolder):
-        print(root)
-        for k in glob(root + '\\*'):
+        chdir(root)
+        arqs = glob('*.srt') + glob('*.torrent')
+        for k in arqs:
+            print('Arquivo Encontrado : ' + k)
             try:
-                move(k, BaseDownloadFolder)
+                move(root + '\\' + k, BaseDownloadFolder)
             except:
                 pass
             pass
         pass
+    chdir(BaseDownloadFolder)
     sleep(3)
     pass
 
 
 def checkpoint():
     global srt_files, tor_files
+    print('Criando Checkpoint...')
     count = 0
     for s, t in zip(srt_files, tor_files):
         if s.replace('.srt', '') == t.replace('.torrent', ''):
@@ -114,6 +119,7 @@ def checkpoint():
 
 def garbage():
     global interess_files
+    print('Removendo o lixo...')
     for f in interess_files:
         try:
             if search('.1080p.', f) or search('.720p.', f):
@@ -127,6 +133,7 @@ def garbage():
 
 def deleteline_DICT_JSON(x):
     global checkpoint_serie
+    print('Deletando o registro bem sucedido...')
     del(checkpoint_serie[x])
     with open(checkpoint_file, 'w') as target:
         dump(checkpoint_serie, target)
@@ -136,6 +143,7 @@ def deleteline_DICT_JSON(x):
 
 def load_checkpoint():
     global checkpoint_serie
+    print('Carregando Checkpoint Existente...')
     with open(checkpoint_file, 'r') as target:
         checkpoint_serie = load(target)
     pass
@@ -150,6 +158,7 @@ def folderCreation(reg):
     SeasonDir = TitleDir + '\\' + checkpoint_serie[reg]['Season']
     for d in [TitleDirStorage, TitleDir, SeasonDirStorage, SeasonDir]:
         if isdir(d) == False:
+            print('Criando diretorio...')
             try:
                 mkdir(d)
                 pass
@@ -188,6 +197,7 @@ def srtMoveCopy(reg):
         ext
     )
     # Copia legenda...
+    print(f'Copiando : {destiny}')
     try:
         copyfile(origin, destiny)
         pass
@@ -196,6 +206,7 @@ def srtMoveCopy(reg):
         pass
     sleep(3)
     # Move legenda...
+    print(f'Copiando : {destinyStorage}')
     try:
         move(origin, destinyStorage)
         pass
@@ -214,6 +225,7 @@ def torMove(reg):
         BaseTorrentToDownload,
         checkpoint_serie[reg]['OriginalTorName']
     )
+    print(f'Iniciando torrente : {destiny}')
     try:
         move(origin, destiny)
         pass
@@ -253,6 +265,7 @@ def vidMoveCopy(reg, folder):
     # Copia video...
     try:
         print('Copiando para pasta Series...')
+        print(f'... {destiny} ...')
         print(f'Iniciado em {datetime.now()}')
         copyfile(origin, destiny)
         print(f'Finalizado em {datetime.now()}')
@@ -264,6 +277,7 @@ def vidMoveCopy(reg, folder):
     # Move video...
     try:
         print('Copiando para Backup...')
+        print(f'... {destinyStorage} ...')
         print(f'Iniciado em {datetime.now()}')
         move(origin, destinyStorage)
         print(f'Finalizado em {datetime.now()}')
@@ -277,6 +291,7 @@ def vidMoveCopy(reg, folder):
 
 
 def clearMess():
+    print('Apagando Checkpoint...')
     remove(BaseDownloadFolder + '\\' + checkpoint_file)
     pass
 
@@ -292,6 +307,8 @@ def playlist(reg):
     vidFile = f'{title}/{season}/{episode}'
 
     plName = f'{year}_{month:02d}_{day:02d}-TV.m3u'
+
+    print(f'Criando Playtist : ... {plName} ...')
 
     arq = BaseSecondKeep + '\\' + plName
 
@@ -348,7 +365,8 @@ if __name__ == '__main__':
     chave = True
     if chave is True:
         chdir(BaseCompletDownload)
-        corrigir = glob(pathname='*.mkv') + glob(pathname='*.mp4') + glob(pathname='*.avi')
+        corrigir = glob(pathname='*.mkv') + \
+            glob(pathname='*.mp4') + glob(pathname='*.avi')
         errados = ['Nine.Nine']
         corretos = ['Nine-Nine']
         for c in corrigir:
@@ -402,15 +420,60 @@ if __name__ == '__main__':
 
     clearMess()
 
-# %%
-# Testes# %%
+# # %%
+# # Acessa pasta principal
+# chdir(BaseDownloadFolder)
+# # %%
+# # Descompacta arquivos
+# unzipFiles()
+# # %%
+# # Localiza arquivos de interesse
+# locateBase()
+# # %%
+# # Limpa arquivos indesejaveis
+# garbage()
+# # %%
+# # Atualiza lista de arquivos
+# locateBase()
+# # %%
+# # Cria ou Carrega o cronograma de downloads
+# if isfile(BaseDownloadFolder + '\\' + checkpoint_file):
+#     load_checkpoint()
+#     pass
+# else:
+#     checkpoint()
+#     pass
+# for item in checkpoint_serie:
+#     folderCreation(item)
+#     torMove(item)
+#     srtMoveCopy(item)
+#     pass
+# # %%
+# # Tratamento para nomes errados
+# chave = True
+# if chave is True:
+#     chdir(BaseCompletDownload)
+#     corrigir = glob(pathname='*.mkv') + \
+#         glob(pathname='*.mp4') + glob(pathname='*.avi')
+#     errados = ['Nine.Nine']
+#     corretos = ['Nine-Nine']
+#     for c in corrigir:
+#         for e, c in zip(errados, corretos):
+#             new = c.replace(e, c)
+#             try:
+#                 rename(c, new)
+#                 pass
+#             except:
+#                 pass
+# # %%
+# # Move os Videos para a pasta correta...
+# sleep(600 * 6)
 # done = []
 # for item in checkpoint_serie:
 #     vidExt = ['.mp4', '.mkv', '.avi']
 #     vidName = checkpoint_serie[item]['OriginalSrtName']
 #     vidName = vidName.replace('.srt', '')
 #     vidNewName = checkpoint_serie[item]['NewVidName']
-
 #     for root, folder, arq in walk(BaseCompletDownload):
 #         for i in vidExt:
 #             if isfile(root + '\\' + vidName + i) and not vidName.endswith('.mp4'):
@@ -431,11 +494,10 @@ if __name__ == '__main__':
 #             print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
 #         pass
 #     pass
-
 # for item in checkpoint_serie:
 #     playlist(item)
 #     pass
-
 # for d in done:
 #     chdir(BaseDownloadFolder)
 #     deleteline_DICT_JSON(d)
+# clearMess()
