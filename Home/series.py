@@ -157,27 +157,83 @@ def folderCreation(reg):
 
 
 def srtMoveCopy(reg):
-    origin = BaseDownloadFolder + '\\' + \
-        checkpoint_serie[reg]['OriginalSrtName']
-    destinyStorage = BaseFirstPermanentBackup + \
-        '\\' + checkpoint_serie[reg]['NewSrtName'] + '.str'
-    destiny = BaseSecondKeep + '\\' + \
-        checkpoint_serie[reg]['NewSrtName'] + '.str'
+    vidOriginalName = checkpoint_serie['OriginalSrtName']
+    title = checkpoint_serie[reg]['Title']
+    season = checkpoint_serie[reg]['Season']
+    episode = checkpoint_serie[reg]['NewVidName']
+    ext = 'srt'
+
+    origin = '{0}\\{1}'.format(
+        BaseDownloadFolder,
+        vidOriginalName
+    )
+
+    destinyStorage = '{0}\\{1}\\{2}\\{3}.{4}'.format(
+        BaseFirstPermanentBackup,
+        title,
+        season,
+        episode,
+        ext
+    )
+
+    destiny = '{0}\\{1}\\{2}\\{3}.{4}'.format(
+        BaseSecondKeep,
+        title,
+        season,
+        episode,
+        ext
+    )
+
     copyfile(origin, destiny)
     move(origin, destinyStorage)
     pass
 
 
 def torMove(reg):
-    origin = BaseDownloadFolder + '\\' + \
+    origin = '{0}\\{1}'.format(
+        BaseDownloadFolder,
         checkpoint_serie[reg]['OriginalTorName']
-    destiny = BaseTorrentToDownload + '\\' + \
+    )
+    destiny = '{0}\\{1}'.format(
+        BaseTorrentToDownload,
         checkpoint_serie[reg]['OriginalTorName']
+    )
     move(origin, destiny)
     pass
 
 
-def vidMoveCopy(reg, ext):
+def vidMoveCopy(reg, folder, ext):
+    vidOriginalName = checkpoint_serie['OriginalTorName']
+    vidOriginalName = vidOriginalName.replace('.torrent', '')
+    title = checkpoint_serie[reg]['Title']
+    season = checkpoint_serie[reg]['Season']
+    episode = checkpoint_serie[reg]['NewVidName']
+
+    origin = '{0}\\{1}.{2}'.format(
+        folder,
+        vidOriginalName,
+        ext
+    )
+
+    destinyStorage = '{0}\\{1}\\{2}\\{3}.{4}'.format(
+        BaseFirstPermanentBackup,
+        title,
+        season,
+        episode,
+        ext
+    )
+
+    destiny = '{0}\\{1}\\{2}\\{3}.{4}'.format(
+        BaseSecondKeep,
+        title,
+        season,
+        episode,
+        ext
+    )
+
+    copyfile(origin, destiny)
+    move(origin, destinyStorage)
+
     pass
 
 
