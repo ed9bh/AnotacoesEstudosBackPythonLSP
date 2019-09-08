@@ -1,5 +1,4 @@
-## Meus Auto Lisps e Programas em Python para Engenharia Civil (Infraestrutura)
-Lisps e PyScripts que eu criei desde 2006.
+## Repositório criado para estudar programação Python e AutoLISP
 
 Prezados Colegas,
 
