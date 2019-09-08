@@ -19,11 +19,13 @@ BaseFirstPermanentBackup = r'\\DNS-320\Volume_1\VIDEOS\Series'
 BaseSecondKeep = r'A:\Series'
 BaseIncomplete = r'\\DNS-320\P2P\incomplete'
 # %%
-# Funções
+# Variaveis
 
 srt_files, tor_files, interess_files = None, None, None
 checkpoint_file = 'checkpoint.json'
 checkpoint_serie = {}
+# %%
+# Funções
 
 
 def locateBase():
@@ -88,15 +90,17 @@ def checkpoint():
             se_ep = se_ep.replace('E', '_E')
             final_name = title + '_' + se_ep
 
-            checkpoint_serie[count] = {}
-            checkpoint_serie[count]['Title'] = title
-            checkpoint_serie[count]['Season'] = season[0]
-            checkpoint_serie[count]['Episode'] = epsode[0]
-            checkpoint_serie[count]['raw_name'] = raw_name
-            checkpoint_serie[count]['OriginalTorName'] = t
-            checkpoint_serie[count]['OriginalSrtName'] = s
-            checkpoint_serie[count]['NewVidName'] = final_name
-            checkpoint_serie[count]['NewSrtName'] = final_name + '.srt'
+            reg = str(count)
+
+            checkpoint_serie[reg] = {}
+            checkpoint_serie[reg]['Title'] = title
+            checkpoint_serie[reg]['Season'] = season[0]
+            checkpoint_serie[reg]['Episode'] = epsode[0]
+            checkpoint_serie[reg]['raw_name'] = raw_name
+            checkpoint_serie[reg]['OriginalTorName'] = t
+            checkpoint_serie[reg]['OriginalSrtName'] = s
+            checkpoint_serie[reg]['NewVidName'] = final_name
+            checkpoint_serie[reg]['NewSrtName'] = final_name + '.srt'
 
             count += 1
             pass
@@ -157,7 +161,7 @@ def folderCreation(reg):
 
 
 def srtMoveCopy(reg):
-    vidOriginalName = checkpoint_serie['OriginalSrtName']
+    vidOriginalName = checkpoint_serie[reg]['OriginalSrtName']
     title = checkpoint_serie[reg]['Title']
     season = checkpoint_serie[reg]['Season']
     episode = checkpoint_serie[reg]['NewVidName']
@@ -183,9 +187,21 @@ def srtMoveCopy(reg):
         episode,
         ext
     )
-
-    copyfile(origin, destiny)
-    move(origin, destinyStorage)
+    # Copia legenda...
+    try:
+        copyfile(origin, destiny)
+        pass
+    except Exception as error:
+        print('Erro ocorrido : ', str(error))
+        pass
+    sleep(3)
+    # Move legenda...
+    try:
+        move(origin, destinyStorage)
+        pass
+    except Exception as error:
+        print('Erro ocorrido : ', str(error))
+    sleep(3)
     pass
 
 
@@ -198,41 +214,58 @@ def torMove(reg):
         BaseTorrentToDownload,
         checkpoint_serie[reg]['OriginalTorName']
     )
-    move(origin, destiny)
+    try:
+        move(origin, destiny)
+        pass
+    except Exception as error:
+        print('Erro ocorrido : ', str(error))
+        pass
+    sleep(3)
     pass
 
 
-def vidMoveCopy(reg, folder, ext):
-    vidOriginalName = checkpoint_serie['OriginalTorName']
+def vidMoveCopy(reg, folder):
+    vidOriginalName = checkpoint_serie[reg]['OriginalVidName']
     vidOriginalName = vidOriginalName.replace('.torrent', '')
     title = checkpoint_serie[reg]['Title']
     season = checkpoint_serie[reg]['Season']
     episode = checkpoint_serie[reg]['NewVidName']
 
-    origin = '{0}\\{1}.{2}'.format(
+    origin = '{0}\\{1}'.format(
         folder,
-        vidOriginalName,
-        ext
+        vidOriginalName
     )
 
-    destinyStorage = '{0}\\{1}\\{2}\\{3}.{4}'.format(
+    destinyStorage = '{0}\\{1}\\{2}\\{3}'.format(
         BaseFirstPermanentBackup,
         title,
         season,
-        episode,
-        ext
+        episode
     )
 
-    destiny = '{0}\\{1}\\{2}\\{3}.{4}'.format(
+    destiny = '{0}\\{1}\\{2}\\{3}'.format(
         BaseSecondKeep,
         title,
         season,
-        episode,
-        ext
+        episode
     )
 
-    copyfile(origin, destiny)
-    move(origin, destinyStorage)
+    # Copia video...
+    try:
+        copyfile(origin, destiny)
+        pass
+    except Exception as error:
+        print('Erro ocorrido : ', str(error))
+        pass
+    sleep(3)
+    # Move video...
+    try:
+        move(origin, destinyStorage)
+        pass
+    except Exception as error:
+        print('Erro ocorrido : ', str(error))
+    sleep(3)
+    pass
 
     pass
 
@@ -242,10 +275,145 @@ def clearMess():
     pass
 
 
+def playlist(reg):
+    day = datetime.now().day
+    month = datetime.now().month
+    year = datetime.now().year
+
+    title = checkpoint_serie[reg]['Title']
+    season = checkpoint_serie[reg]['Season']
+    episode = checkpoint_serie[reg]['NewVidName']
+    vidFile = f'{title}/{season}/{episode}'
+
+    plName = f'{year}_{month:02d}_{day:02d}-TV.m3u'
+
+    arq = BaseSecondKeep + '\\' + plName
+
+    with open(arq, 'a+') as target:
+        target.write(vidFile)
+        target.write('\n')
+        pass
+    pass
+
+
+def directDownload():
+    print('Não implementado...')
+    pass
+
+
 # %%
-chdir(BaseDownloadFolder)
-unzipFiles()
-locateBase()
-garbage()
-locateBase()
-checkpoint()
+# Programa
+if __name__ == '__main__':
+
+    # Acessa pasta principal
+    chdir(BaseDownloadFolder)
+
+    # Descompacta arquivos
+    unzipFiles()
+
+    # Localiza arquivos de interesse
+    locateBase()
+
+    # Limpa arquivos indesejaveis
+    garbage()
+
+    # Atualiza lista de arquivos
+    locateBase()
+
+    # Cria ou Carrega o cronograma de downloads
+    if isfile(BaseDownloadFolder + '\\' + checkpoint_file):
+        load_checkpoint()
+        pass
+    else:
+        checkpoint()
+        pass
+
+    for item in checkpoint_serie:
+
+        folderCreation(item)
+
+        torMove(item)
+
+        srtMoveCopy(item)
+
+        pass
+
+    sleep(600 * 6)
+
+    done = []
+
+    for item in checkpoint_serie:
+        vidExt = ['.mp4', '.mkv', '.avi']
+        vidName = checkpoint_serie[item]['OriginalSrtName']
+        vidName = vidName.replace('.srt', '')
+        vidNewName = checkpoint_serie[item]['NewVidName']
+        for i in vidExt:
+            if isfile(BaseCompletDownload + '\\' + vidName + i) and not vidName.endswith('.mp4'):
+                checkpoint_serie[item]['OriginalVidName'] = vidName + i
+                checkpoint_serie[item]['NewVidName'] = vidNewName + i
+                print(checkpoint_serie[item]['OriginalVidName'])
+                print(checkpoint_serie[item]['NewVidName'])
+                pass
+            pass
+        
+        for root, folder, arq in walk(BaseCompletDownload):
+            try:
+                if isfile(root + '\\' + checkpoint_serie[item]['OriginalVidName']):
+                    vidMoveCopy(item, root)
+                    playlist(item)
+                    done.append(item)
+                    pass
+                pass
+            except Exception as error:
+                print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
+            pass
+        pass
+
+for d in done:
+    deleteline_DICT_JSON(d)
+
+clearMess()
+
+# %%
+quit()
+# %%
+# Testes
+# %%
+done = []
+for item in checkpoint_serie:
+    vidExt = ['.mp4', '.mkv', '.avi']
+    vidName = checkpoint_serie[item]['OriginalSrtName']
+    vidName = vidName.replace('.srt', '')
+    vidNewName = checkpoint_serie[item]['NewVidName']
+    for i in vidExt:
+        if isfile(BaseCompletDownload + '\\' + vidName + i) and not vidName.endswith('.mp4'):
+            checkpoint_serie[item]['OriginalVidName'] = vidName + i
+            checkpoint_serie[item]['NewVidName'] = vidNewName + i
+            print(checkpoint_serie[item]['OriginalVidName'])
+            print(checkpoint_serie[item]['NewVidName'])
+            pass
+        pass
+    
+    for root, folder, arq in walk(BaseCompletDownload):
+        try:
+            if isfile(root + '\\' + checkpoint_serie[item]['OriginalVidName']):
+                vidMoveCopy(item, root)
+                playlist(item)
+                done.append(item)
+                pass
+            pass
+        except Exception as error:
+            print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
+        pass
+    pass
+
+for d in done:
+    deleteline_DICT_JSON(d)
+ 
+
+# %%
+# chdir(BaseCompletDownload)
+# corrigir = glob('*.mp4')
+# for c in corrigir:
+#     new = c.replace('Nine.Nine', 'Nine-Nine')
+#     rename(c, new)
