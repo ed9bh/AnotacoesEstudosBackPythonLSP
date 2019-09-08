@@ -296,9 +296,19 @@ def vidMoveCopy(reg, folder):
     pass
 
 
-def clearMess():
+def clearMess(x):
     print('Apagando Checkpoint...')
-    remove(BaseDownloadFolder + '\\' + checkpoint_file)
+    if x == True:
+        remove(BaseDownloadFolder + '\\' + checkpoint_file)
+    else:
+        delList = glob(BaseDownloadFolder + '\\' + '*.*')
+        for erase in delList:
+            try:
+                remove(erase)
+                pass
+            except Exception as error:
+                print(error)
+            pass
     pass
 
 
@@ -335,26 +345,34 @@ def directDownload():
 if __name__ == '__main__':
 
     # Acessa pasta principal
+    print(f'Progresso {datetime.now()}')
     chdir(BaseDownloadFolder)
 
     # Descompacta arquivos
+    print(f'Progresso {datetime.now()}')
     unzipFiles()
 
     # Localiza arquivos de interesse
+    print(f'Progresso {datetime.now()}')
     locateBase()
 
     # Limpa arquivos indesejaveis
+    print(f'Progresso {datetime.now()}')
     garbage()
 
     # Atualiza lista de arquivos
+    print(f'Progresso {datetime.now()}')
     locateBase()
 
     # Cria ou Carrega o cronograma de downloads
+    print(f'Progresso {datetime.now()}')
     if isfile(BaseDownloadFolder + '\\' + checkpoint_file):
+        reStart = True
         load_checkpoint()
         pass
     else:
         checkpoint()
+        reStart = False
         pass
 
     for item in checkpoint_serie:
@@ -368,6 +386,7 @@ if __name__ == '__main__':
         pass
 
     # Tratamento para nomes errados
+    print(f'Progresso {datetime.now()}')
     chave = True
     if chave is True:
         chdir(BaseCompletDownload)
@@ -385,6 +404,7 @@ if __name__ == '__main__':
                     pass
 
     # Move os Videos para a pasta correta...
+    print(f'Progresso {datetime.now()}')
     sleep(600 * 6)
 
     done = []
@@ -424,86 +444,8 @@ if __name__ == '__main__':
         chdir(BaseDownloadFolder)
         deleteline_DICT_JSON(d)
 
-    clearMess()
-
-# # %%
-# # Acessa pasta principal
-# chdir(BaseDownloadFolder)
-# # %%
-# # Descompacta arquivos
-# unzipFiles()
-# # %%
-# # Localiza arquivos de interesse
-# locateBase()
-# # %%
-# # Limpa arquivos indesejaveis
-# garbage()
-# # %%
-# # Atualiza lista de arquivos
-# locateBase()
-# # %%
-# # Cria ou Carrega o cronograma de downloads
-# if isfile(BaseDownloadFolder + '\\' + checkpoint_file):
-#     load_checkpoint()
-#     pass
-# else:
-#     checkpoint()
-#     pass
-# for item in checkpoint_serie:
-#     folderCreation(item)
-#     torMove(item)
-#     srtMoveCopy(item)
-#     pass
-# # %%
-# # Tratamento para nomes errados
-# chave = True
-# if chave is True:
-#     chdir(BaseCompletDownload)
-#     corrigir = glob(pathname='*.mkv') + \
-#         glob(pathname='*.mp4') + glob(pathname='*.avi')
-#     errados = ['Nine.Nine']
-#     corretos = ['Nine-Nine']
-#     for c in corrigir:
-#         for e, c in zip(errados, corretos):
-#             new = c.replace(e, c)
-#             try:
-#                 rename(c, new)
-#                 pass
-#             except:
-#                 pass
-# # %%
-# # Move os Videos para a pasta correta...
-# sleep(600 * 6)
-# done = []
-# for item in checkpoint_serie:
-#     vidExt = ['.mp4', '.mkv', '.avi']
-#     vidName = checkpoint_serie[item]['OriginalSrtName']
-#     vidName = vidName.replace('.srt', '')
-#     vidNewName = checkpoint_serie[item]['NewVidName']
-#     for root, folder, arq in walk(BaseCompletDownload):
-#         for i in vidExt:
-#             if isfile(root + '\\' + vidName + i) and not vidName.endswith('.mp4'):
-#                 checkpoint_serie[item]['OriginalVidName'] = vidName + i
-#                 checkpoint_serie[item]['NewVidName'] = vidNewName + i
-#                 print(checkpoint_serie[item]['OriginalVidName'])
-#                 print(checkpoint_serie[item]['NewVidName'])
-#                 pass
-#             pass
-#         try:
-#             if isfile(root + '\\' + checkpoint_serie[item]['OriginalVidName']):
-#                 vidMoveCopy(item, root)
-#                 playlist(item)
-#                 done.append(item)
-#                 pass
-#             pass
-#         except Exception as error:
-#             print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
-#         pass
-#     pass
-# for item in checkpoint_serie:
-#     playlist(item)
-#     pass
-# for d in done:
-#     chdir(BaseDownloadFolder)
-#     deleteline_DICT_JSON(d)
-# clearMess()
+    print(f'Progresso {datetime.now()}')
+    if reStart == True:
+        clearMess(True)
+    elif reStart == False:
+        clearMess(False)
