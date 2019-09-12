@@ -1,4 +1,4 @@
-;;;Cria polilinha amarrada em 'points' e 'blocks' e se for sua opÁ„o tambÈm filtra por layer.
+;;;Cria polilinha amarrada em 'points' e 'blocks' e se for sua op√ß√£o tamb√©m filtra por layer.
 (defun c:sml3d()(c:smartline3d))
 (defun c:smartline3d()
   (vl-load-com)
@@ -30,7 +30,7 @@
 	  ss(ssget"w"
 		  (list(-(car point)100)(-(cadr point)100))(list(+(car point)100)(+(cadr point)100))
 		  (if lay
-		    (list'(0 . "insert,point")(cons 8 lay))
+		    (list'(0 . "insert,point,AECC_COGO_POINT")(cons 8 lay))
 		    '((0 . "insert,point,AECC_COGO_POINT"))
 		    )
 		  )
@@ -97,7 +97,7 @@
 	)
   (redraw)
   (vla-put-layer pl lay)
-  (princ(strcat"\nExtens„o = "(rtos(vlax-get pl 'Length)2)" - Layer = "(vlax-get pl 'Layer)" - Cor = "(rtos(vlax-get pl 'Color)2 0)"\n"))
+  (princ(strcat"\nExtens√£o = "(rtos(vlax-get pl 'Length)2)" - Layer = "(vlax-get pl 'Layer)" - Cor = "(rtos(vlax-get pl 'Color)2 0)"\n"))
   (gc)
   (princ)
   )
@@ -107,8 +107,8 @@ DESENVOLVEDOR: ERIC DRUMOND - 02/2018
 CONTATO:
 	EMAIL:	ericdrumond@gmail.com
 	
-Este Lisp foi importante pra vocÍ e quer fazer uma doaÁ„o? https://goo.gl/5yor73
+Este Lisp foi importante pra voc√™ e quer fazer uma doa√ß√£o? https://goo.gl/5yor73
 -----------------------------------------------------------------------------------------------
-OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M¡S N√O TIRE A PROPRIEDADE DESTE LISP. :)
+OBRIGADO POR UTILIZAR ESTE LISP, DIVULGUE E MODIFIQUE M√ÅS N√ÉO TIRE A PROPRIEDADE DESTE LISP. :)
 -----------------------------------------------------------------------------------------------
 |;
