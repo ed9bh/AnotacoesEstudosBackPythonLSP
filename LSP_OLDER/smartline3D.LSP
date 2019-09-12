@@ -1,6 +1,6 @@
 ;;;Cria polilinha amarrada em 'points' e 'blocks' e se for sua opção também filtra por layer.
-(defun c:sml()(c:smartline))
-(defun c:smartline()
+(defun c:sml3d()(c:smartline3d))
+(defun c:smartline3d()
   (vl-load-com)
   (if(setq memo(vl-file-size(strcat(getvar"dwgprefix")(getvar"dwgname"))))(alloc(* memo 4)))
   (princ"\nSomente em pontos e blocos!!!")
@@ -19,7 +19,7 @@
   (while
     (setq point(progn(initget 128"Undo")
 		 (if pointList
-		   (getpoint(car pointList)"\rClique proximo ao ponto<Undo>: ")
+		   (getpoint(car pointList)"\tClique proximo ao ponto<Undo>: ")
 		   (getpoint"\tClique proximo ao ponto<Undo>: "))
 		 )
 	  )
@@ -31,24 +31,35 @@
 		  (list(-(car point)100)(-(cadr point)100))(list(+(car point)100)(+(cadr point)100))
 		  (if lay
 		    (list'(0 . "insert,point")(cons 8 lay))
-		    '((0 . "insert,point"))
+		    '((0 . "insert,point,AECC_COGO_POINT"))
 		    )
 		  )
 	  p(if ss
-	     (mapcar'(lambda(x)(list(car(setq a(vlax-get(vlax-ename->vla-object(cadr x))
-							(if(=(vlax-get(vlax-ename->vla-object(cadr x))'ObjectName)"AcDbPoint")
-							  'Coordinates
-							  'InsertionPoint
-							  )
-							)))(cadr a) 0))
+	     (mapcar'(lambda(x)
+;		       (list(car(setq a(vlax-get(vlax-ename->vla-object(cadr x))
+;;;							(if(=(vlax-get(vlax-ename->vla-object(cadr x))'ObjectName)"AcDbPoint")
+;;;							  'Coordinates
+;;;							  'InsertionPoint
+;;;							  )
+;;;							)))(cadr a) (caddr a))
+;		       (if(=(vlax-get(vlax-ename->vla-object(cadr x))'ObjectName)"AcDbPoint")
+;			 (vlax-get(vlax-ename->vla-object(cadr x))'Coordinates)
+;			 (vlax-get(vlax-ename->vla-object(cadr x))'InsertionPoint)
+;			 )
+		       (cond
+			 ((=(vlax-get(vlax-ename->vla-object(cadr x))'ObjectName)"AcDbPoint")(vlax-get(vlax-ename->vla-object(cadr x))'Coordinates))
+			 ((=(vlax-get(vlax-ename->vla-object(cadr x))'ObjectName)"AcDbBlockReference")(vlax-get(vlax-ename->vla-object(cadr x))'InsertionPoint))
+			 ((=(vlax-get(vlax-ename->vla-object(cadr x))'ObjectName)"AeccDbCogoPoint")(vlax-get(vlax-ename->vla-object(cadr x))'Location))
+			 )
+		       )
 		    (cdr(reverse(ssnamex ss)))
 		    )
 	     )
 	  p(if ss
 	     (vl-sort p
 		      (function(lambda(a1 a2)
-				 (<(distance point a1)
-				   (distance point a2))
+				 (<(distance point (list (car a1) (cadr a1)))
+				   (distance point (list (car a2) (cadr a2))))
 				 )
 			       )
 		      )
@@ -61,7 +72,7 @@
     (if(= point"Undo")
       (princ)
       (if p
-	(setq pointList(vl-list*(list(car p)(cadr p))pointList)))
+	(setq pointList(vl-list* p pointList)))
       )
     (if(and
 	 (equal(car(car pointList))(car(cadr pointList))0)
@@ -74,7 +85,7 @@
     (if(>=(length pointList)2)(mapcar'(lambda(a b)(grdraw a b 12))(reverse(cdr(reverse pointList)))(cdr pointList)))
     )
   (setq pl
-	 (vla-addLightweightPolyline
+	 (vla-add3DPoly
 	   space
 	   (vlax-make-variant
 	     (vlax-safearray-fill
@@ -84,15 +95,15 @@
 	     )
 	   )
 	)
-  (vla-put-layer pl lay)
   (redraw)
+  (vla-put-layer pl lay)
   (princ(strcat"\nExtensão = "(rtos(vlax-get pl 'Length)2)" - Layer = "(vlax-get pl 'Layer)" - Cor = "(rtos(vlax-get pl 'Color)2 0)"\n"))
   (gc)
   (princ)
   )
 
 ;|
-DESENVOLVEDOR: ERIC DRUMOND - 02/2015
+DESENVOLVEDOR: ERIC DRUMOND - 02/2018
 CONTATO:
 	EMAIL:	ericdrumond@gmail.com
 	
