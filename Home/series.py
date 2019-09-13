@@ -28,6 +28,7 @@ checkpoint_serie = {}
 
 
 def locateBase():
+    chdir(BaseDownloadFolder)
     print('Listando arquivos...')
     global srt_files, tor_files, interess_files
     try:
@@ -75,9 +76,12 @@ def unzipFiles():
 
 def checkpoint():
     global srt_files, tor_files
+    chdir(BaseDownloadFolder)
     print('Criando Checkpoint...')
     count = 0
     for s, t in zip(srt_files, tor_files):
+        print(s)
+        print(t)
         if s.replace('.srt', '') == t.replace('.torrent', ''):
             raw_name = s.replace('.srt', '')
             se_ep = findall('S\d[0-9]E\d[0-9]', raw_name)[0]
@@ -101,6 +105,8 @@ def checkpoint():
             final_name = title + '_' + se_ep
 
             reg = str(count)
+
+            print(reg)
 
             checkpoint_serie[reg] = {}
             checkpoint_serie[reg]['Title'] = title
@@ -334,6 +340,20 @@ def playlist(reg):
     pass
 
 
+def realignName():
+    corrigir = glob(pathname='**/*.*', recursive=True)
+    errados = ['Nine.Nine', '.2018.']
+    corretos = ['Nine-Nine', '.']
+    for k in corrigir:
+        for e, c in zip(errados, corretos):
+            new = k.replace(e, c)
+            try:
+                rename(k, new)
+                pass
+            except:
+                pass
+
+
 def directDownload():
     print('Não implementado...')
     pass
@@ -343,76 +363,69 @@ def directDownload():
 # Programa
 if __name__ == '__main__':
 
+    # %%
     # Acessa pasta principal
     print(f'Progresso {datetime.now()}')
     chdir(BaseDownloadFolder)
-
+    # %%
     # Descompacta arquivos
     print(f'Progresso {datetime.now()}')
     unzipFiles()
-
     # Localiza arquivos de interesse
+    # %%
     print(f'Progresso {datetime.now()}')
     locateBase()
-
+    # %%
     # Limpa arquivos indesejaveis
     print(f'Progresso {datetime.now()}')
     garbage()
-
+    # %%
+    chdir(BaseDownloadFolder)
+    realignName()
+    # %%
     # Atualiza lista de arquivos
     print(f'Progresso {datetime.now()}')
     locateBase()
-
+    # %%
     # Cria ou Carrega o cronograma de downloads
     print(f'Progresso {datetime.now()}')
+    chdir(BaseDownloadFolder)
     if isfile(BaseDownloadFolder + '\\' + checkpoint_file):
+        #print('Carregando Checkpoint...')
         reStart = True
         load_checkpoint()
         pass
     else:
+        #print('Criando Checkpoint...')
         checkpoint()
         reStart = False
         pass
-
     for item in checkpoint_serie:
-
+        print(item)
+        print('Criando estrutura para {0}'.format(
+            checkpoint_serie[item]['NewVidName']))
         folderCreation(item)
-
         torMove(item)
-
         srtMoveCopy(item)
-
         pass
-
-    # Tratamento para nomes errados
-    print(f'Progresso {datetime.now()}')
-    chave = True
-    if chave is True:
-        chdir(BaseCompletDownload)
-        corrigir = glob(pathname='**/*.mkv', recursive=True) + glob(pathname='**/*.mp4', recursive=True) + glob(pathname='**/*.avi', recursive=True)
-        errados = ['Nine.Nine']
-        corretos = ['Nine-Nine']
-        for k in corrigir:
-            for e, c in zip(errados, corretos):
-                new = k.replace(e, c)
-                try:
-                    rename(k, new)
-                    pass
-                except:
-                    pass
-
+    # %%
     # Move os Videos para a pasta correta...
     print(f'Progresso {datetime.now()}')
-    sleep(600 * 6)
+    sleep(600 * len(checkpoint_serie))
+    # %%
+    # Tratamento para nomes errados
+    print(f'Progresso {datetime.now()}')
 
+    chdir(BaseCompletDownload)
+    realignName()
+
+    # %%
     done = []
-
     for item in checkpoint_serie:
         vidExt = ['.mp4', '.mkv', '.avi']
         vidName = checkpoint_serie[item]['OriginalSrtName']
         vidName = vidName.replace('.srt', '')
         vidNewName = checkpoint_serie[item]['NewVidName']
-
         for root, folder, arq in walk(BaseCompletDownload):
             for i in vidExt:
                 if isfile(root + '\\' + vidName + i) and not vidName.endswith('.mp4'):
@@ -433,15 +446,12 @@ if __name__ == '__main__':
                 print('Erro : Arquivo pode já ter sido copiado ou (' + str(error) + ')')
             pass
         pass
-
     for item in checkpoint_serie:
         playlist(item)
         pass
-
     for d in done:
         chdir(BaseDownloadFolder)
         deleteline_DICT_JSON(d)
-
     print(f'Progresso {datetime.now()}')
     if reStart == True:
         clearMess(True)
