@@ -1,3 +1,8 @@
+'''
+[X] - Feito por Eric Drumond em 2017/04 - Versão 0.1
+[X] - Alterado por Eric Drumond em 2019/09 - Versão 0.2
+'''
+
 def InicioKML():
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<kml xmlns="http://www.opengis.net/kml/2.2">\n'
@@ -5,12 +10,13 @@ def InicioKML():
             '<Document>\n'
             '<name>DWGtoKML</name>'
             '<atom:author>Eric Drumond - ed9bh</atom:author>'
-            '<phoneNumber>+55(31)9 9758-2378</phoneNumber>\n'
+            #'<phoneNumber>+55(31)9 9758-2378</phoneNumber>\n'
             '<description>DWGtoKML foi elaborado por Eric Drumond em 2017/04. Programa gratuito. Quer sua marca aqui, outras opções de DATUM e mais personalização? Entre em contato e solicite um orçamento.</description>\n'
             '<address>"http://br.linkedin.com/in/ericdrumond"</address>\n'
             '<atom:link href="http://br.linkedin.com/in/ericdrumond"/>\n'
             + Styles
             )
+
 def FinalKML():
     return ('</Document>\n'
             '</kml>')
@@ -39,6 +45,7 @@ def Polilinha(Descricao=str, Cor=str, ListaLatitudeLongitude=[]):
 
     for coord in ListaLatitudeLongitude:
         polylinha += ("\n{},{}".format(coord[0], coord[1]))
+
     polylinha = polylinha + ('\n</coordinates>\n'
                              '</LineString>\n'
                              '</Placemark>\n'
@@ -76,27 +83,39 @@ def Hatch(Descricao=str, Cor=str, ListaLatitudeLongitude=[]):
     return hatch
 
 
-def corCadHex(cor=int):
+def corCadHex(cor):
     if cor == 1:
-        return "red"
+      return "red"
     elif cor == 2:
-        return "yellow"
+      return "yellow"
     elif cor == 3:
-        return "green"
+      return "green"
     elif cor == 4:
-        return "cyan"
+      return "cyan"
     elif cor == 5:
-        return "blue"
+      return "blue"
     elif cor == 6:
-        return "magenta"
+      return "magenta"
     elif cor == 7:
-        return "white"
+      return "white"
     elif cor == 8:
-        return "grey"
+      return "grey"
     elif cor == 9:
-        return "darkGrey"
-    elif cor == 10:
-        return "darkRed"
+      return "darkGrey"
+    elif cor >= 10 and cor <= 29:
+      return "darkRed"
+    elif cor >= 30 and cor <= 52:
+      return "darkYellow"
+    elif cor >= 53 and cor <= 119:
+      return "darkGreen"
+    elif cor >= 120 and cor <= 149:
+      return "darkCyan"
+    elif cor >= 150 and cor <= 199:
+      return "darkBlue"
+    elif cor >= 200 and cor <= 249:
+      return "pink"
+    elif cor >= 250 and cor <= 255:
+      return "darkGrey"
     else:
         return "black"
 
