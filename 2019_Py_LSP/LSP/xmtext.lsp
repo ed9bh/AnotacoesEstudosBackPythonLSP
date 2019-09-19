@@ -28,11 +28,16 @@
                         )
                         
                         (vlax-put Entity 'Layer Layer)
+                        (vl-catch-all-apply 'vlax-put (list Entity 'TextAlignmentPoint PointInsertAlig))
                         (vlax-put Entity 'Height Height)
                         (vlax-put Entity 'Rotation Rotation)
                         (vlax-put Entity 'TrueColor Color)
                         (vlax-put Entity 'StyleName Style)
                         (vlax-put Entity 'BackgroundFill -1)
+                        
+                        (setq eEntity (entget(vlax-vla-object->ename Entity)))
+
+                        (entmod (subst (cons 45 1) (assoc 45 eEntity) eEntity))
 
                         (vla-Delete vx)
                     )
