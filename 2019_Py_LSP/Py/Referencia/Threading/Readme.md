@@ -3,10 +3,6 @@
 Conteudo adaptado por mim.
 
 * [x] Aula 001
-* [ ] Aula 002
-* [ ] Aula 003
-* [ ] Aula 004
-* [ ] Aula 005
 
 ---
     Aulas originais nos links abaixo :

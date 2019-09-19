@@ -1,6 +1,5 @@
 #%%
 from time import sleep
-
 #%%
 c = 0
 f = 60
