@@ -1,25 +1,42 @@
 # %%
-from os import chdir, mkdir
+from os import chdir, mkdir, listdir
 from os.path import isdir
+from glob import glob
 import pandas as pd
 import pandas_datareader as pdr
 import matplotlib.pyplot as plt
 from matplotlib import dates as mpl_dates
+from pandas.plotting import register_matplotlib_converters
 from time import sleep
 
+# try:
+# from selenium import webdriver
+# sleep(1)
+# SLNM = True
+# print('Selenium Carregado...')
+# pass
+# except ModuleNotFoundError:
+# SLNM = False
+# print('Não foi possivel carregar Selenium...')
+
+register_matplotlib_converters()
+plt.style.use("seaborn")
 # %%
-chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\fii')
+Base_Dir = r'A:\_Projetos\AnotacoesEstudosBackPythonLSP/Home/fii'
 folder = 'logFiles'
 
-data_sheet = pd.read_excel('Lista_FII.xlsx')
+data_sheet = pd.read_excel(Base_Dir + '/' + 'Lista_FII.xlsx')
+chdir(Base_Dir)
 
 if isdir(folder) == False:
     mkdir(folder)
-
+    pass
 
 # %%
+# #Web_Search_Link = 'https://www.fundsexplorer.com.br/funds/'
+# Rent_XPath = '//*[@id="main-indicators-carousel"]/div/div/div[2]/span[2]'
 
-plt.style.use('seaborn')
+# %%
 
 for item in data_sheet['Ticker']:
     try:
@@ -53,11 +70,32 @@ for item in data_sheet['Ticker']:
 
         plt.close()
 
+        # if SLNM is True:
+        # browser = webdriver.Chrome(r'A:\chromedriver.exe')
+        # pass
+
+        # browser.get(Web_Search_Link + item + '11')
+
+        # sleep(1)
+
+        # #AluguelMes = browser.find_element_by_xpath(Rent_XPath)
+
+        # browser.quit()
+
+        with open(folder + '/Report.txt', 'a+') as ReportFile:
+            ReportFile.write(item + '11')
+            # ReportFile.write('\t')
+            # ReportFile.write(AluguelMes.text)
+            ReportFile.write('\t')
+            ReportFile.write(str(df['Adj Close'][-1]))
+            ReportFile.write('\n')
+
         print('Finalizado...')
 
-        sleep(60)
+        sleep(30)
 
         pass
     except Exception as error:
         print(error)
         sleep(10)
+        pass
