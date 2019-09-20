@@ -23,6 +23,8 @@ plt.style.use('seaborn')
 
 for item in data_sheet['Ticker']:
     ticker = f'{item}11.SA'
+
+    print(f'Começando {ticker}...', end='')
     df = pdr.DataReader(ticker, data_source='yahoo', start='2019-06-01')
 
     # Media Movel Aritimetica
@@ -47,5 +49,7 @@ for item in data_sheet['Ticker']:
     plt.title(f'Estudo do \"{ticker}\"')
 
     plt.savefig(folder + '/' + ticker + '.png')
+
+    print('Finalizado...')
 
     sleep(60)
