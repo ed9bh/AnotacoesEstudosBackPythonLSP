@@ -9,3 +9,6 @@
 
 ;;; IntersectWith
 (vlax-variant-value (vla-IntersectWith (vlax-ename->vla-object(car(entsel))) (vlax-ename->vla-object(car(entsel))) acExtendNone))
+
+;;; Center
+(safearray-value (vlax-variant-value(vla-get-center (vlax-ename->vla-object(car(entsel)))))
