@@ -22,34 +22,42 @@ if isdir(folder) == False:
 plt.style.use('seaborn')
 
 for item in data_sheet['Ticker']:
-    ticker = f'{item}11.SA'
+    try:
+        ticker = f'{item}11.SA'
 
-    print(f'Começando {ticker}...', end='')
-    df = pdr.DataReader(ticker, data_source='yahoo', start='2019-06-01')
+        print(f'Começando {ticker}...', end='')
+        df = pdr.DataReader(ticker, data_source='yahoo', start='2019-06-01')
 
-    # Media Movel Aritimetica
+        # Media Movel Aritimetica
 
-    df['MMA10'] = df['Adj Close'].rolling(10).mean()
-    df['MMA30'] = df['Adj Close'].rolling(30).mean()
-    df['MMA60'] = df['Adj Close'].rolling(60).mean()
+        df['MMA10'] = df['Adj Close'].rolling(10).mean()
+        df['MMA30'] = df['Adj Close'].rolling(30).mean()
+        df['MMA60'] = df['Adj Close'].rolling(60).mean()
 
-    # Graficos
+        # Graficos
 
-    plt.plot(df['Adj Close'], color='Blue', label='Adj Close')
-    plt.plot(df['MMA10'], color='Yellow', label='MMA_10')
-    plt.plot(df['MMA30'], color='Orange', label='MMA_30')
-    plt.plot(df['MMA60'], color='Red', label='MMA_60')
+        plt.plot(df['Adj Close'], color='Blue', label='Adj Close')
+        plt.plot(df['MMA10'], color='Yellow', label='MMA_10')
+        plt.plot(df['MMA30'], color='Orange', label='MMA_30')
+        plt.plot(df['MMA60'], color='Red', label='MMA_60')
 
-    plt.gcf().autofmt_xdate()
-    date_format = mpl_dates.DateFormatter('%b, %d, %Y')
-    plt.gca().xaxis.set_major_formatter(date_format)
+        plt.gcf().autofmt_xdate()
+        date_format = mpl_dates.DateFormatter('%b, %d, %Y')
+        plt.gca().xaxis.set_major_formatter(date_format)
 
-    plt.legend()
+        plt.legend()
 
-    plt.title(f'Estudo do \"{ticker}\"')
+        plt.title(f'Estudo do \"{ticker}\"')
 
-    plt.savefig(folder + '/' + ticker + '.png')
+        plt.savefig(folder + '/' + ticker + '.png')
 
-    print('Finalizado...')
+        plt.close()
 
-    sleep(60)
+        print('Finalizado...')
+
+        sleep(60)
+
+        pass
+    except Exception as error:
+        print(error)
+        sleep(10)

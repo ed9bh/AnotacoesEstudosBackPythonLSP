@@ -1,3 +1,5 @@
 2019_Py_LSP/**/*._ls
 2019_Py_LSP/**/*.png
-2019_Py_LSP/**/*.xlsx
+**/*.png
+**/*._ls
+**/*.xlsx
