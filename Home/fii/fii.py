@@ -68,7 +68,7 @@ for item in data_sheet['Ticker']:
         AluguelMes = '-'
 
         try:
-            page = requests.get(Web_Search_Link + 'ALZR11')
+            page = requests.get(Web_Search_Link + ticker)
             tree = html.fromstring(page.content)
             AluguelMes = tree.xpath(Rent_XPath)[0].text
             AluguelMes = AluguelMes.split(' ')
