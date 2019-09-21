@@ -8,16 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib import dates as mpl_dates
 from pandas.plotting import register_matplotlib_converters
 from time import sleep, perf_counter
-
-# try:
-# from selenium import webdriver
-# sleep(1)
-# SLNM = True
-# print('Selenium Carregado...')
-# pass
-# except ModuleNotFoundError:
-# SLNM = False
-# print('Não foi possivel carregar Selenium...')
+from lxml import html
+import requests
 
 register_matplotlib_converters()
 plt.style.use("seaborn")
@@ -35,8 +27,8 @@ if isdir(folder) == False:
     pass
 
 # %%
-# #Web_Search_Link = 'https://www.fundsexplorer.com.br/funds/'
-# Rent_XPath = '//*[@id="main-indicators-carousel"]/div/div/div[2]/span[2]'
+Web_Search_Link = 'https://www.fundsexplorer.com.br/funds/'
+Rent_XPath = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[2]'
 
 # %%
 
@@ -73,22 +65,21 @@ for item in data_sheet['Ticker']:
 
         plt.close()
 
-        # if SLNM is True:
-        # browser = webdriver.Chrome(r'A:\chromedriver.exe')
-        # pass
-
-        # browser.get(Web_Search_Link + item + '11')
-
-        # sleep(1)
-
-        # #AluguelMes = browser.find_element_by_xpath(Rent_XPath)
-
-        # browser.quit()
+        try:
+            page = requests.get(Web_Search_Link + 'ALZR11')
+            tree = html.fromstring(page.content)
+            AluguelMes = tree.xpath(Rent_XPath)[0].text
+            AluguelMes = AluguelMes.split(' ')
+            AluguelMes = AluguelMes[1]
+            pass
+        except Exception as error:
+            print(error)
+            AluguelMes = '-'
 
         with open(folder + '/Report.txt', 'a+') as ReportFile:
             ReportFile.write(item + '11')
-            # ReportFile.write('\t')
-            # ReportFile.write(AluguelMes.text)
+            ReportFile.write('\t')
+            ReportFile.write(AluguelMes)
             ReportFile.write('\t')
             ReportFile.write(str(df['Adj Close'][-1]))
             ReportFile.write('\n')
