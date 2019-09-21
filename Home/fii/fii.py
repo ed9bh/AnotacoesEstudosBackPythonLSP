@@ -7,7 +7,7 @@ import pandas_datareader as pdr
 import matplotlib.pyplot as plt
 from matplotlib import dates as mpl_dates
 from pandas.plotting import register_matplotlib_converters
-from time import sleep
+from time import sleep, perf_counter
 
 # try:
 # from selenium import webdriver
@@ -22,6 +22,8 @@ from time import sleep
 register_matplotlib_converters()
 plt.style.use("seaborn")
 # %%
+TotalStart_Time = perf_counter()
+
 Base_Dir = r'A:\_Projetos\AnotacoesEstudosBackPythonLSP/Home/fii'
 folder = 'logFiles'
 
@@ -39,6 +41,7 @@ if isdir(folder) == False:
 # %%
 
 for item in data_sheet['Ticker']:
+    start = perf_counter()
     try:
         ticker = f'{item}11.SA'
 
@@ -90,12 +93,24 @@ for item in data_sheet['Ticker']:
             ReportFile.write(str(df['Adj Close'][-1]))
             ReportFile.write('\n')
 
-        print('Finalizado...')
+        print('Finalizado...', end='')
 
-        sleep(30)
+        sleep(63)
 
         pass
     except Exception as error:
         print(error)
-        sleep(10)
+        sleep(243)
         pass
+
+    finish = perf_counter()
+
+    print(f'Processado em {finish - start:0.2f}...')
+
+# %%
+
+TotalFinish_Time = perf_counter()
+
+Total_Time = TotalFinish_Time - TotalStart_Time
+
+print(f'\n\n\nApp Finalizado em {Total_Time:0.2f}...')
