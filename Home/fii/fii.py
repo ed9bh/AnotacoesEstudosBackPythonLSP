@@ -65,6 +65,8 @@ for item in data_sheet['Ticker']:
 
         plt.close()
 
+        AluguelMes = '-'
+
         try:
             page = requests.get(Web_Search_Link + 'ALZR11')
             tree = html.fromstring(page.content)
@@ -74,7 +76,6 @@ for item in data_sheet['Ticker']:
             pass
         except Exception as error:
             print(error)
-            AluguelMes = '-'
 
         with open(folder + '/Report.txt', 'a+') as ReportFile:
             ReportFile.write(item + '11')
