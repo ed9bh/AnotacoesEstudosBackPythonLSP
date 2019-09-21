@@ -17,11 +17,16 @@ plt.style.use("seaborn")
 # %%
 TotalStart_Time = perf_counter()
 
-Base_Dir = r'A:\_Projetos\AnotacoesEstudosBackPythonLSP/Home/fii'
+chdir(Base_Dir)
+
+Base_Dir = r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\fii'
 folder = 'logFiles'
 
+if isdir(Base_Dir) == False:
+    print('Necessário implementar outro diretorio...')
+    quit()
+
 data_sheet = pd.read_excel(Base_Dir + '/' + 'Lista_FII.xlsx')
-chdir(Base_Dir)
 
 if isdir(folder) == False:
     mkdir(folder)
@@ -40,6 +45,12 @@ for item in data_sheet['Ticker']:
 
         print(f'Começando {ticker}...', end='')
         df = pdr.DataReader(ticker, data_source='yahoo', start='2019-01-01')
+
+        try:
+            df.to_excel(Base_Dir + '/' + folder + '/' + ticker + '.xlsx')
+            pass
+        except:
+            pass
 
         # Media Movel Aritimetica
 
