@@ -10,6 +10,7 @@ from pandas.plotting import register_matplotlib_converters
 from time import sleep, perf_counter
 from lxml import html
 import requests
+from random import randint
 
 register_matplotlib_converters()
 plt.style.use("seaborn")
@@ -87,12 +88,12 @@ for item in data_sheet['Ticker']:
 
         print('Finalizado...', end='')
 
-        sleep(63)
+        sleep(randint(60, 70))
 
         pass
     except Exception as error:
         print(error)
-        sleep(243)
+        sleep(randint(250, 300))
         pass
 
     finish = perf_counter()
