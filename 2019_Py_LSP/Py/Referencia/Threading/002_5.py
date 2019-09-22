@@ -1,7 +1,7 @@
 # %%
 from time import sleep, perf_counter
 from PIL import Image, ImageFilter
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
 from requests import get as download
 from os import mkdir
 from os.path import isdir
