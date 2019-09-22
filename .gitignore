@@ -3,3 +3,5 @@
 **/*.png
 **/*._ls
 **/Report.txt
+2019_Py_LSP/Py/Referencia/Threading/*.jpg
+2019_Py_LSP/Py/Referencia/Threading/**/*.jpg

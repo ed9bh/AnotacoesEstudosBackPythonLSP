@@ -14,7 +14,7 @@ def downloadIMG(img_url):
     with open(img_name, 'wb') as img_file:
         img_file.write(img_bytes)
         t2 = perf_counter()
-        print(f'{img_name} was downloaded at {t2 - t1} seconds...')
+        print(f'{img_name} was downloaded at {t2 - t1:0.2f} seconds...')
 
 # %%
 
