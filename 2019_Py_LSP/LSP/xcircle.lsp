@@ -1,4 +1,4 @@
-(defun c:xcircle (/ *error* main doc)
+(defun c:xcircle (/ *error* main doc centerPoint radious model c ang x y pointList)
     (vl-load-com)
     (defun main ()
         (vla-StartUndoMark (setq doc (vla-get-ActiveDocument (vlax-get-acad-object))))
@@ -21,19 +21,19 @@
             )
         )
 
-        (setq pointList(reverse pointList))
+        ;(setq pointList(reverse pointList))
 
         ;(princ pointList)
 
         (vla-addLightweightPolyline
-	   model
-	   (vlax-make-variant
-	     (vlax-safearray-fill
-	       (vlax-make-safearray vlax-vbdouble (cons 0 (1-(length (apply'append(reverse pointList))))))
-	       (apply'append(reverse pointList))
-	       )
-	     )
-	   )
+    	   model
+	       (vlax-make-variant
+	         (vlax-safearray-fill
+    	       (vlax-make-safearray vlax-vbdouble (cons 0 (1-(length (apply'append(reverse pointList))))))
+	           (apply'append(reverse pointList))
+	           )
+    	     )
+	    )
 
         (vla-EndUndoMark doc)
         (princ)
