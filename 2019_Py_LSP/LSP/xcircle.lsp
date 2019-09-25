@@ -11,7 +11,7 @@
             model (vla-get-ModelSpace doc)
         )
 
-        (repeat 359
+        (repeat 360
             (setq
                 ang (angtof (rtos c 2 0) 0)
                 x (+ (*(sin ang) radious) (nth 0 centerPoint))
