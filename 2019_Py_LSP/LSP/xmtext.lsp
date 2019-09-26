@@ -24,9 +24,9 @@
                             Color (vlax-get vx 'TrueColor)
                             Style (vlax-get vx 'StyleName)
                             Rotation (vlax-get vx 'Rotation)
-                            Entity (vla-AddMText model (vlax-3d-point PointInsert) (*(1- (strlen TString))Height) TString)
+                            Entity (vla-AddMText model (vlax-3d-point PointInsert) 0 TString)
                         )
-                        
+                        ;(*(1- (strlen TString))Height)
                         (vlax-put Entity 'Layer Layer)
                         (vl-catch-all-apply 'vlax-put (list Entity 'TextAlignmentPoint PointInsertAlig))
                         (vlax-put Entity 'Height Height)
