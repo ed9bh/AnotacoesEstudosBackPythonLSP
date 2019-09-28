@@ -17,10 +17,10 @@ plt.style.use("seaborn")
 # %%
 TotalStart_Time = perf_counter()
 
-chdir(Base_Dir)
-
 Base_Dir = r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\fii'
 folder = 'logFiles'
+
+chdir(Base_Dir)
 
 if isdir(Base_Dir) == False:
     print('Necessário implementar outro diretorio...')
