@@ -85,6 +85,7 @@ for item in data_sheet['Ticker']:
             AluguelMes = tree.xpath(Rent_XPath)[0].text
             AluguelMes = AluguelMes.split(' ')
             AluguelMes = AluguelMes[1]
+            AluguelMes = AluguelMes.replace(',', '.')
             pass
         except Exception as error:
             print(error)
