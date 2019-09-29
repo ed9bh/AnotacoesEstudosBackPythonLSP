@@ -1,7 +1,7 @@
 ##### Analise de Titulos Imobiliários FII
 ---
 Apliação para baixar informações sobre FII's e ver qual é a melhor opção relativa ao capital disponível.
-> fii.py - Extrai informações pela internet tanto para gerar os graficos quanto o ultimo valor de aluguel pago.
+> fii.py - Extrai informações pela internet tanto para gerar os graficos quanto o ultimo valor pago de aluguel.
 > AnaliseFII.py - Apenas para estudos e análises rápidas.
 ---
 **Andamento**
