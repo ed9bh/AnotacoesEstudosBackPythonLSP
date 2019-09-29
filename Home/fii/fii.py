@@ -54,7 +54,10 @@ if __name__ == '__main__':
             df['MMA30'] = df['Adj Close'].rolling(30).mean()
             df['MMA60'] = df['Adj Close'].rolling(60).mean()
 
-            df.to_csv(Base_Dir + '/' + folder + '/' + ticker + '.csv')
+            try:
+                df.to_csv(Base_Dir + '/' + folder + '/' + ticker + '.csv')
+            except Exception as error:
+                print(error, end='')
 
             # Graficos
 
@@ -86,7 +89,7 @@ if __name__ == '__main__':
                 AluguelMes = AluguelMes.replace(',', '.')
                 pass
             except Exception as error:
-                print(error)
+                print(error, end='')
 
             with open(folder + '/Report.txt', 'a+') as ReportFile:
                 ReportFile.write(item + '11')
