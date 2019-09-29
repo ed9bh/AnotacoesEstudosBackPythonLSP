@@ -1,7 +1,8 @@
 2019_Py_LSP/**/*._ls
 **/*._ls
 2019_Py_LSP/**/*.png
-**/*.png
-**/Report.txt
+home/fii/**/*.png
+home/fii/**/Report.txt
+home/fii/**/*.csv
 2019_Py_LSP/Py/Referencia/Threading/*.jpg
 2019_Py_LSP/Py/Referencia/Threading/**/*.jpg
