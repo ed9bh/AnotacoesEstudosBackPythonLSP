@@ -1,11 +1,35 @@
 # %%
 from win32com.client import GetActiveObject as GAO
 from time import sleep, localtime
+from random import randint
+# from concurrent.futures import ProcessPoolExecutor
+# from multiprocessing import Lock
 # %%
+
+
+def insistente():
+    done = False
+    while done != True:
+
+        try:
+            done = qsave()
+            pass
+        except:
+            done = False
+            r = randint(9, 18)
+            pass
+
+        if done != True:
+            print('Tentando novamente em alguns segundos...')
+            sleep(r)
+            pass
+        pass
+    pass
 
 
 def qsave():
     global count, final, WaitTime
+    print('Salvando o documento...', end='\t')
     acad = GAO('AutoCAD.Application.23')
     sleep(9)
     doc = acad.ActiveDocument
@@ -14,6 +38,7 @@ def qsave():
     doc.SendCommand('_QSAVE\n')
     now = f'{localtime().tm_hour:02d}:{localtime().tm_min:02d}:{localtime().tm_sec:02d}'
     print(f'Save {count} complete...{now} : {title}!!!')
+    return True
 
 
 # %%
@@ -23,7 +48,7 @@ if __name__ == '__main__':
     WaitTime = 600
     while count is not final:
         try:
-            qsave()
+            insistente()
             pass
         except Exception as error:
             print(error)
