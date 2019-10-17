@@ -29,3 +29,6 @@ if __name__ == '__main__':
     finish = perf_counter()
 
     print(f'Finish in {finish - start:0.2f} second(s)...')
+
+
+#%%
