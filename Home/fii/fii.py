@@ -1,5 +1,5 @@
 # %%
-from os import chdir, mkdir, listdir
+from os import chdir, mkdir, listdir, remove
 from os.path import isdir
 from glob import glob
 import pandas as pd
@@ -22,6 +22,11 @@ folder = 'logFiles'
 
 chdir(Base_Dir)
 
+try:
+    remove(folder + '/Report.txt')
+except:
+    pass
+
 if isdir(Base_Dir) == False:
     print('Necessário implementar outro diretorio...')
     quit()
@@ -34,7 +39,28 @@ if isdir(folder) == False:
 
 # %%
 Web_Search_Link = 'https://www.fundsexplorer.com.br/funds/'
-Rent_XPath = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[2]'
+Rent_Mes = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[2]'
+Rent_3_Meses = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[3]'
+Rent_6_Meses = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[4]'
+Rent_12_Meses = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[5]'
+Rent_IPO = '//*[@id="dividends"]/div/div/div[2]/div[1]/div/div/table/tbody/tr[1]/td[6]'
+Aplicacao_12_Meses = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[1]/div[2]/span[2]'
+Montante_Final_Poupanca = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[2]/div[2]/span[2]'
+Montante_Final_Fundo = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[3]/div[2]/span[2]'
+Rendimento_Insento_IRPF = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[1]/div[2]/span[2]'
+Valorizacao_Patrimonial = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[2]/div[2]/span[2]'
+Titulo_X_Poupanca = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[3]/div[2]/span[2]'
+
+Extra_Info_Lista = [Rent_Mes, Rent_3_Meses, Rent_6_Meses, Rent_12_Meses, Rent_IPO, Aplicacao_12_Meses, Montante_Final_Fundo,
+                    Montante_Final_Poupanca, Rendimento_Insento_IRPF, Valorizacao_Patrimonial, Titulo_X_Poupanca]
+
+
+with open(folder + '/Report.txt', 'a+') as ReportFile:
+    ReportFile.write(
+        'Ticker\tMes\tTrimestre\tSemestre\tAnual\tIPO\tAplicacao Ano\t' +
+        'Montante Fundo\tMont. Poupanca\tRend Insento IRPF\tValorizacao Patrimonial\tTitulo X poupanca' +
+        '\tAdj Close\n'
+    )
 
 # %%
 
@@ -83,21 +109,39 @@ if __name__ == '__main__':
             try:
                 page = requests.get(Web_Search_Link + ticker)
                 tree = html.fromstring(page.content)
-                AluguelMes = tree.xpath(Rent_XPath)[0].text
-                AluguelMes = AluguelMes.split(' ')
-                AluguelMes = AluguelMes[1]
-                AluguelMes = AluguelMes.replace(',', '.')
                 pass
             except Exception as error:
                 print(error, end='...')
 
             with open(folder + '/Report.txt', 'a+') as ReportFile:
                 ReportFile.write(item + '11')
+                for Item in Extra_Info_Lista:
+                    try:
+                        Info = tree.xpath(Item)[0].text
+                        Info = Info.split(' ')
+                        if Item is Aplicacao_12_Meses:
+                            Info = Info[0]
+                        elif Item is Titulo_X_Poupanca:
+                            Info = Info[0]
+                        elif Item is Montante_Final_Fundo:
+                            Info = Info[-1]
+                        else:
+                            Info = Info[1]
+                        Info = Info.replace('.', '')
+                        Info = Info.replace(',', '.')
+                        ReportFile.write('\t' + Info)
+                    except:
+                        ReportFile.write('\tNA')
+                        pass
+                    pass
                 ReportFile.write('\t')
-                ReportFile.write(AluguelMes)
-                ReportFile.write('\t')
-                ReportFile.write(str(df['Adj Close'][-1]))
+                adj = df['Adj Close'][-1]
+                adj = str(adj)
+                adj = adj.replace(',', '.')
+                ReportFile.write(adj)
                 ReportFile.write('\n')
+
+                # break
 
             print('Finalizado...', end='')
 
@@ -105,6 +149,10 @@ if __name__ == '__main__':
 
             pass
         except Exception as error:
+            with open(folder + '/Report.txt', 'a+') as ReportFile:
+                ReportFile.write(item + '11')
+                ReportFile.write('\tNA' * 12)
+                ReportFile.write('\n')
             print(error)
             sleep(randint(135, 270))
             pass

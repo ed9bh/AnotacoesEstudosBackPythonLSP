@@ -28,3 +28,6 @@ t2.join()
 finish = perf_counter()
 
 print(f'Finishes in {round(finish - start, 2):0.2f} seconds...')
+
+
+#%%
