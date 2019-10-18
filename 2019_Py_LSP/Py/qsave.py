@@ -44,7 +44,7 @@ def qsave():
 # %%
 if __name__ == '__main__':
     count = 0
-    final = 12
+    final = 999
     WaitTime = 600
     while count is not final:
         try:
