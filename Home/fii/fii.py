@@ -57,7 +57,7 @@ Extra_Info_Lista = [Rent_Mes, Rent_3_Meses, Rent_6_Meses, Rent_12_Meses, Rent_IP
 
 with open(folder + '/Report.txt', 'a+') as ReportFile:
     ReportFile.write(
-        'Ticker\tMês\tTrimestre\tSemestre\tAnual\tIPO\tAplicacao Ano\t' +
+        'Ticker\tMes\tTrimestre\tSemestre\tAnual\tIPO\tAplicacao Ano\t' +
         'Montante Fundo\tMont. Poupanca\tRend Insento IRPF\tValorizacao Patrimonial\tTitulo X poupanca' +
         '\tAdj Close\n'
     )
@@ -123,8 +123,11 @@ if __name__ == '__main__':
                             Info = Info[0]
                         elif Item is Titulo_X_Poupanca:
                             Info = Info[0]
+                        elif Item is Montante_Final_Fundo:
+                            Info = Info[-1]
                         else:
                             Info = Info[1]
+                        Info = Info.replace('.', '')
                         Info = Info.replace(',', '.')
                         ReportFile.write('\t' + Info)
                     except:
@@ -132,10 +135,13 @@ if __name__ == '__main__':
                         pass
                     pass
                 ReportFile.write('\t')
-                ReportFile.write(str(df['Adj Close'][-1]))
+                adj = df['Adj Close'][-1]
+                adj = str(adj)
+                adj = adj.replace(',', '.')
+                ReportFile.write(adj)
                 ReportFile.write('\n')
 
-                break
+                # break
 
             print('Finalizado...', end='')
 
@@ -143,6 +149,10 @@ if __name__ == '__main__':
 
             pass
         except Exception as error:
+            with open(folder + '/Report.txt', 'a+') as ReportFile:
+                ReportFile.write(item + '11')
+                ReportFile.write('\tNA' * 12)
+                ReportFile.write('\n')
             print(error)
             sleep(randint(135, 270))
             pass
