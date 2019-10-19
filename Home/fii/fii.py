@@ -50,16 +50,19 @@ Montante_Final_Fundo = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[3]
 Rendimento_Insento_IRPF = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[1]/div[2]/span[2]'
 Valorizacao_Patrimonial = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[2]/div[2]/span[2]'
 Titulo_X_Poupanca = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[3]/div[2]/span[2]'
+Inicio_Operacao = '//*[@id="basic-infos"]/div/div/div[2]/div/div[1]/ul/li[2]/div[2]/span[2]'
+Durabilidade = '//*[@id="basic-infos"]/div/div/div[2]/div/div[2]/ul/li[5]/div[2]/span[2]'
+Preco = '//*[@id="stock-price"]/span[1]'
 
 Extra_Info_Lista = [Rent_Mes, Rent_3_Meses, Rent_6_Meses, Rent_12_Meses, Rent_IPO, Aplicacao_12_Meses, Montante_Final_Fundo,
-                    Montante_Final_Poupanca, Rendimento_Insento_IRPF, Valorizacao_Patrimonial, Titulo_X_Poupanca]
+                    Montante_Final_Poupanca, Rendimento_Insento_IRPF, Valorizacao_Patrimonial, Titulo_X_Poupanca, Preco]
 
 
-with open(folder + '/Report.txt', 'a+') as ReportFile:
+with open(folder + '/Report.txt', 'w', encoding='UTF-8') as ReportFile:
     ReportFile.write(
-        'Ticker\tMes\tTrimestre\tSemestre\tAnual\tIPO\tAplicacao Ano\t' +
-        'Montante Fundo\tMont. Poupanca\tRend Insento IRPF\tValorizacao Patrimonial\tTitulo X poupanca' +
-        '\tAdj Close\n'
+        'Ticker\tMes\tTrimes\tSemes\tAnual\tIPO\tAplic. Ano\t' +
+        'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tVal. Patrimonial\tTitulo X Poupanca' +
+        '\tPreco\tInicio\tPrazo\n'
     )
 
 # %%
@@ -71,38 +74,41 @@ if __name__ == '__main__':
             ticker = f'{item}11.SA'
 
             print(f'Começando {ticker}...', end='')
-            df = pdr.DataReader(
-                ticker, data_source='yahoo', start='2019-01-01')
-
-            # Media Movel Aritimetica
-
-            df['MMA10'] = df['Adj Close'].rolling(10).mean()
-            df['MMA30'] = df['Adj Close'].rolling(30).mean()
-            df['MMA60'] = df['Adj Close'].rolling(60).mean()
-
             try:
-                df.to_csv(Base_Dir + '/' + folder + '/' + ticker + '.csv')
-            except Exception as error:
-                print(error, end='...')
+                df = pdr.DataReader(
+                    ticker, data_source='yahoo', start='2019-01-01')
 
-            # Graficos
+                # Media Movel Aritimetica
 
-            plt.plot(df['Adj Close'], color='Blue', label='Adj Close')
-            plt.plot(df['MMA10'], color='Yellow', label='MMA_10')
-            plt.plot(df['MMA30'], color='Orange', label='MMA_30')
-            plt.plot(df['MMA60'], color='Red', label='MMA_60')
+                df['MMA10'] = df['Adj Close'].rolling(10).mean()
+                df['MMA30'] = df['Adj Close'].rolling(30).mean()
+                df['MMA60'] = df['Adj Close'].rolling(60).mean()
 
-            plt.gcf().autofmt_xdate()
-            date_format = mpl_dates.DateFormatter('%b, %d, %Y')
-            plt.gca().xaxis.set_major_formatter(date_format)
+                try:
+                    df.to_csv(Base_Dir + '/' + folder + '/' + ticker + '.csv')
+                except Exception as error:
+                    print(error, end='...')
 
-            plt.legend()
+                # Graficos
 
-            plt.title(f'Estudo do \"{ticker}\"')
+                plt.plot(df['Adj Close'], color='Blue', label='Adj Close')
+                plt.plot(df['MMA10'], color='Yellow', label='MMA_10')
+                plt.plot(df['MMA30'], color='Orange', label='MMA_30')
+                plt.plot(df['MMA60'], color='Red', label='MMA_60')
 
-            plt.savefig(folder + '/' + ticker + '.png')
+                plt.gcf().autofmt_xdate()
+                date_format = mpl_dates.DateFormatter('%b, %d, %Y')
+                plt.gca().xaxis.set_major_formatter(date_format)
 
-            plt.close()
+                plt.legend()
+
+                plt.title(f'Estudo do \"{ticker}\"')
+
+                plt.savefig(folder + '/' + ticker + '.png')
+
+                plt.close()
+            except:
+                print('Dados não encontrados no Yahoo...', end='')
 
             AluguelMes = '-'
 
@@ -113,19 +119,27 @@ if __name__ == '__main__':
             except Exception as error:
                 print(error, end='...')
 
-            with open(folder + '/Report.txt', 'a+') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='UTF-8') as ReportFile:
                 ReportFile.write(item + '11')
                 for Item in Extra_Info_Lista:
                     try:
                         Info = tree.xpath(Item)[0].text
-                        Info = Info.split(' ')
                         if Item is Aplicacao_12_Meses:
+                            Info = Info.split(' ')
                             Info = Info[0]
                         elif Item is Titulo_X_Poupanca:
+                            Info = Info.split(' ')
                             Info = Info[0]
                         elif Item is Montante_Final_Fundo:
+                            Info = Info.split(' ')
                             Info = Info[-1]
+                        elif Item is Preco:
+                            Info = Info.replace(' ', '')
+                            Info = Info.replace('\n', '')
+                            Info = Info.replace('R$', '')
+                            pass
                         else:
+                            Info = Info.split(' ')
                             Info = Info[1]
                         Info = Info.replace('.', '')
                         Info = Info.replace(',', '.')
@@ -135,11 +149,20 @@ if __name__ == '__main__':
                         pass
                     pass
                 ReportFile.write('\t')
-                adj = df['Adj Close'][-1]
-                adj = str(adj)
-                adj = adj.replace(',', '.')
-                ReportFile.write(adj)
-                ReportFile.write('\n')
+                try:
+                    Inicio = tree.xpath(Inicio_Operacao)[0].text
+                    Prazo = tree.xpath(Durabilidade)[0].text
+                    Inicio = Inicio.replace(' ', '')
+                    Inicio = Inicio.replace('\n', '')
+                    Inicio = Inicio.replace('de', ' de ')
+                    Inicio = Inicio.replace('ç', 'c')
+                    Prazo = Prazo.replace(' ', '')
+                    Prazo = Prazo.replace('\n', '')
+                    pass
+                except:
+                    Inicio, Prazo = ('NA', 'NA')
+                    pass
+                ReportFile.write(Inicio + '\t' + Prazo + '\n')
 
                 # break
 
@@ -149,7 +172,7 @@ if __name__ == '__main__':
 
             pass
         except Exception as error:
-            with open(folder + '/Report.txt', 'a+') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='UTF-8') as ReportFile:
                 ReportFile.write(item + '11')
                 ReportFile.write('\tNA' * 12)
                 ReportFile.write('\n')
@@ -168,3 +191,5 @@ TotalFinish_Time = perf_counter()
 Total_Time = TotalFinish_Time - TotalStart_Time
 
 print(f'\n\n\nApp Finalizado em {Total_Time:0.2f}...')
+
+# %%
