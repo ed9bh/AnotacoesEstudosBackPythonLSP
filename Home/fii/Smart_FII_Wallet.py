@@ -20,168 +20,68 @@ class Titulo():
 # %%
 
 
-class Individuo():
-    def __init__(self, nome, preco, limite_investimento, P_VPA, Rend, Prazo, geracao=0):
-        self.preco = preco
-        self.limite_investimento = limite_investimento
-        self.P_VPA = P_VPA
-        self.Rend = Rend
-        self.Prazo = Prazo
+class Wallet():
+    def __init__(self, capital_disponivel, valor_titulos, valor_rend, capital_usado, geracao=0):
+        self.capital_disponivel = capital_disponivel
+        self.valor_titulos = valor_titulos
+        self.valor_rend = valor_rend
+        self.capital_usado = capital_usado
         self.geracao = geracao
         self.nota_avaliacao = 0
-        self.limite_usado = limite_investimento - preco
+        self.capital_usados = 0
         self.cromossomo = []
 
-        # 1
-        if P_VPA < 1.1:
-            self.cromossomo.append(1)
+        for i in range(len(capital_usado)):
+            if random() < 0.5:
+                self.cromossomo.append(1)
+                pass
+            else:
+                self.cromossomo.append(0)
+                pass
             pass
-        else:
-            self.cromossomo.append(0)
-            pass
+        pass
 
-        # 2
-        if P_VPA < 1.5:
-            self.cromossomo.append(1)
+    def avaliacao(self):
+        nota = 0
+        capital = 0
+        for i in range(len(self.cromossomo)):
+            if self.cromossomo[i] == 1:
+                nota += self.valor_rend[i]
+                capital += self.valor_titulos[i]
+                pass
+            if capital > self.capital_disponivel:
+                nota = 1
+                pass
             pass
-        else:
-            self.cromossomo.append(0)
-            pass
+        self.nota_avaliacao = nota
+        self.capital_usado = capital
+        pass
 
-        # 3
-        if P_VPA < 1.0:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
+    def crusamento(self, other):
+        corte = round(random() * len(self.cromossomo))
 
-        # 4
-        if (self.Rend / self.preco) > 0.005:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
+        filho_1 = other.cromossomo[0:corte] + self.cromossomo[corte::]
+        filho_2 = self.cromossomo[0:corte] + other.cromossomo[corte::]
 
-        # 5
-        if (self.Rend / self.preco) > 0.0075:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
+        filhos = [
+            Wallet(self.capital_disponivel, self.valor_titulos,
+                   self.valor_rend, self.capital_usado, self.geracao + 1),
+            Wallet(self.capital_disponivel, self.valor_titulos,
+                   self.valor_rend, self.capital_usado, self.geracao + 1)
+        ]
 
-        # 6
-        if (self.Rend / self.preco) > 0.01:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
+        filhos[0].cromossomo = filho_1
+        filhos[1].cromossomo = filho_2
 
-        # 7
-        if (self.Rend / self.preco) > 0.0125:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
+        return filhos
 
-        # 8
-        if (self.Rend / self.preco) > 0.015:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 9
-        if (self.Rend / self.preco) > 0.015:
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 10
-        if self.preco < (limite_investimento / 5):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 11
-        if self.preco < (limite_investimento / 4):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 12
-        if self.preco < (limite_investimento / 3):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 13
-        if self.preco < (limite_investimento / 2):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 14
-        if self.preco < (limite_investimento / 1.75):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 15
-        if self.preco < (limite_investimento / 1.5):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 16
-        if self.preco < (limite_investimento / 1.25):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 17
-        if self.preco < (limite_investimento / 1.125):
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        # 18
-        if self.Prazo == 'Indeterminado':
-            self.cromossomo.append(1)
-            pass
-        else:
-            self.cromossomo.append(0)
-            pass
-
-        if preco >= limite_investimento:
-            self.cromossomo = [0 for _ in range(18)]
-            pass
-
-        for gen in self.cromossomo:
-            self.nota_avaliacao += gen
-            pass
-
+    def mutacao(self, taxa_mutacao):
+        for i in range(len(self.cromossomo)):
+            if random() < taxa_mutacao:
+                if self.cromossomo[i] == 1:
+                    self.cromossomo[i] == 0
+                    pass
+                else:
+                    self.cromossomo[i] == 1
+        return self
 # %%
