@@ -48,6 +48,7 @@ Aplicacao_12_Meses = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[1]/d
 Montante_Final_Poupanca = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[2]/div[2]/span[2]'
 Montante_Final_Fundo = '//*[@id="simulation"]/div/div/div[2]/div/div[1]/ul/li[3]/div[2]/span[2]'
 Rendimento_Insento_IRPF = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[1]/div[2]/span[2]'
+Patrimonio_Inicial = '//*[@id="basic-infos"]/div/div/div[2]/div/div[1]/ul/li[4]/div[2]/span[2]'
 Valorizacao_Patrimonial = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[2]/div[2]/span[2]'
 Titulo_X_Poupanca = '//*[@id="simulation"]/div/div/div[2]/div/div[2]/ul/li[3]/div[2]/span[2]'
 Inicio_Operacao = '//*[@id="basic-infos"]/div/div/div[2]/div/div[1]/ul/li[2]/div[2]/span[2]'
@@ -55,19 +56,28 @@ Durabilidade = '//*[@id="basic-infos"]/div/div/div[2]/div/div[2]/ul/li[5]/div[2]
 Preco = '//*[@id="stock-price"]/span[1]'
 
 Extra_Info_Lista = [Rent_Mes, Rent_3_Meses, Rent_6_Meses, Rent_12_Meses, Rent_IPO, Aplicacao_12_Meses, Montante_Final_Fundo,
-                    Montante_Final_Poupanca, Rendimento_Insento_IRPF, Valorizacao_Patrimonial, Titulo_X_Poupanca, Preco]
+                    Montante_Final_Poupanca, Rendimento_Insento_IRPF, Patrimonio_Inicial, Valorizacao_Patrimonial, Titulo_X_Poupanca, Preco]
 
 
-with open(folder + '/Report.txt', 'w', encoding='UTF-8') as ReportFile:
+with open(folder + '/Report.txt', 'w', encoding='ANSI') as ReportFile:
     ReportFile.write(
         'Ticker\tMes\tTrimes\tSemes\tAnual\tIPO\tAplic. Ano\t' +
-        'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tVal. Patrimonial\tTitulo X Poupanca' +
+        'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tPatrimonio Ini.\tVal. Patrimonial\tTitulo X Poupanca' +
         '\tPreco\tInicio\tPrazo\n'
     )
 
 # %%
 
 if __name__ == '__main__':
+    with open(folder + '/Report.txt', 'w', encoding='ANSI') as ReportFile:
+        ReportFile.write(
+            'Ticker\tMes\tTrimes\tSemes\tAnual\tIPO\tAplic. Ano\t' +
+            'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tPatrimonio Ini.\tVal. Patrimonial\tTitulo X Poupanca' +
+            '\tPreco\tInicio\tPrazo\n'
+        )
+    
+    count = 0
+    
     for item in data_sheet['Ticker']:
         start = perf_counter()
         try:
@@ -119,7 +129,7 @@ if __name__ == '__main__':
             except Exception as error:
                 print(error, end='...')
 
-            with open(folder + '/Report.txt', 'a+', encoding='UTF-8') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='ANSI') as ReportFile:
                 ReportFile.write(item + '11')
                 for Item in Extra_Info_Lista:
                     try:
@@ -138,6 +148,11 @@ if __name__ == '__main__':
                             Info = Info.replace('\n', '')
                             Info = Info.replace('R$', '')
                             pass
+                        elif Item is Patrimonio_Inicial:
+                            Info = Info.replace(' ', '')
+                            Info = Info.replace('\n', '')
+                            Info = Info.replace('R$', '')
+                            print(Info)
                         else:
                             Info = Info.split(' ')
                             Info = Info[1]
@@ -164,20 +179,24 @@ if __name__ == '__main__':
                     pass
                 ReportFile.write(Inicio + '\t' + Prazo + '\n')
 
-                # break
+                if count == 6:
+                    # pass
+                    break
+                else:
+                    count += 1
 
             print('Finalizado...', end='')
 
-            sleep(randint(27, 45))
+            sleep(randint(18, 36))
 
             pass
         except Exception as error:
-            with open(folder + '/Report.txt', 'a+', encoding='UTF-8') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='ANSI') as ReportFile:
                 ReportFile.write(item + '11')
                 ReportFile.write('\tNA' * 12)
                 ReportFile.write('\n')
             print(error)
-            sleep(randint(135, 270))
+            sleep(randint(108, 207))
             pass
 
         finish = perf_counter()
