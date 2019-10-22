@@ -76,8 +76,6 @@ if __name__ == '__main__':
             '\tPreco\tInicio\tPrazo\n'
         )
     
-    count = 0
-    
     for item in data_sheet['Ticker']:
         start = perf_counter()
         try:
@@ -179,12 +177,8 @@ if __name__ == '__main__':
                     pass
                 ReportFile.write(Inicio + '\t' + Prazo + '\n')
 
-                if count == 6:
-                    # pass
-                    break
-                else:
-                    count += 1
-
+                # break
+                
             print('Finalizado...', end='')
 
             sleep(randint(18, 36))
