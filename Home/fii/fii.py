@@ -59,17 +59,11 @@ Extra_Info_Lista = [Rent_Mes, Rent_3_Meses, Rent_6_Meses, Rent_12_Meses, Rent_IP
                     Montante_Final_Poupanca, Rendimento_Insento_IRPF, Patrimonio_Inicial, Valorizacao_Patrimonial, Titulo_X_Poupanca, Preco]
 
 
-with open(folder + '/Report.txt', 'w', encoding='ANSI') as ReportFile:
-    ReportFile.write(
-        'Ticker\tMes\tTrimes\tSemes\tAnual\tIPO\tAplic. Ano\t' +
-        'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tPatrimonio Ini.\tVal. Patrimonial\tTitulo X Poupanca' +
-        '\tPreco\tInicio\tPrazo\n'
-    )
-
 # %%
 
 if __name__ == '__main__':
-    with open(folder + '/Report.txt', 'w', encoding='ANSI') as ReportFile:
+
+    with open(folder + '/Report.txt', 'w', encoding='ASCII') as ReportFile:
         ReportFile.write(
             'Ticker\tMes\tTrimes\tSemes\tAnual\tIPO\tAplic. Ano\t' +
             'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tPatrimonio Ini.\tVal. Patrimonial\tTitulo X Poupanca' +
@@ -127,7 +121,7 @@ if __name__ == '__main__':
             except Exception as error:
                 print(error, end='...')
 
-            with open(folder + '/Report.txt', 'a+', encoding='ANSI') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='ASCII') as ReportFile:
                 ReportFile.write(item + '11')
                 for Item in Extra_Info_Lista:
                     try:
@@ -150,7 +144,6 @@ if __name__ == '__main__':
                             Info = Info.replace(' ', '')
                             Info = Info.replace('\n', '')
                             Info = Info.replace('R$', '')
-                            print(Info)
                         else:
                             Info = Info.split(' ')
                             Info = Info[1]
@@ -185,7 +178,7 @@ if __name__ == '__main__':
 
             pass
         except Exception as error:
-            with open(folder + '/Report.txt', 'a+', encoding='ANSI') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='ASCII') as ReportFile:
                 ReportFile.write(item + '11')
                 ReportFile.write('\tNA' * 12)
                 ReportFile.write('\n')
