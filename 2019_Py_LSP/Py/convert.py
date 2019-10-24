@@ -1,52 +1,74 @@
 # %%
-from os import chdir
+from os import chdir, remove
 import utm
 from collections import defaultdict
+from comtypes.client import GetActiveObject
+from glob import glob
+from time import sleep
+import array
+from lxml import html, etree
+from io import StringIO, BytesIO
 
 # %%
 
-# chdir(r'')
+acad = GetActiveObject('AutoCAD.Application.23')
+doc = acad.ActiveDocument
+model = doc.ModelSpace
 
-with open('LinhasLatLongElev.txt', 'r') as file:
-    Raw = file.readlines()
+place = doc.Path
+
+chdir(place)
+
+kmlFiles = glob('*.kml')
 
 # %%
 
-Lines = defaultdict(list)
+if __name__ == '__main__':
 
-n = 0
+    for file in kmlFiles:
 
-for r in Raw:
-    Tratamento = r.split(' ')
-    del(Tratamento[-1])
-    for t in Tratamento:
-        Separacao = t.split(',')
-        try:
-            X = float(Separacao[0])
-            Y = float(Separacao[1])
-            Z = float(Separacao[2])
-            Lines[n].append([X, Y, Z])
-        except:
+        with open(file, 'r') as file:
+            Raw = file.readlines()
+
+        kml = etree.HTML(str(Raw))
+        result = kml.findall('.//coordinates')
+
+        Points = []
+
+        for r in result:
+            coords = r.text
+            coords = coords.replace('\\n\', \'\\t\\t\\t\\t\\t\\t', '')
+            coords = coords.replace(' \\n\', \'\\t\\t\\t\\t\\t', '')
+            coords = coords.replace('\'', '')
+            coords = coords.replace('\\n', '')
+            coords = coords.replace('\\t', '')
+            coords = coords.split(' ')
+            # print(coords)
+            Points.append([])
+            for w in coords:
+                try:
+                    LonLatElev = w.split(',')
+                    XY = utm.from_latlon(
+                        float(LonLatElev[1]), float(LonLatElev[0]))
+                    # print(XY)
+                    Points[-1].append(XY[0])
+                    Points[-1].append(XY[1])
+                except Exception as error:
+                    print(error)
+                pass
             pass
-        pass
-    n += 1
-    pass
-Lines
 
-# %%
+        for coords in Points:
+            try:
+                CoordList = array.array('d', coords)
 
-Items = list(Lines.keys())
-Points = []
+                lw = model.AddLightWeightPolyline(VerticesList=CoordList)
 
-for item in Items:
-    with open('Linha_' + str(item) + '.scr', 'w+') as file:
-        file.write('pline\n')
-        for x, y, elev in Lines[item]:
-            point = utm.from_latlon(
-                latitude=y, longitude=x, force_zone_number=23, force_zone_letter='k')
-            Points.append(point[0:2])
-            file.write(str(point[0]) + ',' + str(point[1]) + '\n')
-            pass
-        pass
+                acad.ZoomExtents()
 
-Points
+                sleep(0.3)
+            except Exception as error:
+                print(error)
+
+print('Finalizado...')
+sleep(9)
