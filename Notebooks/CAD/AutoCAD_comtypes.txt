@@ -1,0 +1,169 @@
+# -*- coding: cp1252 -*-
+
+"""Sample to automate AutoCAD:
+
+1) run an autocad drawing
+
+2) read some drawing data:
+
+number of objects in the ModelSpace;
+
+the value of an AutoCAD system variable;
+
+2) add to the drawing:
+
+point;
+
+line;
+
+polyline.
+
+ 
+
+In this code some examples of access to Autocad objects are presented.
+
+We must handle variants used to pass array data in and out
+
+of AutoCAD COM. Different variant types are possible using comtypes
+
+(this is not true with win32com.client package).
+
+This example should be improved especially in the user interface.
+
+Who wants to participate?
+
+"""
+
+ 
+
+import array
+
+import comtypes.client
+
+ 
+
+#Get running instance of the AutoCAD application
+
+acad = comtypes.client.GetActiveObject("AutoCAD.Application")
+
+# Document object
+
+doc = acad.ActiveDocument
+
+# Get the ModelSpace object
+
+ms = doc.ModelSpace
+
+ 
+
+# Get some useful data
+
+DwgName = doc.Name # File name
+
+count = ms.Count # Number of items in modelspace
+
+ 
+
+# Get a variable name
+
+sysVarName = 'DWGPREFIX' # directory of the drawing
+
+varData = doc.GetVariable(sysVarName)
+
+ 
+
+# view in Idle
+
+print 'File: ', DwgName
+
+print 'N. Items: ', count
+
+ 
+
+# >>>> In ModelSpace:
+
+# Add a POINT object
+
+# Sets the value of an AutoCAD system variable.
+
+# PDMODE and PDSIZE system variables control the appearance of point objects
+
+sysVarName = "PDMODE" # specifies a Point shape
+
+doc.SetVariable(sysVarName,3) # code 3 for X shape
+
+sysVarName = "PDSIZE" # controls the size of the point
+
+doc.SetVariable(sysVarName,3) # absolute size (3 units half height of icon point)
+
+ 
+
+pt = array.array('d', [0,0,0]) # to convert in variant
+
+point = ms.AddPoint(pt)
+
+ 
+
+# Add a LINE
+
+pt1 = array.array('d', [0.0,0.0,0]) # start point
+
+pt2 = array.array('d', [20.0,20.0,0]) # end point
+
+line = ms.AddLine(pt1, pt2)
+
+ 
+
+# Add a POLYLINE
+
+# We assign the vertices
+
+ptl = []
+
+pt = [20.0,20.0,0]
+
+ptl = ptl + pt
+
+pt = [40.0,30.0,0]
+
+ptl = ptl + pt
+
+pt = [70.0,40.0,0]
+
+ptl = ptl + pt
+ptlst = array.array('d', ptl)
+
+pline = ms.AddPolyline(ptlst)
+ 
+
+# Select an item
+
+# The user selects an object (the polyline) by picking a point on the screen
+
+returnObj = doc.Utility.GetEntity("Select Object:")
+
+"""Each entity in autocad has a unique value.
+
+Ex. for a line object the ObjectName is AcDbLine and the EntityType value is 19 """
+
+# common code for line, polyline
+
+print 'DXF entity name: ', returnObj[0].EntityName # it is the class name of the object
+
+print returnObj[0].EntityType # the type of entity
+
+print returnObj[0].Layer
+
+print returnObj[0].Length
+
+# only polyline
+
+retCoord = returnObj[0].Coordinates
+
+num_vertex = len(retCoord)/3
+
+for i in range(num_vertex):
+
+print returnObj[0].Coordinate(i)
+
+ 

@@ -1,0 +1,842 @@
+
+https://github.com/reclosedev/pyautocad/tree/master/pyautocad
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+import comtypes.client
+from comtypes.client import CreateObject, GetActiveObject
+import comtypes.gen.AutoCAD as ACAD
+import comtypes.gen.AXDBLib as AXDBLib
+# import pythoncom
+# import logging
+
+import array
+import random as rand
+import time
+
+import os
+import sys
+import glob
+----
+
+== Inicialização
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+for c in range(14, 30):
+    cad = 'AutoCAD.Application.' + str(c)
+    try:
+        acad = GetActiveObject(cad)
+        #acad = CreateObject(cad)
+        print('AutoCAD Version = R' + str(c) + ' : ' + str(acad))
+        break
+        pass
+    except Exception as error:
+        print('Autocad Version tryed R{:02.0F} || Error Type : {}'.format( c , error ))
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc = acad.ActiveDocument
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+model = doc.ModelSpace
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+layout1 = doc.Layouts[0]
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+layout2 = doc.Layouts('Layout2')
+----
+
+==== Manipulação do Programa
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.Visible = False
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.Visible = True
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.FullName
+----
+
+==== Manipulação de Documento
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Name
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Path
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+layNew = doc.Layers.Add('Wafalo')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+layNew.color = rand.randrange(start=1, stop=255)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# Cria Layout
+layoutNew = doc.Layouts.Add('Teste')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# Apaga Layout
+layoutNew.Delete()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# Purge
+doc.PurgeAll()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# Audit
+doc.AuditInfo(FixErr=True)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.SetVariable('PEDITACCEPT', 1)
+----
+
+=== Comandos de Desenho
+
+==== Line
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line = model.AddLine(StartPoint=array.array('d', [120, 250, 0]),
+                     EndPoint=array.array('d', [120 + 15, 250 - 3, 0])
+                    )
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line2 = model.AddLine(StartPoint=array.array('d', [180, 280, 0]),
+                     EndPoint=array.array('d', [175, 270, 0])
+                    )
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.ZoomExtents()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.color = 1
+line2.color = 3
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.Move(array.array('d', [0, 0, 0]), array.array('d', [50, 25, 0]))
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.ZoomExtents()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.Delta
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.StartPoint
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.EndPoint
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.Layer
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.GetBoundingBox()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.Linetype
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+line.Length
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# acExtendNone
+# acExtendBoth
+# acExtents
+# acExtendOtherEntity
+# acExtendThisEntity
+
+line.IntersectWith(line2, 0)
+----
+
+==== LwPolyline
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+CoordList = []
+for dist in range(0, 1020, 20):
+    CoordList = CoordList + [dist, rand.randrange(start=200, stop=240)]
+    pass
+CoordList = array.array('d', CoordList)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+#CoordList = array.array('d', [200,220 , 220,225 , 240,230 , 260,219])
+lwPoly = model.AddLightWeightPolyline(VerticesList=CoordList)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.ZoomExtents()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.color = 249
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.Area
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.Length
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.Coordinate(1)
+----
+lwPoly.Coordinates
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.GetBoundingBox()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.Elevation = 1000
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.Elevation
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.ConstantWidth = 0.5
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+lwPoly.Erase()
+----
+
+==== Circle
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle1 = model.AddCircle(Center=array.array('d', [500, 300, 0]), Radius=100)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle2 = model.AddCircle(Center=array.array('d', [500, 300, 0]), Radius=50)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle1.color = 140
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle2.color = 80
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle2.Center
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle1.Area
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle2.Circumference
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle1.Diameter
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+circle2.EntityTransparency = '50'
+----
+
+==== 3D Polyline
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+CoordList3D = []
+for dist in range(0, 500, 5):
+    CoordList3D = CoordList3D + [ rand.randrange(start=dist - 100, stop=dist + 100), rand.randrange(start=100, stop=140), rand.randrange(start=100, stop=180) / 10 ]
+    pass
+CoordList3D = array.array('d', CoordList3D)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Poly3D = model.Add3DPoly(PointsArray=CoordList3D)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.ZoomExtents()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Poly3D.color = rand.randrange(start=1, stop=250)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Poly3D.Coordinate(15)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Poly3D.Length
+----
+
+==== Point
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Point = model.AddPoint(array.array('d', [250, 250, 20]))
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+#  0  1  2  3  4
+# 32 33 34 35 36
+# 64 65 66 67 68
+# 96 97 98 99 100
+doc.SetVariable('pdmode', 98)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.SetVariable('pdsize', 5)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Point.color = 256
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Point.Layer = 'Wafalo'
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+acad.ZoomExtents()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+Point.Coordinates
+----
+
+==== Text
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+tpoint = array.array('d', [300, 300, 0])
+text = model.AddText(InsertionPoint=tpoint, Height=5, TextString='AAAAAAAAAAA')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.color = rand.randrange(start=1, stop=255)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.StyleName
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.HorizontalAlignment = 1
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.VerticalAlignment = 1
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.TextAlignmentPoint = tpoint
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.TextString = 'BBBBBBBBBBBBB'
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+text.InsertionPoint
+----
+
+=== Seleções // Input
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.GetString(HasSpaces=False)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.GetInteger()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.GetReal()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.InitializeUserInput(1, 'Line Circle Polyline')
+doc.Utility.GetKeyword('Selecione uma opção [Line/Circle/Polyline] : ')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.GetInput()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.Prompt('\nTexto no Prompt de comando\n')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+PointCoord = doc.Utility.GetPoint()
+PointCoord
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.Prompt('Distancia entre Pontos : ')
+PointDist = doc.Utility.GetDistance()
+PointDist
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.Prompt('Angulo entre Pontos : ')
+PointAng = doc.Utility.GetAngle()
+PointAng
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# Distancia Polar Ponto, Angulo, Distancia
+doc.Utility.PolarPoint(array.array('d', PointCoord), PointAng, PointDist)
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+#obj = acad.ActiveDocument.ModelSpace(1)
+#enty1 = comtypes.cast(obj, comtypes.POINTER(ACAD.IAcadLine))
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+obj = model(0)
+print(obj.layer)
+#obj = comtypes.cast(obj, comtypes.POINTER(ACAD.IAcadPoint))
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+obj.GetBoundingBox()[0]
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+cmd = '(setq xxx(car(entsel"Entidade : ")))\n'
+doc.SendCommand(cmd)
+doc.SendCommand('(command "list" xxx) \n')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+# Está dando erro as vezes funciona outras não...
+try:
+    
+    enty = doc.Utility.GetEntity('Selecione Entidade : ')
+    
+    time.sleep(1)
+    
+    print(enty[0].color)
+    
+    enty[0].color = rand.randrange(start=0, stop=256)
+    
+    print(enty[0].EntityName)
+    
+#    print(enty[0].StartPoint)
+    
+#    print(enty[0].EndPoint)
+    
+#    print(enty[0].Delta)
+    
+#    print(enty[0].Layer)
+    
+    pass
+except Exception as error:
+    print('Erro desconhecido : ' + str(error))
+----
+count = model.Count
+for c in range(count):
+    i = model.Item(c)
+    print(i.ObjectName)
+    print(i.Layer)
+    if 'text' in i.ObjectName.lower():
+        txt = wc.CastTo(i, 'IAcadText')
+        print(txt)
+        txt.TextString = 'Teste'
+        txt.Update()
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Utility.Prompt('Teste...\n')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+try:
+    doc.SelectionSets('SS1').Delete()
+    pass
+except:
+    pass
+OneEntity = doc.SelectionSets.Add('SS1')
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+OneEntity.SingleOnly = True
+OneEntity.SinglePickInSpace = True
+OneEntity.SelectOnScreen()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+for ent in range(OneEntity.Count):
+    ename = OneEntity[ent].EntityName
+    color = OneEntity[ent].color
+    layer = OneEntity[ent].Layer
+    print('----------')
+    print(ename)
+    print(color)
+    print(layer)
+    if ename == 'AcDbPolyline':
+        try:
+            print(OneEntity[ent].Coordinates)
+            pass
+        except Exception as error:
+            print('Error = ' + str(error))
+            pass
+        pass
+    elif ename == 'AcDbLine':
+        try:
+            print(OneEntity[ent].StartPoint)
+            print(OneEntity[ent].EndPoint)
+            pass
+        except Exception as error:
+            print('Error = ' + str(error))
+            pass
+        pass
+    elif ename == 'AcDbCircle':
+        try:
+            print(OneEntity[ent].Center)
+            pass
+        except Exception as error:
+            print('Error = ' + str(error))
+            pass
+        pass
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+#doc.SelectionSets.SelectionSet.SelectOnScreen('SS0')
+#OneEntity = acad.SelectionSet.SelectOnScreen.Add('aaa')
+#OneEntity = doc.PickfirstSelectionSet.SelectOnScreen()
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+ACAD
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+AXDBLib
+----
+
+==== Sair do AutoCAD
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+doc.Close(False)
+acad.Quit()
+----
