@@ -1,6 +1,7 @@
 # %%
 from os import chdir, remove
 import utm
+# from pyproj import Proj, transform
 from collections import defaultdict
 from comtypes.client import GetActiveObject
 from glob import glob
@@ -26,6 +27,13 @@ kmlFiles = glob('*.kml')
 if __name__ == '__main__':
 
     for file in kmlFiles:
+
+        layer = '_' + str(file).replace('.kml', '')
+
+        try:
+            doc.Layers.Add(layer)
+        except:
+            pass
 
         with open(file, 'r') as file:
             Raw = file.readlines()
@@ -53,8 +61,15 @@ if __name__ == '__main__':
                     # print(XY)
                     Points[-1].append(XY[0])
                     Points[-1].append(XY[1])
+
+                    # inProj = Proj(init='epsg:4326')
+                    # outProj = Proj(init='epsg:29193')
+                    # x, y = transform(inProj, outProj, LonLatElev[1]), float(LonLatElev[0])
+                    # print(f'{x} // {y}')
+
                 except Exception as error:
-                    print(error)
+                    # print(error)
+                    pass
                 pass
             pass
 
@@ -64,11 +79,14 @@ if __name__ == '__main__':
 
                 lw = model.AddLightWeightPolyline(VerticesList=CoordList)
 
+                lw.layer = layer
+
                 acad.ZoomExtents()
 
                 sleep(0.3)
             except Exception as error:
-                print(error)
+                # print(error)
+                pass
 
 print('Finalizado...')
 sleep(9)
