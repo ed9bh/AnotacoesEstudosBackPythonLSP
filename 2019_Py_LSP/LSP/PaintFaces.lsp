@@ -12,7 +12,7 @@
                 eBase(entget(car baseFace))
                 baseLayer(cdr (assoc 8 eBase))
 		;baseColor(cdr (assoc 62 eBase))
-                faces(ssget "x" (list '(0 . "3DFACE")(cons 8 baseLayer)(cons 62 baseColor)))
+                faces(ssget "x" (list '(0 . "3DFACE")(cons 8 baseLayer)))
             )
         )
 
