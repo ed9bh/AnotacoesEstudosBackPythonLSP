@@ -16,9 +16,14 @@
             )
         )
 
-        (vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_Plataforma-Pista")
-        (vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_TaludeCorte")
-        (vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_TaludeAterro")
+        (setq lay(vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_Plataforma-Pista"))
+        (vla-put-Color lay 251)
+        (setq lay(vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_TaludeCorte"))
+        (vla-put-Color lay 20)
+        (setq lay(vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_TaludeAterro"))
+        (vla-put-Color lay 80)
+        (setq lay(vla-add (vla-get-layers (vla-get-activedocument (vlax-get-acad-object))) "_Contencao-Muro-SoloGrampeado-Gabiao-TerraArmada"))
+        (vla-put-Color lay 249)
 
         (foreach e (ssnamex faces)
             (progn
@@ -46,12 +51,19 @@
 	      (vl-catch-all-apply 'vla-put-Color (list v 256))
 
 	      (cond
+          ; Pista
 		((< Percent 20)
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_Plataforma-Pista"))
 		 )
+         ; Aterro
 		((and (> Percent 20) (< Percent 80) )
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_TaludeAterro"))
 		 )
+         ; Muro
+		((> Percent 160)
+		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_Contencao-Muro-SoloGrampeado-Gabiao-TerraArmada"))
+		 )
+         ; Corte
 		((and (> Percent 80) (< Percent 160) )
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_TaludeCorte"))
 		 )
@@ -64,6 +76,7 @@
         (princ)
     )
     (defun *error*(s)
+        (gc)
         (princ s)
         (vla-EndUndoMark doc)
         (princ)
