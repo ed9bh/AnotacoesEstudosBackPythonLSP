@@ -1,5 +1,4 @@
-(defun c:clone()
-  (setq err *error*)
+(defun c:clone(/ *error*)
   (defun *error*(msg)
     (princ msg)
     (setq *error* err)
@@ -10,7 +9,6 @@
     vSel(vlax-ename->vla-object(car eSel))
     )
   (vla-copy vSel)
-  (setq *error* err)
   (princ)
   )
 

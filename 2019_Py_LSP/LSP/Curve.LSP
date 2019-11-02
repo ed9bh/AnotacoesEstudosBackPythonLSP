@@ -1,5 +1,4 @@
-(defun c:curve()
-  (setq err *error*)
+(defun c:curve(/ *error*)
   (defun *error*(msg)
     (setq *error* err)
     (if VR
@@ -24,7 +23,6 @@
 
   (setvar"FILLETRAD"VR)
   
-  (setq *error* err)
   (setvar'cmdecho 1)
   (princ)
   )
