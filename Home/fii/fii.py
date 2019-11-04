@@ -63,13 +63,15 @@ Extra_Info_Lista = [Rent_Mes, Rent_3_Meses, Rent_6_Meses, Rent_12_Meses, Rent_IP
 
 if __name__ == '__main__':
 
-    with open(folder + '/Report.txt', 'w', encoding='ASCII') as ReportFile:
+    with open(folder + '/Report.txt', 'w', encoding='UTF-8') as ReportFile:
         ReportFile.write(
             'Ticker\tMes\tTrimes\tSemes\tAnual\tIPO\tAplic. Ano\t' +
             'Mont. Fundo\tMont. Poupanca\tRend. Insento IRPF\tPatrimonio Ini.\tVal. Patrimonial\tTitulo X Poupanca' +
             '\tPreco\tInicio\tPrazo\n'
         )
-    
+
+    # counter = 10
+
     for item in data_sheet['Ticker']:
         start = perf_counter()
         try:
@@ -121,7 +123,7 @@ if __name__ == '__main__':
             except Exception as error:
                 print(error, end='...')
 
-            with open(folder + '/Report.txt', 'a+', encoding='ASCII') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='UTF-8') as ReportFile:
                 ReportFile.write(item + '11')
                 for Item in Extra_Info_Lista:
                     try:
@@ -157,11 +159,12 @@ if __name__ == '__main__':
                 ReportFile.write('\t')
                 try:
                     Inicio = tree.xpath(Inicio_Operacao)[0].text
+                    #print('\n\n' + Inicio + '\n\n')
                     Prazo = tree.xpath(Durabilidade)[0].text
                     Inicio = Inicio.replace(' ', '')
                     Inicio = Inicio.replace('\n', '')
                     Inicio = Inicio.replace('de', ' de ')
-                    Inicio = Inicio.replace('ç', 'c')
+                    Inicio = Inicio.replace('MarÃ§o', 'Março')
                     Prazo = Prazo.replace(' ', '')
                     Prazo = Prazo.replace('\n', '')
                     pass
@@ -170,15 +173,18 @@ if __name__ == '__main__':
                     pass
                 ReportFile.write(Inicio + '\t' + Prazo + '\n')
 
-                # break
-                
+                # if counter == 0:
+                #     break
+                # else:
+                #     counter -= 1
+
             print('Finalizado...', end='')
 
             sleep(randint(18, 36))
 
             pass
         except Exception as error:
-            with open(folder + '/Report.txt', 'a+', encoding='ASCII') as ReportFile:
+            with open(folder + '/Report.txt', 'a+', encoding='UTF-8') as ReportFile:
                 ReportFile.write(item + '11')
                 ReportFile.write('\tNA' * 12)
                 ReportFile.write('\n')
