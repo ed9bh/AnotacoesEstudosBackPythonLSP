@@ -1,14 +1,12 @@
 # %%
 from os import chdir, remove
 import utm
-# from pyproj import Proj, transform
 from collections import defaultdict
 from comtypes.client import GetActiveObject
 from glob import glob
 from time import sleep
 import array
 from lxml import html, etree
-from io import StringIO, BytesIO
 
 # %%
 
@@ -51,24 +49,16 @@ if __name__ == '__main__':
             coords = coords.replace('\\n', '')
             coords = coords.replace('\\t', '')
             coords = coords.split(' ')
-            # print(coords)
             Points.append([])
             for w in coords:
                 try:
                     LonLatElev = w.split(',')
                     XY = utm.from_latlon(
                         float(LonLatElev[1]), float(LonLatElev[0]))
-                    # print(XY)
                     Points[-1].append(XY[0])
                     Points[-1].append(XY[1])
 
-                    # inProj = Proj(init='epsg:4326')
-                    # outProj = Proj(init='epsg:29193')
-                    # x, y = transform(inProj, outProj, LonLatElev[1]), float(LonLatElev[0])
-                    # print(f'{x} // {y}')
-
                 except Exception as error:
-                    # print(error)
                     pass
                 pass
             pass
@@ -85,8 +75,19 @@ if __name__ == '__main__':
 
                 sleep(0.3)
             except Exception as error:
-                # print(error)
                 pass
+            pass
 
-print('Finalizado...')
+        for e in kmlFiles:
+            try:
+                sleep(0.1)
+                remove(e)
+                txt = ' Foi Bem Sucedida...'
+            except Exception as error:
+                print(error)
+                txt = ' Falhou...'
+            finally:
+                print(f'Tentativa de apagar o arquivo {txt}')
+
+print('\n\nFinalizado...')
 sleep(9)
