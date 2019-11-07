@@ -4,16 +4,21 @@
         
         (vla-StartUndoMark (setq doc (vla-get-ActiveDocument (vlax-get-acad-object))))
         
-        (setq
-            ent(entsel "\nSelecione Item a ficar Invisivel : ")
+        (prompt "Selecione Entidades a ficarem invisiveis : ")
+        (setq 
+            ents (sssetfirst nil (ssget))
         )
 
-        (if ent
-            (setq vEnt(vlax-ename->vla-object (car ent)))
-            (quit)
+        (foreach ent (ssnamex(cadr ents))
+            (progn
+                (if (> (car ent) 0)
+                    (progn
+                        (setq ent(vlax-ename->vla-object (cadr ent)))
+                        (vlax-put ent 'Visible 0)
+                    )
+                )
+            )
         )
-
-        (vlax-put vEnt 'Visible 0)
         
         (vla-EndUndoMark doc)
         (princ)
