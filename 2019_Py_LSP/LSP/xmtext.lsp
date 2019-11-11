@@ -35,11 +35,30 @@
                         (vlax-put Entity 'StyleName Style)
                         (vlax-put Entity 'BackgroundFill -1)
                         
+                        (vlax-invoke-method vx 'GetBoundingBox 'Dest01 'Dest02)
+                        (vlax-invoke-method Entity 'GetBoundingBox 'Orig01 'Orig02)
+                        
+                        (setq
+                            ORI1 (vlax-safearray->list Orig01)
+                            ORI2 (vlax-safearray->list Orig02)
+                            ORI3 (list (car ORI1) (cadr ORI2) (caddr ORI2))
+                            DES1 (vlax-safearray->list Dest01)
+                            DES2 (vlax-safearray->list Dest02)
+                            DES3 (list (car DES1) (cadr DES2) (caddr DES2))
+                        )
+                        
                         (setq eEntity (entget(vlax-vla-object->ename Entity)))
 
                         (entmod (subst (cons 45 1) (assoc 45 eEntity) eEntity))
 
                         (vla-Delete vx)
+
+                        (vla-Move Entity (vlax-3d-point ORI3) (vlax-3d-point DES3))
+
+                        ;(foreach www (list ORI1 DES1 ORI2 DES2)
+                        ;    (princ www)
+                        ;)
+
                     )
                 )
             )
