@@ -11,7 +11,7 @@
 
         (foreach ent (ssnamex(cadr ents))
             (progn
-                (if (> (car ent) 0)
+                (if (> (car ent) -1)
                     (progn
                         (setq ent(vlax-ename->vla-object (cadr ent)))
                         (vlax-put ent 'Visible 0)
@@ -19,6 +19,8 @@
                 )
             )
         )
+	
+	(sssetfirst)
         
         (vla-EndUndoMark doc)
         (princ)
