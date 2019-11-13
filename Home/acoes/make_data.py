@@ -116,6 +116,10 @@ if __name__ == '__main__':
             Graph(data, x)
             print(' Graph Sucess...')
             pass
+        except MemoryError as error:
+            print(error)
+            sleep(54)
+            pass
         except:
             print(' Graph Failed...')
             pass
