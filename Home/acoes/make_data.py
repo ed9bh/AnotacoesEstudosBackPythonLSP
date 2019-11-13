@@ -5,11 +5,13 @@ from glob import glob
 from time import sleep, perf_counter
 import pandas_datareader as pdr
 from matplotlib import pyplot as plt, dates as mpl_dates
+import matplotlib as mpl
 import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 import requests
 from lxml import html
 
+mpl.rc('figure', max_open_warning=0)
 register_matplotlib_converters()
 plt.style.use('seaborn')
 # %%
@@ -63,7 +65,12 @@ def Graph(Data, TickerName):
 
     fig.autofmt_xdate()
 
-    fig.savefig('.\\Graph\\' + TickerName + '.png')
+    try:
+        fig.savefig('.\\Graph\\' + TickerName + '.png')
+        pass
+    except Exception as error:
+        print(error)
+        sleep(90)
 
     pass
 
@@ -72,6 +79,7 @@ def Graph(Data, TickerName):
 chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
 File_Lista_Acoes = r'.//Lista_Bovespa.csv'
 DF_Tickers = pd.read_csv(File_Lista_Acoes)
+Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
 
 if isdir('.\\Graph'):
     to_erase = glob('.\\Graph\\*.png')
@@ -96,7 +104,7 @@ if __name__ == '__main__':
     start = perf_counter()
     for x in DF_Tickers['Ticker']:
 
-        print(f'Donloading {x} data from yahoo...', end='')
+        print(f'Downloading {x} data from yahoo...', end='')
 
         try:
             data = Down_Data(x)
@@ -107,18 +115,14 @@ if __name__ == '__main__':
             pass
         try:
             data = MMA_Analisys(data, x)
-            print(' Analisys Sucess...', end='')
+            print(' Analysis Sucess...', end='')
             pass
         except:
-            print(' Analisys Failed...', end='')
+            print(' Analysis Failed...', end='')
             pass
         try:
             Graph(data, x)
             print(' Graph Sucess...')
-            pass
-        except MemoryError as error:
-            print(error)
-            sleep(54)
             pass
         except:
             print(' Graph Failed...')
@@ -130,9 +134,18 @@ if __name__ == '__main__':
             print(error)
             pass
 
-        sleep(18)
+        try:
+            Report = Report.append(
+                {'Ticker': x, 'Adj Close': data['Adj Close'][-1]},  ignore_index=True)
+            Report.to_excel('Report.xlsx')
+        except Exception as error:
+            print(error)
+
+        sleep(9)
         pass
 
     stop = perf_counter()
+
+    Report.to_excel('Report.xlsx')
 
     print(f'Ends in {stop - start} seconds...')
