@@ -79,7 +79,10 @@ def Graph(Data, TickerName):
 chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
 File_Lista_Acoes = r'.//Lista_Bovespa.csv'
 DF_Tickers = pd.read_csv(File_Lista_Acoes)
+List_Tickers = list(DF_Tickers['Ticker'])
 Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
+
+
 
 if isdir('.\\Graph'):
     to_erase = glob('.\\Graph\\*.png')
