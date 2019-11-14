@@ -10,6 +10,7 @@ import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 import requests
 from lxml import html
+from gc import collect
 
 mpl.rc('figure', max_open_warning=0)
 register_matplotlib_converters()
@@ -88,6 +89,7 @@ File_Report = r'./Report.csv'
 DF_Tickers = pd.read_csv(File_Lista_Acoes)
 Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
 List_Tickers = []
+mem = 0
 
 if isfile(File_List_Tickers):
     with open(File_List_Tickers, 'r') as arq:
@@ -187,7 +189,13 @@ if __name__ == '__main__':
                 for x in List_Tickers:
                     arq.write(x + '\n')
 
-        sleep(9)
+        if mem == 9:
+            collect()
+            mem = 0
+            sleep(18)
+        else:
+            mem += 1
+            sleep(9)
         pass
 
     stop = perf_counter()
