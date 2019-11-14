@@ -175,6 +175,7 @@ if __name__ == '__main__':
             pass
 
         if isfile('.\\Graph\\' + x + '.png'):
+            sleep(1)
             List_Tickers.remove(x)
             with open(File_List_Tickers, 'w+') as arq:
                 for x in List_Tickers:
