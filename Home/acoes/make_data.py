@@ -65,13 +65,16 @@ def Graph(Data, TickerName):
 
     fig.autofmt_xdate()
 
+    graph_file = r'.\\Graph\\' + TickerName + '.png'
+
     try:
-        fig.savefig('.\\Graph\\' + TickerName + '.png')
+        if isfile(graph_file):
+            remove(graph_file)
+            sleep(1)
+        fig.savefig(graph_file)
         pass
     except Exception as error:
         print(error)
-        sleep(90)
-
     pass
 
 
@@ -151,8 +154,14 @@ if __name__ == '__main__':
             print(' Graph Failed...')
             pass
 
+        table_file = '.\\Tables\\' + x + '.xlsx'
+
+        if isfile(table_file):
+            remove(table_file)
+            sleep(1)
+
         try:
-            data.to_excel('.\\Tables\\' + x + '.xlsx')
+            data.to_excel(table_file)
         except Exception as error:
             print(error)
             pass
@@ -165,11 +174,11 @@ if __name__ == '__main__':
             print(error)
             pass
 
-        del(List_Tickers[0])
-
-        with open(File_List_Tickers, 'w+') as arq:
-            for x in List_Tickers:
-                arq.write(x + '\n')
+        if isfile('.\\Graph\\' + x + '.png'):
+            List_Tickers.remove(x)
+            with open(File_List_Tickers, 'w+') as arq:
+                for x in List_Tickers:
+                    arq.write(x + '\n')
 
         sleep(9)
         pass
