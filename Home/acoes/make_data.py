@@ -79,11 +79,12 @@ def Graph(Data, TickerName):
 
 
 # %%
-# chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
-chdir(r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\acoes')
+chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
+# chdir(r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\acoes')
 
 File_Lista_Acoes = r'.//Lista_Bovespa.csv'
 File_List_Tickers = r'.//CheckPoint.asc'
+File_Report = r'./Report.csv'
 DF_Tickers = pd.read_csv(File_Lista_Acoes)
 Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
 List_Tickers = []
@@ -97,6 +98,8 @@ if isfile(File_List_Tickers):
         pass
     pass
 else:
+    with open(File_Report, 'w+') as report:
+        report.write('Ticker,Price\n')
     List_Tickers = list(DF_Tickers['Ticker'])
     with open(File_List_Tickers, 'w+') as arq:
         for x in List_Tickers:
@@ -167,9 +170,12 @@ if __name__ == '__main__':
             pass
 
         try:
-            Report = Report.append(
-                {'Ticker': x, 'Adj Close': data['Adj Close'][-1]},  ignore_index=True)
-            Report.to_excel('Report.xlsx')
+            with open(File_Report, 'a+') as report:
+                last_price = data['Adj Close'][-1]
+                report.write(f'{x},{last_price}\n')
+            # Report = Report.append(
+            #     {'Ticker': x, 'Adj Close': data['Adj Close'][-1]},  ignore_index=True)
+            # Report.to_excel('Report.xlsx')
         except Exception as error:
             print(error)
             pass
