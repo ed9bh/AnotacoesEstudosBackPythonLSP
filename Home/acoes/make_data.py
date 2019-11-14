@@ -80,11 +80,11 @@ def Graph(Data, TickerName):
 
 
 # %%
-chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
-# chdir(r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\acoes')
+# chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
+chdir(r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\acoes')
 
 File_Lista_Acoes = r'.//Lista_Bovespa.csv'
-File_List_Tickers = r'.//CheckPoint.asc'
+File_List_Tickers = r'.//CheckPoint.txt'
 File_Report = r'./Report.csv'
 DF_Tickers = pd.read_csv(File_Lista_Acoes)
 Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
@@ -182,12 +182,12 @@ if __name__ == '__main__':
             print(error)
             pass
 
-        if isfile('.\\Graph\\' + x + '.png'):
-            sleep(1)
-            List_Tickers.remove(x)
-            with open(File_List_Tickers, 'w+') as arq:
-                for x in List_Tickers:
-                    arq.write(x + '\n')
+        # if isfile('.\\Graph\\' + x + '.png'):
+        #     sleep(1)
+        List_Tickers.remove(x)
+        with open(File_List_Tickers, 'w+') as arq:
+            for x in List_Tickers:
+                arq.write(x + '\n')
 
         if mem == 9:
             collect()
