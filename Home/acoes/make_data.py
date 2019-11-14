@@ -76,27 +76,47 @@ def Graph(Data, TickerName):
 
 
 # %%
-chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
-File_Lista_Acoes = r'.//Lista_Bovespa.csv'
-DF_Tickers = pd.read_csv(File_Lista_Acoes)
-List_Tickers = list(DF_Tickers['Ticker'])
-Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
+# chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
+chdir(r'A:\_Projetos\AnotacoesEstudosBackPythonLSP\Home\acoes')
 
+File_Lista_Acoes = r'.//Lista_Bovespa.csv'
+File_List_Tickers = r'.//CheckPoint.asc'
+DF_Tickers = pd.read_csv(File_Lista_Acoes)
+Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
+List_Tickers = []
+
+if isfile(File_List_Tickers):
+    with open(File_List_Tickers, 'r') as arq:
+        List_Tickers_Raw = arq.readlines()
+        for x in List_Tickers_Raw:
+            Ticker = x.replace('\n', '')
+            List_Tickers.append(Ticker)
+        pass
+    pass
+else:
+    List_Tickers = list(DF_Tickers['Ticker'])
+    with open(File_List_Tickers, 'w+') as arq:
+        for x in List_Tickers:
+            arq.write(x + '\n')
+        pass
+    pass
 
 
 if isdir('.\\Graph'):
-    to_erase = glob('.\\Graph\\*.png')
-    for e in to_erase:
-        remove(e)
+    pass
+    #to_erase = glob('.\\Graph\\*.png')
+    # for e in to_erase:
+    #     remove(e)
     pass
 else:
     mkdir('.\\Graph')
     pass
 
 if isdir('.\\Tables'):
-    to_erase = glob('.\\Tables\\*.xlsx')
-    for e in to_erase:
-        remove(e)
+    pass
+    #to_erase = glob('.\\Tables\\*.xlsx')
+    # for e in to_erase:
+    #     remove(e)
 else:
     mkdir('.\\Tables')
     pass
@@ -105,7 +125,7 @@ else:
 
 if __name__ == '__main__':
     start = perf_counter()
-    for x in DF_Tickers['Ticker']:
+    for x in List_Tickers:
 
         print(f'Downloading {x} data from yahoo...', end='')
 
@@ -143,6 +163,13 @@ if __name__ == '__main__':
             Report.to_excel('Report.xlsx')
         except Exception as error:
             print(error)
+            pass
+
+        del(List_Tickers[0])
+
+        with open(File_List_Tickers, 'w+') as arq:
+            for x in List_Tickers:
+                arq.write(x + '\n')
 
         sleep(9)
         pass
@@ -150,5 +177,7 @@ if __name__ == '__main__':
     stop = perf_counter()
 
     Report.to_excel('Report.xlsx')
+
+    remove(File_List_Tickers)
 
     print(f'Ends in {stop - start} seconds...')
