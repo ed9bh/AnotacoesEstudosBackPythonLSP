@@ -34,7 +34,7 @@ def MMA_Analisys(Data, Ticker):
     Data['PriceX2'] = 2 * Data['Adj Close']
 
     # Bollinger Bands
-    days = 9
+    days = 20
     MidBollinger = (Data['High'].rolling(days).mean() +
                     Data['Low'].rolling(days).mean()) / 2
     Data['CorridorHigh'] = MidBollinger + Data['PriceX2'].std()
