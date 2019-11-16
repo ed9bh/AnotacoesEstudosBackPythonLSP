@@ -81,7 +81,7 @@ def Graph(Data, TickerName):
             color, first = 'Black', False
         else:
             color = 'Grey'
-        A.axhline(pivotLine, color=color, linestyle="--")
+        A.axhline(pivotLine, color=color, linestyle=":")
     A.set_title(f'Graphic Open \\ Close {TickerName}')
 
     B.plot(Data['Adj Close'], color='Black', label='Adj Close')
@@ -192,10 +192,10 @@ if __name__ == '__main__':
             pass
         try:
             Graph(data, x)
-            print(' Graph Sucess...', end='')
+            print(' Graph Sucess...')
             pass
         except:
-            print(' Graph Failed...', end='')
+            print(' Graph Failed...')
             sleep(9)
             pass
 
