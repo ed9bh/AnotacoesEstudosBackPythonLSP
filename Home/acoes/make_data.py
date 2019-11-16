@@ -11,6 +11,7 @@ from pandas.plotting import register_matplotlib_converters
 import requests
 from lxml import html
 from gc import collect
+from numpy import abs
 
 mpl.rc('figure', max_open_warning=0)
 register_matplotlib_converters()
@@ -20,11 +21,11 @@ plt.style.use('seaborn')
 
 def Down_Data(TickerName):
     Data = pdr.DataReader(TickerName + '.SA',
-                          data_source='yahoo', start='2019-01-01')
+                          data_source='yahoo', start='2018-01-01')
     return Data
 
 
-def MMA_Analisys(Data, Ticker):
+def Analisys(Data, Ticker):
     # SMA
     Data['MMA200'] = Data['Adj Close'].rolling(200).mean()
     Data['MMA100'] = Data['Adj Close'].rolling(100).mean()
@@ -63,25 +64,19 @@ def MMA_Analisys(Data, Ticker):
 
 def Graph(Data, TickerName):
 
-    fig, ((A, B), (C, D)) = plt.subplots(
+    fig, ((A, B, E), (C, D, F)) = plt.subplots(
         nrows=2,
-        ncols=2,
+        ncols=3,
         sharex=False,
         sharey=False,
-        figsize=(15, 10)
+        figsize=(18, 9)
     )
 
     A.plot(Data['Open'], color='Blue', label='Open')
     A.plot(Data['Close'], color='Red', label='Close')
     A.plot(Data['CorridorHigh'], color='Grey', linestyle=":")
     A.plot(Data['CorridorLow'], color='Grey', linestyle=":")
-    first = True
-    for pivotLine in [PP, R1, R2, R3, S1, S2, S3]:
-        if first == True:
-            color, first = 'Black', False
-        else:
-            color = 'Grey'
-        A.axhline(pivotLine, color=color, linestyle=":")
+
     A.set_title(f'Graphic Open \\ Close {TickerName}')
 
     B.plot(Data['Adj Close'], color='Black', label='Adj Close')
@@ -98,8 +93,28 @@ def Graph(Data, TickerName):
     D.bar(Data.index, Data['Volume'])
     D.set_title(f'Volume - {TickerName}')
 
+    Periods = -22
+
+    E.plot(Data['Adj Close'][Periods:], color='Black', label='Adj Close')
+    E.plot(Data['MMA72'][Periods:], color='Red', label='72')
+    E.plot(Data['MMA21'][Periods:], color='Orange', label='21')
+    E.axhline(PP, color='Green', linestyle=":")
+    for pivotLine in [R1, R2, R3]:
+        E.axhline(pivotLine, color='Red', linestyle=":")
+    for pivotLine in [S1, S2, S3]:
+        E.axhline(pivotLine, color='Blue', linestyle=":")
+
+    E.plot(Data['CorridorHigh'][Periods:], color='Grey', linestyle=":")
+    E.plot(Data['CorridorLow'][Periods:], color='Grey', linestyle=":")
+
+    E.set_title(f'Pivot Graphic / Last {abs(Periods)} Periods - {TickerName}')
+
+    F.bar(Data.index[Periods:], Data['GainLoss'][Periods:], color='Green')
+    F.set_title(f' Gain / Loss / Last {abs(Periods)} Periods - {TickerName}')
+
     A.legend()
     B.legend()
+    E.legend()
 
     fig.autofmt_xdate()
 
@@ -183,7 +198,7 @@ if __name__ == '__main__':
             sleep(9)
             pass
         try:
-            data = MMA_Analisys(data, x)
+            data = Analisys(data, x)
             print(' Analysis Sucess...', end='')
             pass
         except:
