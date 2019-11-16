@@ -33,22 +33,22 @@ def MMA_Analisys(Data, Ticker):
     Data['MMA21'] = Data['Adj Close'].rolling(21).mean()
     Data['PriceX2'] = 2 * Data['Adj Close']
 
-    # Bollinger Bands
+    # Bollinger Bands - https://school.stockcharts.com/doku.php?id=technical_indicators:bollinger_bands
     days = 20
     MidBollinger = (Data['High'].rolling(days).mean() +
                     Data['Low'].rolling(days).mean()) / 2
     Data['CorridorHigh'] = MidBollinger + Data['PriceX2'].std()
     Data['CorridorLow'] = MidBollinger - Data['PriceX2'].std()
 
-    # Pivot Points
+    # Pivot Points - https://www.babypips.com/learn/forex/how-to-calculate-pivot-points
     global PP, R1, R2, R3, S1, S2, S3
     ref = -1
     PP = (Data['High'][ref] + Data['Low'][ref] + Data['Close'][ref]) / 3
     R1 = (2 * PP) - Data['Low'][ref]
-    S1 = (2 * PP) - Data['High'][ref]
     R2 = PP + (Data['High'][ref] - Data['Low'][ref])
-    S2 = PP - (Data['High'][ref] - Data['Low'][ref])
     R3 = Data['High'][ref] + (2 * (PP - Data['Low'][ref]))
+    S1 = (2 * PP) - Data['High'][ref]
+    S2 = PP - (Data['High'][ref] - Data['Low'][ref])
     S3 = Data['Low'][ref] - (2 * (Data['High'][ref] - PP))
 
     # Gain / Loss
