@@ -121,8 +121,6 @@ def Graph(Data, TickerName):
 
     E.set_title(f'Pivot Graphic / Last {abs(Periods)} Periods - {TickerName}')
 
-    # F.bar(Data.index[Periods:], Data['GainLoss'][Periods:], color='Green')
-    # F.set_title(f' Gain / Loss / Last {abs(Periods)} Periods - {TickerName}')
     F.bar(Data.index[Periods:], Data['Volume'][Periods:])
     F.set_title(f'Volume - {TickerName}')
 
