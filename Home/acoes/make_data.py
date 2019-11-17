@@ -58,6 +58,11 @@ def Analisys(Data, Ticker):
     # Gain / Loss
     Data['GainLoss'] = Data['Close'] - Data['Open']
 
+    # MACD
+    F, S = 100, 200
+    Data['MACD'] = Data['Adj Close'].rolling(F).mean() - Data['Adj Close'].rolling(S).mean()
+    Data['Signal'] = Data['MACD'].rolling(int((S - F) / 2)).mean()
+
     table_file = '.\\Tables\\' + Ticker + '.xlsx'
 
     Data.to_excel(table_file)
@@ -95,8 +100,10 @@ def Graph(Data, TickerName):
     C.bar(Data.index, Data['GainLoss'], color='Green')
     C.set_title(f' Gain / Loss - {TickerName}')
 
-    D.bar(Data.index[B_Periods:], Data['Volume'][B_Periods:])
-    D.set_title(f'Volume - {TickerName}')
+    D.plot(Data['MACD'][B_Periods:], color='Blue', label='MACD')
+    D.plot(Data['Signal'][B_Periods:], color='Red', label='Signal')
+    D.axhline(0, color='Black', linestyle=':')
+    D.set_title(f'MACD - {TickerName}')
 
     Periods = -22
 
@@ -114,12 +121,15 @@ def Graph(Data, TickerName):
 
     E.set_title(f'Pivot Graphic / Last {abs(Periods)} Periods - {TickerName}')
 
-    F.bar(Data.index[Periods:], Data['GainLoss'][Periods:], color='Green')
-    F.set_title(f' Gain / Loss / Last {abs(Periods)} Periods - {TickerName}')
+    # F.bar(Data.index[Periods:], Data['GainLoss'][Periods:], color='Green')
+    # F.set_title(f' Gain / Loss / Last {abs(Periods)} Periods - {TickerName}')
+    F.bar(Data.index[Periods:], Data['Volume'][Periods:])
+    F.set_title(f'Volume - {TickerName}')
 
     A.legend()
     B.legend()
     E.legend()
+    D.legend()
 
     fig.autofmt_xdate()
 
