@@ -20,8 +20,11 @@ plt.style.use('seaborn')
 
 
 def Down_Data(TickerName):
-    Data = pdr.DataReader(TickerName + '.SA',
-                          data_source='yahoo', start='2018-01-01')
+    Data = pdr.DataReader(
+        TickerName + '.SA',
+        data_source='yahoo',
+        start='2018-01-01'
+    )
     return Data
 
 
@@ -79,18 +82,20 @@ def Graph(Data, TickerName):
 
     A.set_title(f'Graphic Open \\ Close {TickerName}')
 
-    B.plot(Data['Adj Close'], color='Black', label='Adj Close')
-    B.plot(Data['MMA72'], color='Red', label='72')
-    B.plot(Data['MMA21'], color='Orange', label='21')
-    B.plot(Data['MMA66'], color='Pink', label='66')
-    B.plot(Data['MMA100'], color='Grey', label='100')
-    B.plot(Data['MMA200'], color='Blue', label='200')
-    B.set_title(f'MMA VIEW {TickerName}')
+    B_Periods = -90
+
+    B.plot(Data['Adj Close'][B_Periods:], color='Black', label='Adj Close')
+    B.plot(Data['MMA72'][B_Periods:], color='Red', label='72')
+    B.plot(Data['MMA21'][B_Periods:], color='Orange', label='21')
+    B.plot(Data['MMA66'][B_Periods:], color='Pink', label='66')
+    B.plot(Data['MMA100'][B_Periods:], color='Grey', label='100')
+    B.plot(Data['MMA200'][B_Periods:], color='Blue', label='200')
+    B.set_title(f'MMA VIEW / Last {abs(B_Periods)} Periods  {TickerName}')
 
     C.bar(Data.index, Data['GainLoss'], color='Green')
     C.set_title(f' Gain / Loss - {TickerName}')
 
-    D.bar(Data.index, Data['Volume'])
+    D.bar(Data.index[B_Periods:], Data['Volume'][B_Periods:])
     D.set_title(f'Volume - {TickerName}')
 
     Periods = -22
@@ -128,6 +133,25 @@ def Graph(Data, TickerName):
         pass
     except Exception as error:
         print(error)
+    pass
+
+
+def Make_Report():
+    global File_Report
+    with open(File_Report, 'w+') as target:
+        target.write('Ticker,Adj Close\n')
+    table_files = glob('.\\Tables\\*.xlsx')
+    for table_file in table_files:
+        try:
+            Ticker = table_file.replace('.\\Tables\\', '')
+            Ticker = Ticker.replace('.xlsx', '')
+            Data = pd.read_excel(table_file)
+            Last_Price = Data['Adj Close'][Data.index[-1]]
+            with open(File_Report, 'a+') as target:
+                target.write(f'{Ticker},{Last_Price}\n')
+                pass
+        except Exception as error:
+            print(error)
     pass
 
 
@@ -214,15 +238,6 @@ if __name__ == '__main__':
             sleep(9)
             pass
 
-        try:
-            with open(File_Report, 'a+') as report:
-                last_price = data['Adj Close'][-1]
-                report.write(f'{x},{last_price}\n')
-        except Exception as error:
-            # print(error)
-            sleep(9)
-            pass
-
         List_Tickers.remove(x)
         with open(File_List_Tickers, 'w+') as arq:
             for x in List_Tickers:
@@ -232,6 +247,7 @@ if __name__ == '__main__':
             collect()
             mem = 0
             sleep(45)
+            Make_Report()
         else:
             mem += 1
             sleep(9)
@@ -239,7 +255,7 @@ if __name__ == '__main__':
 
     stop = perf_counter()
 
-    Report.to_excel('Report.xlsx')
+    Make_Report()
 
     remove(File_List_Tickers)
 
