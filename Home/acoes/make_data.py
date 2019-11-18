@@ -59,9 +59,10 @@ def Analisys(Data, Ticker):
     Data['GainLoss'] = Data['Close'] - Data['Open']
 
     # MACD
-    F, S = 100, 200
-    Data['MACD'] = Data['Adj Close'].rolling(F).mean() - Data['Adj Close'].rolling(S).mean()
-    Data['Signal'] = Data['MACD'].rolling(int((S - F) / 2)).mean()
+    F, S, M = 12, 26, 9
+    Data['MACD'] = Data['Adj Close'].rolling(
+        F).mean() - Data['Adj Close'].rolling(S).mean()
+    Data['Signal'] = Data['MACD'].rolling(M).mean()
 
     table_file = '.\\Tables\\' + Ticker + '.xlsx'
 
@@ -118,7 +119,6 @@ def Graph(Data, TickerName):
 
     E.plot(Data['CorridorHigh'][Periods:], color='Grey', linestyle=":")
     E.plot(Data['CorridorLow'][Periods:], color='Grey', linestyle=":")
-
     E.set_title(f'Pivot Graphic / Last {abs(Periods)} Periods - {TickerName}')
 
     F.bar(Data.index[Periods:], Data['Volume'][Periods:])
@@ -138,7 +138,11 @@ def Graph(Data, TickerName):
             remove(graph_file)
             sleep(1)
         fig.savefig(graph_file)
+        plt.close()
         pass
+    except MemoryError as merror:
+        print(merror)
+        quit()
     except Exception as error:
         print(error)
     pass
