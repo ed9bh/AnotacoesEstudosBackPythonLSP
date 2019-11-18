@@ -261,7 +261,6 @@ if __name__ == '__main__':
             collect()
             mem = 0
             sleep(45)
-            Make_Report()
         else:
             mem += 1
             sleep(9)
