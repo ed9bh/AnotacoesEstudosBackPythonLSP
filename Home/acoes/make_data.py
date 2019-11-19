@@ -173,8 +173,8 @@ try:
 except:
     chdir(r'C:\Users\GOMEE11\Documents\_Referencias\Git\AnotacoesEstudosBackPythonLSP\Home\acoes')
 
-File_Lista_Acoes = r'.//Lista_Bovespa.csv'
-File_List_Tickers = r'.//CheckPoint.txt'
+File_Lista_Acoes = r'./Lista_Bovespa.csv'
+File_List_Tickers = r'./CheckPoint.txt'
 File_Report = r'./Report.csv'
 DF_Tickers = pd.read_csv(File_Lista_Acoes)
 Report = pd.DataFrame(columns=['Ticker', 'Adj Close'])
