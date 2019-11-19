@@ -247,7 +247,7 @@ if __name__ == '__main__':
             pass
         except:
             print(' Graph Failed...')
-            with open('.//Error.txt', 'a+') as target:
+            with open('.//CheckPoint_Error.txt', 'a+') as target:
                 target.write(f'{x}\n')
             sleep(9)
             pass
