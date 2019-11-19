@@ -190,6 +190,8 @@ def inicializa():
             for x in List_Tickers_Raw:
                 Ticker = x.replace('\n', '')
                 List_Tickers.append(Ticker)
+                pass
+            sleep(0.5)
             pass
         pass
     else:
