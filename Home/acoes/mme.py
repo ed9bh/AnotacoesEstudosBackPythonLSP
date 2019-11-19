@@ -1,5 +1,5 @@
-def mme(MMA: 0, n, P):
+def mme(MME: 0, n, P):
     try:
-        return MMA + (2 / (n + 1)) * (P - MMA)
+        return MME + (2 / (n + 1)) * (P - MME)
     except:
         return 0
