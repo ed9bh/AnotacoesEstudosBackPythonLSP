@@ -66,6 +66,11 @@ def Analisys(Data, Ticker):
 
     table_file = '.\\Tables\\' + Ticker + '.xlsx'
 
+    if isfile(table_file):
+        remove(table_file)
+        sleep(0.5)
+        pass
+
     Data.to_excel(table_file)
 
     return Data
@@ -106,7 +111,7 @@ def Graph(Data, TickerName):
     D.axhline(0, color='Black', linestyle=':')
     D.set_title(f'MACD - {TickerName}')
 
-    Periods = -22
+    Periods = -20
 
     E.plot(Data['Adj Close'][Periods:], color='Black', label='Adj Close')
     E.plot(Data['MMA72'][Periods:], color='Red', label='72')
@@ -136,13 +141,10 @@ def Graph(Data, TickerName):
     try:
         if isfile(graph_file):
             remove(graph_file)
-            sleep(1)
+            sleep(0.5)
         fig.savefig(graph_file)
         plt.close()
         pass
-    except MemoryError as merror:
-        print(merror)
-        quit()
     except Exception as error:
         print(error)
     pass
