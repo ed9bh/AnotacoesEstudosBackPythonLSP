@@ -138,6 +138,9 @@ def Graph(Data, TickerName):
 
     graph_file = r'.\\Graph\\' + TickerName + '.png'
 
+    if __name__ != '__main__':
+        plt.show()
+
     try:
         if isfile(graph_file):
             remove(graph_file)
