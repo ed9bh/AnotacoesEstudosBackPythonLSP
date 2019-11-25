@@ -280,3 +280,5 @@ if __name__ == '__main__':
     remove(File_List_Tickers)
 
     print(f'Ends in {stop - start} seconds...')
+
+# %%
