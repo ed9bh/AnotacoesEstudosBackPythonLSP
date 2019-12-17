@@ -14,4 +14,8 @@ Home/acoes/CheckPoint.txt
 Home/acoes/CheckPoint_Error.txt
 Home/acoes/Report.csv
 Home/acoes/__pycache__/make_data.cpython-37.pyc
-2019_Py_LSP/Notebook/.ipynb_checkpoints/*.ipynb
+2019_Py_LSP/Notebook/.ipynb_checkpoints/*
+Notebooks/Anatocoes/.ipynb_checkpoints/*
+Notebooks/.ipynb_checkpoints/*
+2019_Py_LSP/.ipynb_checkpoints/*
+.ipynb_checkpoints/*
