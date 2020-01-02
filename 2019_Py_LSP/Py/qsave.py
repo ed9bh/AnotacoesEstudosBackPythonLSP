@@ -35,11 +35,17 @@ def qsave():
     doc = acad.ActiveDocument
     title = doc.WindowTitle
     #model = doc.ModelSpace
+    if (count % 2) == 0:
+        audit()
+        pass
     doc.SendCommand('_QSAVE\n')
     now = f'{localtime().tm_hour:02d}:{localtime().tm_min:02d}:{localtime().tm_sec:02d}'
     print(f'Save {count} complete...{now} : {title}!!!')
     return True
 
+def audit():
+    doc.SendCommand('audit\ny\n')
+    pass
 
 # %%
 if __name__ == '__main__':
