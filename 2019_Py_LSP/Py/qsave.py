@@ -35,15 +35,14 @@ def qsave():
     doc = acad.ActiveDocument
     title = doc.WindowTitle
     #model = doc.ModelSpace
-    if (count % 2) == 0:
-        audit()
-        pass
     doc.SendCommand('_QSAVE\n')
     now = f'{localtime().tm_hour:02d}:{localtime().tm_min:02d}:{localtime().tm_sec:02d}'
     print(f'Save {count} complete...{now} : {title}!!!')
     return True
 
 def audit():
+    acad = GAO('AutoCAD.Application.23')
+    doc = acad.ActiveDocument
     try:
         doc.SendCommand('audit\ny\n')
     except:
@@ -56,6 +55,12 @@ if __name__ == '__main__':
     final = 999
     WaitTime = 600
     while count is not final:
+        if (count % 2) == 0:
+            try:
+                audit()
+                sleep(1)
+            except:
+                pass
         try:
             insistente()
             pass
