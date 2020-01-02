@@ -44,7 +44,10 @@ def qsave():
     return True
 
 def audit():
-    doc.SendCommand('audit\ny\n')
+    try:
+        doc.SendCommand('audit\ny\n')
+    except:
+        pass
     pass
 
 # %%
