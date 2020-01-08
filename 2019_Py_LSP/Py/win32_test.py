@@ -41,9 +41,6 @@ print(f'Nome : {app_name} \nEnsure : {app_ensure}')
 app.Visible = True
 
 # %%
-app.Quit()
-
-# %%
 
 # ------------
 # --- Acad ---
@@ -84,3 +81,6 @@ l.color = 1
 l.Rotate(POINT(0, 0, 0), np.pi / 2)
 
 app.ZoomExtents()
+
+# %%
+app.Quit()
