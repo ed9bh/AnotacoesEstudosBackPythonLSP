@@ -35,7 +35,13 @@ def qsave():
     doc = acad.ActiveDocument
     title = doc.WindowTitle
     #model = doc.ModelSpace
-    doc.SendCommand('_QSAVE\n')
+    try:
+        doc.save()
+        pass
+    except Exception as error:
+        print(f'Erro : {error}')
+        doc.SendCommand('_QSAVE\n')
+        pass
     now = f'{localtime().tm_hour:02d}:{localtime().tm_min:02d}:{localtime().tm_sec:02d}'
     print(f'Save {count} complete...{now} : {title}!!!')
     return True
@@ -44,8 +50,9 @@ def audit():
     acad = GAO('AutoCAD.Application.23')
     doc = acad.ActiveDocument
     try:
-        doc.SendCommand('audit\ny\n')
+        doc.auditinfo(True)
     except:
+        doc.SendCommand('audit\ny\n')
         pass
     pass
 
@@ -76,3 +83,5 @@ if __name__ == '__main__':
 print('Comando finalizado...')
 sleep(9)
 # (setq model(vla-get-modelspace(setq doc(vla-get-activedocument(setq cad(vlax-get-acad-object))))))
+
+# %%
