@@ -1,0 +1,1 @@
+(vlax-dump-object (vlax-get(vlax-invoke(vlax-invoke(vlax-get(vlax-get(vlax-invoke(vlax-get(vlax-ename->vla-object(car(entsel)))'Baselines)'Item 0)'MainBaselineFeatureLines)'FeatureLinesCol)'Item 0)'Item 0)'FeatureLinePoints) t)
