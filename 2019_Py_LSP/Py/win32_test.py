@@ -1,4 +1,9 @@
 # %%
+from __future__ import barry_as_FLUFL
+
+__version__ = '1.0.1'
+__author__ = 'Eric Drumond'
+# %%
 '''
 Regedit
 Computador\HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID
