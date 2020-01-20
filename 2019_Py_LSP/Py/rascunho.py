@@ -1,14 +1,28 @@
 # %%
-%matplotlib inline
-from numpy import array
-import pandas as pd
-# %%
-dtsheet = pd.read_csv('./teste.csv', delimiter=';', header=None)
+
+class Rectangle():
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.stats
+        pass
+
+    @property
+    def stats(self):
+        self.area = self.height * self.width
+        self.length = (self.height * 2) + (self.width * 2)
+        return self.area, self.length
+        pass
+    pass
+
+class Square(Rectangle):
+    def __init__(self, height):
+        super().__init__(height, height)
 
 # %%
-dtsheet
-
+a = Rectangle(width=10, height=12)
+a.stats
 # %%
-dtsheet.plot(x=0, y=1, figsize=(12,12), grid=True)
-
-#%%
+b = Square(height=20)
+b.stats
+# %%
