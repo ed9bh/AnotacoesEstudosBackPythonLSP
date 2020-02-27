@@ -1,5 +1,5 @@
 from win32com.client import GetActiveObject, Dispatch, CastTo, GetObject
-
+# (vla-getinterfaceobject (vlax-get-acad-object) "AeccXUiLand.AeccApplication.13.2")
 try:
     acad = GetActiveObject('AutoCAD.Application.23')
     pass
