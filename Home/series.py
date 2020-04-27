@@ -151,7 +151,14 @@ for item in sorted(_zfiles):
     pass
 
 # %%
+all_folders = []
+
 for folder, b, c in walk(folders['Complete']):
+    all_folders.append(folder)
+
+all_folders = sorted(all_folders)
+
+for folder in all_folders:
 
     chdir(folder)
 
