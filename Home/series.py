@@ -72,12 +72,22 @@ def XCopy(_xname, *destinations):
             name = f'{item}\\{result[0]}.{result[4]}'
             name = name.title()
             with open(name, 'wb+') as dfile:
-                dfile.write(data)
+                try:
+                    dfile.write(data)
+                except:
+                    return False
                 pass
             print(f'{Color.YELLOW}---> {(100 / len(destinations) * (c + 1)):.2f}% <---')
             pass
         pass
     return True
+
+# from os.path import getsize
+# tname = 'reinst.txt'
+# test = open(tname, 'r')
+# test.readline()
+# test.close()
+# getsize(tname)
 
 #%%
 folders = {

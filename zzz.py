@@ -31,5 +31,3 @@ for x in files:
     except Exception as error:
         print(error)
         pass
-
-# %%
