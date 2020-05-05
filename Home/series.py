@@ -1,5 +1,5 @@
 #%%
-from os import chdir, mkdir, remove, rename, listdir, walk, system
+from os import chdir, mkdir, remove, rename, listdir, walk, system, makedirs
 from os.path import isdir, isfile
 from glob import glob
 from zipfile import ZipFile
@@ -111,10 +111,14 @@ for item in sorted(_zfiles):
         with ZipFile(item, 'r') as zfile:
             zfile.extractall()
             pass
+        pass
     elif  item.endswith('rar'):
         with RarFile(item, 'r') as rfile:
             rfile.extractall()
             pass
+        pass
+
+    rename(item, item + '_')
 
     _del_files = glob('*.1080p.*')
     _del_files.extend(glob('*.2160p.*'))
@@ -183,11 +187,24 @@ for folder in all_folders:
     for item in sorted(video_files):
         try:
             result = Translate_Name(item)
-            dest = f'{destine}\\{result[1]}\\{result[2]}'
+            dest_1 = f'{destine}\\{result[1]}\\{result[2]}'
             dest_2 = f'{backup}\\{result[1]}\\{result[2]}'
+        except Exception as er:
+            #print(f'{Color.WARNING}Aviso : {Color.FAIL}{er}')
+            pass
+
+        try:
+            makedirs(dest_1)
+            makedirs(dest_2)
+        except Exception as er:
+            #print(f'{Color.WARNING}Aviso : {Color.FAIL}{er}')
+            #sleep(9)
+            pass
+
+        try:
             print(f'{Color.WHITE}Copiando : {Color.CYAN}{result[0]}')
-            copiado = XCopy(item, dest, dest_2)
-            print(f'{Color.WHITE}Arquivo copiado para {Color.OKGREEN}\n\t{dest}\n\t{dest_2}')
+            copiado = XCopy(item, dest_1, dest_2)
+            print(f'{Color.WHITE}Arquivo copiado para {Color.OKGREEN}\n\t{dest_1}\n\t{dest_2}')
             pass
         except Exception as er:
             print(f'{Color.WHITE}Erro : {Color.FAIL}{er}')
