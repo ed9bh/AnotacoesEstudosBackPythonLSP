@@ -28,15 +28,24 @@ class Color():
     MAGENTA = '\033[35m'
     CYAN = '\033[36m'
     WHITE = '\033[37m'
+
+    BG_BLACK = '\033[99m'
+    BG_WHITE = '\033[100m'
+    BG_RED = '\033[101m'
+    BG_GREEN = '\033[102m'
+    BG_YELLOW = '\033[103m'
+    BG_BLUE = '\033[104m'
+    BG_PINK = '\033[105m'
+    BG_CYAN = '\033[106m'
+    BG_GREY = '\033[107m'
     pass
 
 def Translate_Name(raw_name:str):
-    
     file_type = findall('\.[a-zA-Z0-9]{3,7}', raw_name)[-1][1:]
 
     name = raw_name.replace('.' + file_type, '')
     name = name.upper()
-    
+
     se_ep = findall('S\d[0-9]E\d[0-9]', name)[0]
     season = findall('S\d[0-9]', name)
     epsode = findall('E\d[0-9]', name)
