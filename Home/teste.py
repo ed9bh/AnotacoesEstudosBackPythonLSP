@@ -10,3 +10,13 @@ while c < f:
     print(']', end='')
     c += 1
     sleep(1)
+
+# %%
+from os import system
+# %%
+system("netsh interface show interface")
+# %%
+system("netsh interface set interface 'Wifi' disabled") 
+# %%
+system("netsh interface set interface 'Wifi' enabled")
+# %%
