@@ -52,11 +52,11 @@
 
 	      (cond
           ; Pista
-		((< Percent 20)
+		((< Percent 15)
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_Plataforma-Pista"))
 		 )
          ; Aterro
-		((and (> Percent 20) (< Percent 80) )
+		((and (> Percent 15) (< Percent 55) ) ; 50.0 %
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_TaludeAterro"))
 		 )
          ; Muro
@@ -64,7 +64,7 @@
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_Contencao-Muro-SoloGrampeado-Gabiao-TerraArmada"))
 		 )
          ; Corte
-		((and (> Percent 80) (< Percent 160) )
+		((and (> Percent 56) (< Percent 160) ) ; 66.666666 %
 		 (vl-catch-all-apply 'vlax-put (list v 'Layer "_TaludeCorte"))
 		 )
 		)
