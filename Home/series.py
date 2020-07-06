@@ -4,6 +4,7 @@ from os.path import isdir, isfile
 from glob import glob
 from zipfile import ZipFile
 from rarfile import RarFile
+from py7zr import SevenZipFile
 from re import findall, search
 from time import sleep
 #%%
