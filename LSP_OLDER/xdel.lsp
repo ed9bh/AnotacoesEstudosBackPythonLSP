@@ -19,11 +19,21 @@
 					 )
 	      (reverse Lstc)
 	      )
-	SS(ssget"_WP"Lstc)
+	SS(ssget"_CP"Lstc)
 	)
   (if SS
     (progn
-      (mapcar'(lambda(x)(vla-delete(vlax-ename->vla-object(cadr x))))(ssnamex SS))
+      ;(mapcar'(lambda(x)(vla-delete(vlax-ename->vla-object(cadr x))))(ssnamex SS))
+      (foreach s (ssnamex SS)
+        (progn
+          (if(>(car s)0)
+            (progn
+              (setq v(vlax-ename->vla-object(cadr s)))
+              (vla-delete v)
+            )
+          )
+        )
+      )
       (princ)
       ;(vla-zoomextents(vlax-get-acad-object))
       )
