@@ -12,3 +12,6 @@
 
 ;;; Center
 (safearray-value (vlax-variant-value(vla-get-center (vlax-ename->vla-object(car(entsel)))))
+                 
+;;; Get Handle
+(vla-get-handle(vlax-ename->vla-object(car(entsel))))
