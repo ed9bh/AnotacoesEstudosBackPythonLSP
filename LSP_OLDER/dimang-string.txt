@@ -1,14 +1,35 @@
 (princ(VL-STRING-TRANSLATE "d" "°" (ANGTOS (CDR(ASSOC 42 (ENTGET(CAR(ENTSEL))) )) 1 7)))(princ)
 
+(vlax-invoke-method (vlax-ename->vla-object(car(entsel))) 'FindElevationAtXY (car(setq xy(getpoint))) (cadr xy) )
 
 
 
-(defun c:dimang->string()
+
+(defun c:dimang->clipboard()
 (vlax-invoke
     (vlax-get (vlax-get (vlax-create-object "htmlfile") 'ParentWindow) 'ClipBoardData)
     'setData
     "Text"
     (VL-STRING-TRANSLATE "d" "°" (ANGTOS (CDR(ASSOC 42 (ENTGET(CAR(ENTSEL))) )) 1 7))
 )
+(princ)
+)
+
+
+
+(defun c:surf->base()
+(setq basesurf(vlax-ename->vla-object(car(entsel))))
+)
+
+(defun c:elev->clipboard()
+(setq xy(getpoint"\tPonto Elev : "))
+(setq elev (vlax-invoke-method basesurf 'FindElevationAtXY (car xy) (cadr xy) ))
+(vlax-invoke
+    (vlax-get (vlax-get (vlax-create-object "htmlfile") 'ParentWindow) 'ClipBoardData)
+    'setData
+    "Text"
+    (rtos elev 2 3)
+)
+(princ elev)
 (princ)
 )
