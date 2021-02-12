@@ -6,13 +6,23 @@
 
 
 (defun c:dimang->clipboard()
+(setq ang(VL-STRING-TRANSLATE "d" "°" (ANGTOS (CDR(ASSOC 42 (ENTGET(CAR(ENTSEL))) )) 1 7)))
 (vlax-invoke
     (vlax-get (vlax-get (vlax-create-object "htmlfile") 'ParentWindow) 'ClipBoardData)
     'setData
     "Text"
-    (VL-STRING-TRANSLATE "d" "°" (ANGTOS (CDR(ASSOC 42 (ENTGET(CAR(ENTSEL))) )) 1 7))
+    ang
 )
+(princ ang)
 (princ)
+)
+
+(defun c:dimang->mtext()
+(setq
+ang(VL-STRING-TRANSLATE "d" "°" (ANGTOS (CDR(ASSOC 42 (ENTGET(CAR(ENTSEL))) )) 1 7))
+mto(vlax-ename->vla-object(car(entsel"Texto do angulo : ")))
+)
+(vlax-put mto 'TextString ang)
 )
 
 
