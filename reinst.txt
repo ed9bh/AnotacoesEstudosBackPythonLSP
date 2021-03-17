@@ -70,7 +70,6 @@ pyparsing==2.4.6
 pyrsistent==0.15.4
 python-dateutil==2.8.1
 pythonnet==2.4.0
-pytube3==9.6.4
 pytz==2019.3
 pywin32==224
 pywin32-ctypes==0.2.0
