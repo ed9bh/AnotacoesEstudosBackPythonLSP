@@ -1,15 +1,18 @@
 #%%
 # pip install pytube --upgrade --force
 # https://github.com/nficano/pytube
-from pytube import YouTube
+try:
+    from pytube import YouTube
+except:
+    from os import system
+    system('pip install pytube --no-cache-dir --upgrade --force')
+    from pytube import YouTube
 from os import chdir, remove, getcwd
 from os.path import isfile, dirname
 from time import sleep
 from tkinter import Tk
 from re import findall
 # %%
-filename = 'down_list.txt'
-
 rt = Tk()
 link = rt.clipboard_get()
 # %%
@@ -28,4 +31,4 @@ except Exception as er:
     system('pip install pytube --no-cache-dir --upgrade --force')
     print('App atualizado, rode novamente...')
 print('Finalizado...')
-sleep(90)
+sleep(30)
