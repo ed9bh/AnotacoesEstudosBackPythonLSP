@@ -1,12 +1,14 @@
 #%%
 # pip install pytube --upgrade --force
 # https://github.com/nficano/pytube
-try:
-    from pytube import YouTube
-except:
+import pkg_resources as pkg
+installed = [p.key for p in pkg]
+
+if 'pytube' not in installed:
     from os import system
     system('pip install pytube --no-cache-dir --upgrade --force')
-    from pytube import YouTube
+from pytube import YouTube
+
 from os import chdir, remove, getcwd
 from os.path import isfile, dirname
 from time import sleep
