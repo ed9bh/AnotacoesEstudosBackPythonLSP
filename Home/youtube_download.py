@@ -2,7 +2,7 @@
 # pip install pytube --upgrade --force
 # https://github.com/nficano/pytube
 import pkg_resources as pkg
-installed = [p.key for p in pkg]
+installed = [p.key for p in pkg.working_set]
 
 if 'pytube' not in installed:
     from os import system
@@ -15,6 +15,7 @@ from time import sleep
 from tkinter import Tk
 from re import findall
 # %%
+#chdir('C:\\Users\\Eric.Gomes\\Downloads')
 rt = Tk()
 link = rt.clipboard_get()
 # %%
@@ -32,5 +33,6 @@ except Exception as er:
     from os import system
     system('pip install pytube --no-cache-dir --upgrade --force')
     print('App atualizado, rode novamente...')
+
 print('Finalizado...')
-sleep(30)
+sleep(9)
