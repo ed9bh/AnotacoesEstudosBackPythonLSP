@@ -1,4 +1,5 @@
 #%%
+# pip install py7zr rarfile
 from os import chdir, mkdir, remove, rename, listdir, walk, system, makedirs
 from os.path import isdir, isfile
 from glob import glob
@@ -199,6 +200,10 @@ for folder in all_folders:
             result = Translate_Name(item)
             dest_1 = f'{destine}\\{result[1]}\\{result[2]}'
             dest_2 = f'{backup}\\{result[1]}\\{result[2]}'
+            log = f'{destine}\\{result[1]}\\update.log'
+            ### Log de Update
+            # with open(log, 'a+') as logfile:
+            #     logfile.write(f'{result[3]}\n')
         except Exception as er:
             #print(f'{Color.WARNING}Aviso : {Color.FAIL}{er}')
             pass
@@ -215,6 +220,8 @@ for folder in all_folders:
             print(f'{Color.WHITE}Copiando : {Color.CYAN}{result[0]}')
             copiado = XCopy(item, dest_1, dest_2)
             print(f'{Color.WHITE}Arquivo copiado para {Color.OKGREEN}\n\t{dest_1}\n\t{dest_2}')
+            with open(log, 'a+') as logfile:
+                logfile.write(f'{result[2]}_{result[3]}\n')
             pass
         except Exception as er:
             print(f'{Color.WHITE}Erro : {Color.FAIL}{er}')
