@@ -8,16 +8,26 @@
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from secrets import token_hex
 from time import sleep
 import os, sys
 # %%
 
 def handler_fun():
     for filename in os.listdir(base_folder):
+        filename = filename.lower()
+        name, ext = token_hex(18), filename.rsplit('.')[-1]
+        if len(filename) > 20 and ext in ['mp4', 'avi', 'jpg', 'png', 'gif']:
+            new_name = f'{name}.{ext}'
+        else:
+            new_name = filename
         if any(filename.endswith(x) for x in file_tracks.keys()):
             src = f'{base_folder}\\{filename}'
             key = filename.split('.')[-1]
             folder_name = file_tracks[f'.{key}']
+            filename = filename if len(filename) < 20 else new_name
+            if filename.endswith('.webp'):
+                filename = filename.replace('.webp', '.jpg')
             new_destination = f'{base_folder}\\{folder_name}\\{filename}'
             if os.path.exists(folder_name) is False:
                 try:

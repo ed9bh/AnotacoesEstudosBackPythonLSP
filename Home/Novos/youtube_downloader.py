@@ -19,12 +19,12 @@ if __name__ == '__main__':
     except Exception as er:
         import webbrowser
         wb = webbrowser.WindowsDefault()
-        URL = f'https://pt.savefrom.net/{link}'
-        print(f'Baixando pelo site (Modulo Youtube Inoperante) : {URL}')
-        wb.open(url=URL)
+        #URL = f'https://pt.savefrom.net/{link}'
+        #print(f'Baixando pelo site (Modulo Youtube Inoperante) : {URL}')
+        #wb.open(url=URL)
         from os import system
-        system('pip install pytube --no-cache-dir --upgrade --force')
-        print('App atualizado, rode novamente...')
+        #system('pip install pytube --no-cache-dir --upgrade --force')
+        #print('App atualizado, rode novamente...')
         print(f'{er}')
         pass
 

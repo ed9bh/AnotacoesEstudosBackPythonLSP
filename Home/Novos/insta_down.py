@@ -15,7 +15,7 @@ else:
 
 #webbrowser.open(f'savefrom.net/{URL}')
 
-#URL = f'https://igram.io/{URL}'
+URL = f'https://igram.io/{URL}'
 URL = f'https://pt.savefrom.net/{URL}'
 
 print(URL)
