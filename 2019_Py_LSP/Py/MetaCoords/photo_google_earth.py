@@ -1,3 +1,4 @@
+# By: Eric Drumond / https://github.com/ed9bh
 # %%
 from os import chdir, mkdir
 from os.path import isdir
@@ -12,11 +13,11 @@ from exif import Image
 folder = r'C:\Users\Eric.Gomes\OneDrive - Ausenco\Documents\Ausenco\Proj\Vale\105425-33\Visita_20230724\\'
 folder_out = folder + "out\\"
 
-cliente = 'Vale'
-projeto_num = '105425-33'
-projeto_tit = 'Barragem do Trovao'
-autor = 'Eric Drumond Gomes'
-dia = '20230724'
+cliente = 'Empresa'
+projeto_num = '000000-000'
+projeto_tit = 'Area Principal'
+autor = 'Usuario'
+dia = 'AAAAMMDD'
 fuso = 23
 quadrante = 'k'
 emisferio = 's'
