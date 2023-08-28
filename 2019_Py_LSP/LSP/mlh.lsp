@@ -1,4 +1,5 @@
-(defun c:mlh (/ *error*)
+; Malha de Coordenadas - By: Eric Drumond / https://github.com/ed9bh
+(defun c:malha (/ *error*)
   (defun *error* (msg)
     (princ msg)
     (vla-endundomark doc)
@@ -77,7 +78,7 @@
       )
       (vlax-put line 'Layer lay)
       (vlax-put text 'Layer lay)
-      (vla-put-rotation text 1.5708)
+      (vla-put-rotation text (/ pi 2))
     )
   )
   
@@ -134,3 +135,4 @@
   (princ)
   
 )
+; Malha de Coordenadas - By: Eric Drumond / https://github.com/ed9bh
