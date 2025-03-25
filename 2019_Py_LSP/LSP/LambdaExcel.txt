@@ -1,0 +1,5 @@
+Área 3D
+=LAMBDA(X;Y;Z;(X*Y)+(X*Z)+(X*Z))
+
+Estaca 20m
+=LAMBDA(x;(x-(MOD(x;20)))/20&"+"&TETO(MOD(x;20);0,01))

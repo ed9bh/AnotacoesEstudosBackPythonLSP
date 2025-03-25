@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajuda - HatchSecaoGeo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1, h2 {
+      color: #0055A4;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+    a {
+      color: #0055A4;
+    }
+  </style>
+</head>
+<body>
+  <h1>HatchSecaoGeo</h1>
+  <p>
+    O comando <strong>HatchSecaoGeo</strong> foi criado para facilitar a criação de preenchimentos (hatches) em seções do seu desenho. Ele transforma polígonos (polilinhas) selecionados em hatches sólidos, mantendo a mesma cor e camada dos objetos originais.
+  </p>
+  
+  <h2>Como Utilizar</h2>
+  <ol>
+    <li>
+      <strong>Carregar a Rotina:</strong> Abra o AutoCAD e carregue o arquivo da rotina usando o comando <code>APPLOAD</code>.
+    </li>
+    <li>
+      <strong>Executar o Comando:</strong> Na linha de comando, digite <code>HatchSecaoGeo</code> e pressione <kbd>Enter</kbd>.
+    </li>
+    <li>
+      <strong>Selecionar os Polígonos:</strong> Quando solicitado, clique nos polígonos (polilinhas) que deseja preencher.
+    </li>
+    <li>
+      <strong>Conferir o Resultado:</strong> O comando criará automaticamente um hatch com padrão sólido, aplicando a mesma cor e camada dos polígonos selecionados.
+    </li>
+  </ol>
+  
+  <h2>O Que Esperar</h2>
+  <ul>
+    <li>
+      <em>Preenchimento Automático:</em> Os polígonos selecionados serão preenchidos com o padrão <strong>SOLID</strong>.
+    </li>
+    <li>
+      <em>Manutenção das Propriedades:</em> O hatch adotará as mesmas características de cor e camada dos polígonos.
+    </li>
+    <li>
+      <em>Registro de Erros:</em> Em caso de erro, o comando registrará a ocorrência automaticamente.
+    </li>
+  </ul>
+  
+  <h2>Observações Importantes</h2>
+  <ul>
+    <li>
+      Certifique-se de que os polígonos estejam fechados para que o hatch seja criado corretamente.
+    </li>
+    <li>
+      O comando atua no espaço de modelo do AutoCAD.
+    </li>
+  </ul>
+  
+  <h2>Suporte</h2>
+  <p>
+    Se você tiver dúvidas ou precisar de ajuda adicional, entre em contato com o desenvolvedor:
+  </p>
+  <p>
+    <strong>Eric Drumond</strong><br>
+    E-mail: <a href="mailto:egomes@telluscompany.com.br">egomes@telluscompany.com.br</a>
+  </p>
+  
+</body>
+</html>

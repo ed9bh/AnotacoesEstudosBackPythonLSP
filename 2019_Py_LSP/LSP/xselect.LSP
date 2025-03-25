@@ -1,0 +1,33 @@
+(defun c:xselect(/ pol polE C LstC <n> SS)
+  (vl-load-com)
+  (setq pol(entsel"\nSelecione o poligono de selecao: ")
+	)
+  (if(/=(vlax-get(vlax-ename->vla-object(car pol))'ObjectName)"AcDbPolyline")(progn(alert"Poligono invalido, crie uma Polyline(lwpolyline)!!!")(quit)))
+  (vla-zoomextents(vlax-get-acad-object))
+  (setq	polE(vlax-ename->vla-object(car pol))
+	C(vlax-get polE 'Coordinates)
+	LstC(progn(setq Lstc nil <n> 0)(repeat(/(length C)2)
+					 (setq Lstc(vl-list*
+						     (list
+						       (nth <n> C)
+						       (nth(setq <n>(1+ <n>))C)
+						       )
+						     Lstc
+						     )
+					       <n>(1+ <n>)
+					       )
+					 )
+	      (reverse Lstc)
+	      )
+	SS(ssget "_CP" Lstc)
+	)
+  (if SS
+    (progn
+      (vla-zoomextents(vlax-get-acad-object))
+      (sssetfirst nil ss)
+      ;(command"copybase" "0,0" SS "")
+      (princ)
+      )
+    )
+  (princ)
+  )
