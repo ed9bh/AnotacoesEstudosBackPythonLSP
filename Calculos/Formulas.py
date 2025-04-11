@@ -22,7 +22,7 @@ class TroncoPiramide:
         h = abs(self.Elev01 - self.Elev02)
         s = (self.Area01 + self.Area02 + (max(self.Area01, self.Area02)
                                           * min(self.Area01, self.Area02)) ** (1 / 2))
-        self.Resultado = h * s
+        self.Resultado = (h / 3) * s
         return self.Resultado
 
     def __add__(self, other):
