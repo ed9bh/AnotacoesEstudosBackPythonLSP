@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Comando SINCRONISMO - Guia de Uso</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #e9f2fb;
+      color: #0f2a47;
+      margin: 0;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(90deg, #0b3d91, #1d65c1);
+      color: #ffffff;
+      padding: 28px 32px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    header p {
+      margin: 8px 0 0;
+      font-size: 16px;
+      max-width: 720px;
+    }
+    section {
+      background: #ffffff;
+      margin: 24px;
+      padding: 24px 28px;
+      border-left: 5px solid #1d65c1;
+      box-shadow: 0 10px 18px rgba(11, 61, 145, 0.08);
+      border-radius: 6px;
+    }
+    h2 {
+      color: #0b3d91;
+      margin-top: 0;
+      font-size: 22px;
+    }
+    h3 {
+      color: #154f9c;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .keyword {
+      font-weight: 600;
+      color: #0b3d91;
+    }
+    .note {
+      background: rgba(29, 101, 193, 0.08);
+      border-left: 3px solid #0b3d91;
+      padding: 12px 16px;
+      margin-top: 16px;
+      border-radius: 4px;
+    }
+    footer {
+      text-align: center;
+      padding: 24px 0 32px;
+      color: #0f2a47;
+      font-size: 14px;
+    }
+    code {
+      background: rgba(11, 61, 145, 0.12);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Comando SINCRONISMO</h1>
+    <p>Ferramenta para alinhar dinamicamente um ponto ao longo de um perfil base com o eixo correspondente, destacando a posicao sincronizada em tempo real dentro do AutoCAD.</p>
+  </header>
+
+  <section>
+    <h2>Visao geral</h2>
+    <p>O comando <code>SINCRONISMO</code> acompanha o deslocamento do cursor sobre um perfil escolhido e projeta essa progressao em um eixo, marcando a posicao equivalente por meio de um circulo temporario. A rotina tambem cria uma linha vertical temporaria para facilitar a referencia visual sobre o perfil.</p>
+  </section>
+
+  <section>
+    <h2>Preparacao</h2>
+    <ul>
+      <li>Garanta que o desenho possua um elemento representando o perfil (linha, polilinha, spline ou outro objeto de curva suportado).</li>
+      <li>Tenha disponivel um elemento representando o eixo que sera sincronizado com o perfil.</li>
+      <li>Recomenda-se trabalhar no Model Space para melhor visualizacao das entidades temporarias.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Passo a passo</h2>
+    <ol>
+      <li>Execute o comando digitando <code>SINCRONISMO</code> na linha de comando.</li>
+      <li>Se ja existir uma selecao anterior, escolha entre <span class="keyword">Manter</span> (usar as mesmas entidades) ou <span class="keyword">Reiniciar</span> (selecionar novamente).</li>
+      <li>Quando solicitado, selecione a entidade que representa o perfil base.</li>
+      <li>Selecione a entidade que representa o eixo que recebera a sincronizacao.</li>
+      <li>Mova o cursor sobre o perfil. O ponto projetado no eixo sera indicado por um circulo azul temporario.</li>
+    </ol>
+    <div class="note">
+      As entidades temporarias sao removidas automaticamente ao encerrar o comando ou em caso de erro.
+    </div>
+  </section>
+
+  <section>
+    <h2>Controles e opcoes</h2>
+    <h3>Menu inicial</h3>
+    <p>Quando o comando encontra um par de entidades previamente selecionadas, e exibido o prompt:</p>
+    <p><code>Selecao[Manter Reiniciar]</code></p>
+    <ul>
+      <li><span class="keyword">Manter</span>: reutiliza o ultimo perfil e eixo informados.</li>
+      <li><span class="keyword">Reiniciar</span>: permite escolher novas entidades para o perfil e o eixo.</li>
+    </ul>
+
+    <h3>Monitoramento</h3>
+    <ul>
+      <li>O cursor precisa permanecer dentro da projecao horizontal do perfil para que o ponto sincronizado seja calculado.</li>
+      <li>A linha vertical temporaria acompanha a posicao X do cursor, facilitando a leitura da progressao ao longo do perfil.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Tratamento de erros</h2>
+    <ul>
+      <li>Se ocorrer alguma interrupcao, o comando limpa as entidades temporarias antes de finalizar.</li>
+      <li>Uma mensagem no prompt de comando indica o erro ocorrido para facilitar o diagnostico.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Dicas e boas praticas</h2>
+    <ul>
+      <li>Mantenha o perfil e o eixo com comprimentos equivalentes ou proporcionais para resultados mais previsiveis.</li>
+      <li>Ajuste a escala do desenho para que o circulo temporario de raio 5.0 seja facilmente visivel.</li>
+      <li>Use camadas especificas para as entidades de perfil e eixo, facilitando a selecao quando trabalhar com desenhos complexos.</li>
+    </ul>
+  </section>
+
+  <footer>
+    Desenvolvido a partir da rotina AutoLISP <code>sincronismo.lsp</code>.
+  </footer>
+</body>
+</html>
