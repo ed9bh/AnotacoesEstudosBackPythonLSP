@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>3DPolyProfile - Ajuda</title>
+<style>
+:root {
+  color-scheme: light dark;
+}
+body {
+  margin: 0;
+  background: linear-gradient(165deg, #0d1b2a 0%, #1b263b 45%, #274672 100%);
+  color: #f0f6ff;
+  font-family: "Segoe UI", "Calibri", "Tahoma", sans-serif;
+  line-height: 1.6;
+}
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 3rem;
+}
+header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #a5d8ff;
+  letter-spacing: 0.04em;
+}
+header p {
+  color: #d0e7ff;
+  font-size: 1.05rem;
+}
+section {
+  background: rgba(18, 54, 94, 0.86);
+  border: 1px solid rgba(90, 149, 255, 0.38);
+  border-radius: 1rem;
+  padding: 1.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 18px 30px -20px rgba(0, 0, 0, 0.65);
+}
+section h2 {
+  margin-top: 0;
+  color: #88c5ff;
+  letter-spacing: 0.03em;
+  font-size: 1.35rem;
+}
+section p,
+section li {
+  color: #f0f6ff;
+}
+.highlight {
+  color: #66d9ff;
+  font-weight: 600;
+}
+code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.4rem;
+  font-size: 0.95rem;
+}
+ul,
+ol {
+  margin: 0.85rem 0 0.85rem 1.25rem;
+}
+.footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #aac8ff;
+  margin-top: 2.5rem;
+}
+strong {
+  color: #9cd0ff;
+}
+a {
+  color: #90dbff;
+  text-decoration: underline;
+}
+a:hover {
+  color: #b0e3ff;
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>3DPolyProfile</h1>
+      <p>Gere rapidamente um perfil 2D a partir de uma polyline 3D e insira o resultado como bloco reutilizavel.</p>
+    </header>
+
+    <section>
+      <h2>Visao geral</h2>
+      <p>O comando <code>3DPolyProfile</code> captura os vertices de uma polyline 3D selecionada e projeta o comprimento acumulado e a elevacao (Z) em um novo perfil 2D. O perfil e salvo dentro de um bloco com extensoes auxiliares, pronto para ser inserido no Model Space no ponto escolhido pelo usuario.</p>
+    </section>
+
+    <section>
+      <h2>Como iniciar</h2>
+      <ul>
+        <li>No AutoCAD, digite <code>3DPolyProfile</code> na linha de comando ou atribua o comando a um atalho/menu.</li>
+        <li>Certifique-se de que a polyline 3D desejada esta totalmente conectada e possui vertices validos.</li>
+        <li>Ative o UCS adequado, caso deseje controlar a orientacao do ponto de insercao do bloco final.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Fluxo de trabalho</h2>
+      <ol>
+        <li><strong>Selecionar geometria</strong>: o comando solicita <span class="highlight">"Selecione a 3D Poly para transformar em Perfil"</span>. Clique na polyline 3D que servira de base.</li>
+        <li><strong>Gerar o perfil</strong>: cada segmento e avaliado. A distancia horizontal acumulada vira a coordenada X, e a elevacao do vertice vira a coordenada Y do perfil 2D.</li>
+        <li><strong>Indicar ponto de insercao</strong>: responda ao prompt <span class="highlight">"Clique no ponto pra Inserir o Perfil"</span>. O bloco sera inserido no Model Space com origem deslocada pelo valor minimo de Z encontrado.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Resultado criado</h2>
+      <ul>
+        <li>Um bloco nomeado automaticamente como <code>ProfileBlock-&lt;cdate&gt;</code> e armazenado na base de blocos do desenho atual.</li>
+        <li>Dentro do bloco ha uma <strong>polyline 2D leve</strong> representando o perfil X (distancia) por Z (elevacao).</li>
+        <li>Linhas auxiliares (Regua Menor/Maior e laterais) indicam o retangulo limite do perfil.</li>
+        <li>Duas chamadas de texto exibem os valores de X e Z minimo/maximo; as chamadas sao rotacionadas 90 graus para facilitar a leitura em perfis verticais.</li>
+        <li>Todos os elementos auxiliares recebem a cor 250 (tons claros de cinza azulado) para destacar o resultado.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Mensagens exibidas</h2>
+      <ul>
+        <li><span class="highlight">Selecione a 3D Poly para transformar em Perfil</span>: aguardando selecao da polilinha 3D.</li>
+        <li><span class="highlight">Clique no ponto pra Inserir o Perfil</span>: informe onde o bloco sera inserido no Model Space.</li>
+        <li>Mensagens de erro sao prefixadas com <span class="highlight">"Error:"</span> e a acao atual e desfeita pelo mecanismo de Undo.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Boas praticas</h2>
+      <ul>
+        <li>Mantenha a polyline 3D sem duplicidade de vertices ou segmentos sobrepostos para evitar resultados inesperados.</li>
+        <li>Considere mover o bloco criado para um layer especifico de perfis logo apos a insercao.</li>
+        <li>Edite as chamadas de texto dentro do bloco se desejar exibir unidades ou sufixos personalizados.</li>
+        <li>Use o recurso de Explodir caso precise converter o bloco em geometrias soltas para edicao fina.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Solucao de problemas</h2>
+      <ul>
+        <li><strong>"Error: nil value"</strong>: confirme que a entidade selecionada e realmente uma 3D Polyline e que possui ao menos dois segmentos.</li>
+        <li><strong>Perfil fora da vista</strong>: verifique se o ponto de insercao estava dentro da area atual do desenho. Utilize <code>ZOOM Extents</code> apos a insercao.</li>
+        <li><strong>Cores diferentes</strong>: o comando aplica cor 250 por codigo, mas o ByLayer pode prevalecer se o layer estiver travado ou se os objetos forem editados depois.</li>
+        <li><strong>Texto ilegivel</strong>: ajuste o fator de escala do texto editando o bloco (com <code>BEDIT</code>) ou altere o estilo de texto antes de rodar o comando.</li>
+      </ul>
+    </section>
+
+    <div class="footer">
+      Desenvolvido para apoiar fluxos de perfis longitudinais gerados a partir de polylines 3D.
+    </div>
+  </div>
+</body>
+</html>
