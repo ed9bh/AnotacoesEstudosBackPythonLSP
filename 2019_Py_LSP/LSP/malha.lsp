@@ -47,8 +47,10 @@
     )
     
     (setq
-      XTexts nil
-      YTexts nil
+      XTextsI nil
+      XTextsS nil
+      YTextsE nil
+      YTextsD nil
     )
     
     (while
@@ -81,8 +83,8 @@
             (vla-put-layer vlaoTxtO LayText)
             (vla-put-layer vlaoTxtD LayText)
             (setq
-              XTexts (vl-list* vlaoTxtO XTexts)
-              XTexts (vl-list* vlaoTxtD XTexts)
+              XTextsI (vl-list* vlaoTxtO XTextsI)
+              XTextsS (vl-list* vlaoTxtD XTextsS)
             )
           )
           (princ "\tSem Destino...")
@@ -120,8 +122,8 @@
             (vla-put-layer vlaoTxtO LayText)
             (vla-put-layer vlaoTxtD LayText)
             (setq
-              YTexts (vl-list* vlaoTxtO YTexts)
-              YTexts (vl-list* vlaoTxtD YTexts)
+              YTextsE (vl-list* vlaoTxtO YTextsE)
+              YTextsD (vl-list* vlaoTxtD YTextsD)
             )
           )
           (princ "\tSem Destino...")
@@ -131,7 +133,72 @@
       (setq Y (+ Y DistanciaEntreLinhas))
     )
     
-    (foreach item (append XTexts YTexts)
+    ; Corrigir Posicionamento ao Cruzar Informações
+    
+    (setq FatorMove 0.005)
+    
+    (foreach item YTextsD
+      (foreach interferencia (append XTextsI XtextsS (list VlaoMoldura))
+        (progn
+          (while
+            (setq
+              TesteDeColisao(vlax-invoke item 'IntersectWith interferencia acextendnone)
+            )
+            (vlax-invoke-method item 'GetBoundingBox 'A 'B)
+            (setq A(vlax-safearray->list A))
+            (vla-move item (vlax-3d-point A) (vlax-3d-point (list (-(car A)(* DistanciaEntreLinhas FatorMove)) (cadr A))) )
+          )
+        )
+      )
+    )
+    
+    (foreach item YTextsE
+      (foreach interferencia (append XTextsI XtextsS (list VlaoMoldura))
+        (progn
+          (while
+            (setq
+              TesteDeColisao(vlax-invoke item 'IntersectWith interferencia acextendnone)
+            )
+            (vlax-invoke-method item 'GetBoundingBox 'A 'B)
+            (setq B(vlax-safearray->list B))
+            (vla-move item (vlax-3d-point B) (vlax-3d-point (list (+(car B)(* DistanciaEntreLinhas FatorMove)) (cadr B))) )
+          )
+        )
+      )
+    )
+    
+    (foreach item XTextsI
+      (foreach interferencia (append YTextsE YTextsD (list VlaoMoldura))
+        (progn
+          (while
+            (setq
+              TesteDeColisao(vlax-invoke item 'IntersectWith interferencia acextendnone)
+            )
+            (vlax-invoke-method item 'GetBoundingBox 'A 'B)
+            (setq A(vlax-safearray->list A))
+            (vla-move item (vlax-3d-point A) (vlax-3d-point (list (car A) (+(cadr A)(* DistanciaEntreLinhas FatorMove)) )) )
+          )
+        )
+      )
+    )
+    
+    (foreach item XtextsS
+      (foreach interferencia (append YTextsE YTextsD (list VlaoMoldura))
+        (progn
+          (while
+            (setq
+              TesteDeColisao(vlax-invoke item 'IntersectWith interferencia acextendnone)
+            )
+            (vlax-invoke-method item 'GetBoundingBox 'A 'B)
+            (setq B(vlax-safearray->list B))
+            (vla-move item (vlax-3d-point B) (vlax-3d-point (list (car B) (-(cadr B)(* DistanciaEntreLinhas FatorMove)) )) )
+          )
+        )
+      )
+    )
+    
+    ; Conversão e Acabamento
+    (foreach item (append XTextsI XTextsS YTextsE YTextsD)
       (progn
         ; Extract
         (setq
@@ -210,3 +277,23 @@
 )
 
 ;|EDG(2026)[https://www.linkedin.com/in/ericdrumond]{https://github.com/ed9bh}|;
+
+
+;| Area de testes
+   
+   ; Cruzamento/Tangibilidade de Entidades
+  
+  (setq
+    Eobj1(entsel "\nSelecione a entidade : ")
+    Eobj2(entsel "\nSelecione a entidade : ")
+    Vlao1(vlax-ename->vla-object (car Eobj1))
+    Vlao2(vlax-ename->vla-object (car Eobj2))
+    Teste(vlax-invoke Vlao1 'IntersectWith Vlao2 acextendnone)
+  )
+  
+  (vlax-dump-object Vlao1 t)
+  
+  (vla-get-alignment Vlao1)
+  (vla-get-alignment Vlao2)
+  
+  |;
