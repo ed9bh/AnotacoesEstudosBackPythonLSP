@@ -1,0 +1,1 @@
+Verificar windows e corrigir arquivos corrompidos; sfc /scannow
