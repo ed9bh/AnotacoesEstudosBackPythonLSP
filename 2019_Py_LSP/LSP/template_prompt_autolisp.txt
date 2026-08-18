@@ -3,6 +3,7 @@ Objetivo: Criar um AutoLISP capaz de calcular a área 2D exata de uma polilinha 
 Limite e Referências: 
 1. Use o conteúdo do arquivo "___Exemplo.txt" (fornecido em anexo/abaixo) como base estrutural.
 2. Utilize os padrões de programação limpa e funções Visual LISP do site "https://www.lee-mac.com/programs.html" como inspiração geométrica (ex: uso de vlax-curve-*).
+3. Utilize como referencia os seguintes AutoLisp's https://github.com/ed9bh/AnotacoesEstudosBackPythonLSP/tree/master/2019_Py_LSP/LSP
 
 Requisitos Estritos:
 - O código DEVE declarar todas as variáveis como locais ( / var1 var2 ) para evitar vazamentos na sessão.
