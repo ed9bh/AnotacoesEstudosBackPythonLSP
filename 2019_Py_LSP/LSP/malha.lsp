@@ -3,20 +3,95 @@
                 XMin XMax YMin YMax X Y
                 RefLine InterPoints PontoOrigem PontoDestino
                 vlaoLine vlaoTxtO vlaoTxtD A B
+                LogReport FileNameMem LogFilePath LogFileOpened msg
                 )
+  
   (defun *error* (msg)
-    (princ msg)
+    (ucsSetter)
     (setvar 'cmdecho 1)
     (vla-endundomark doc)
+    (LogReport nil msg)
     (princ)
+  )
+  
+  ; Log
+  (defun LogReport(fileNew msg)
+    (setq
+      FileNameMem (if FileNameMem FileNameMem nil)
+      FileNameMem (if fileNew nil FileNameMem)
+    )
+    (if 
+      (= fileNew t)
+      (setq
+        LogFilePath(strcat(getvar 'dwgprefix)"LogReport("(vl-string-right-trim ".dwg" (getvar 'dwgname))")-"(vl-string-translate "." "_" (rtos (getvar 'cdate) 2 6) )".log")
+        FileNameMem LogFilePath
+      )
+      (setq
+        LogFilePath FileNameMem
+      )
+    )
+    (setq LogFileOpened(open LogFilePath "a+"))
+    (princ
+      (strcat "Log[" (vl-string-translate "." "_" (rtos (getvar 'cdate) 2 6) ) "]:> " (if msg msg "...") "\n" )
+      LogFileOpened
+      )
+    (close LogFileOpened)
   )
   
   ;---
   
+  (defun ucsGetter ()
+    (LogReport nil "ucsGetter")
+    (setq UCSs (vla-get-UserCoordinateSystems doc))
+    (if
+      (= (vlax-variant-value (vla-GetVariable doc "UCSNAME")) "")
+      (progn
+        (setq Utility (vla-get-utility doc)
+              currUCS(vla-add UCSs
+                              (vla-GetVariable doc "UCSORG")
+                              (vla-translatecoordinates Utility (vla-GetVariable doc "UCSXDIR") acUCS acWorld :vlax-false)
+                              (vla-translatecoordinates Utility (vla-GetVariable doc "UCSYDIR") acUCS acWorld :vlax-false)
+                              "OriginalUCS"
+                     )
+        )
+      )
+      (setq currUCS (vla-get-ActiveUCS doc))
+    )
+  )
+  
+  (defun ucsSetter ()
+    (LogReport nil "ucsSetter")
+    (if
+      currUCS
+      (vla-put-ActiveUCS doc currUCS)
+      (princ)
+    )
+  )
+  
   (defun main ()
+    (LogReport nil "main")
     (setq
       EnameMoldura(entsel "\nSelecione a moldura para aplicar a malha de coordenadas : ")
       VlaoMoldura(if EnameMoldura (vlax-ename->vla-object (car EnameMoldura)) (progn (princ "\tNenhuma entidade selecionada, encerrando aplicacao...") (exit)))
+    )
+
+    (cond
+      ((=(vla-get-ObjectName VlaoMoldura) "AcDbLine")
+       (alert (setq msg "¡¡¡Alerta!!!\n\n\nNao foi selecionado uma entidade valida!!!\nNecessario que seja Polyline 2D em formato retangular!!!"))
+       (LogReport nil msg)
+       (exit)
+       )
+    )
+    
+    (if
+      (/=(vla-get-elevation VlaoMoldura)0.)
+      (progn
+        (progn
+          (alert (setq msg "¡¡¡Moldura com elevação, é necessario estar\nna eleveção zero!!!"))
+          (LogReport nil msg)
+          (exit)
+        )
+      )
     )
     
     (setq
@@ -25,13 +100,17 @@
       TextScale (* DistanciaEntreLinhas 0.020)
     )
     
-    (if (or (not DistanciaEntreLinhas) (<= DistanciaEntreLinhas 0.0))
+    (LogReport nil (strcat "DistanciaEntreLinhas=" (rtos DistanciaEntreLinhas 2)) )
+    (LogReport nil (strcat "TextScale=" (rtos TextScale 2)) )
+    
+    (if (or (not DistanciaEntreLinhas) (<= DistanciaEntreLinhas 0.))
       (progn
-        (princ "\nDistancia entre linhas invalida.")
+        (LogReport nil "\nDistancia entre linhas invalida.")
         (exit)
       )
     )
     
+    (LogReport nil "Moldura")
     (vlax-invoke-method VlaoMoldura 'GetBoundingBox 'XYMin 'XYMax)
     
     (setq
@@ -53,6 +132,7 @@
       YTextsD nil
     )
     
+    (LogReport nil "Repetição While X")
     (while
       (< X XMax)
       (setq
@@ -67,7 +147,11 @@
           (progn
             (setq vlaoLine(vla-addline MSpace (vlax-3d-point PontoOrigem) (vlax-3d-point PontoDestino) ))
             (vlax-invoke-method vlaoLine 'GetBoundingBox 'A 'B)
-            (setq A (vlax-safearray->list A) B (vlax-safearray->list B))
+            (setq
+              A (vlax-safearray->list A) B (vlax-safearray->list B)
+              A (list (-(car A) (* DistanciaEntreLinhas 0.01)) (cadr A))
+              B (list (-(car B) (* DistanciaEntreLinhas 0.01)) (cadr B))
+            )
             ;
             (setq vlaoTxtO(vla-addtext Mspace (strcat "E="(rtos X 2 0)) (vlax-3d-point A) TextScale))
             (vla-put-alignment vlaoTxtO acAlignmentLeft)
@@ -87,13 +171,14 @@
               XTextsS (vl-list* vlaoTxtD XTextsS)
             )
           )
-          (princ "\tSem Destino...")
+          (LogReport nil "Sem Destino...")
         )
-        (princ "\tSem Origem...")
+        (LogReport nil "Sem Origem...")
       )
       (setq X (+ X DistanciaEntreLinhas))
     )
     
+    (LogReport nil "Repetição While Y")
     (while
       (< Y YMax)
       (setq
@@ -108,7 +193,11 @@
           (progn
             (setq vlaoLine(vla-addline MSpace (vlax-3d-point PontoOrigem) (vlax-3d-point PontoDestino) ))
             (vlax-invoke-method vlaoLine 'GetBoundingBox 'A 'B)
-            (setq A (vlax-safearray->list A) B (vlax-safearray->list B))
+            (setq
+              A (vlax-safearray->list A) B (vlax-safearray->list B)
+              A (list (car A) (+(cadr A) (* DistanciaEntreLinhas 0.01)) )
+              B (list (car B) (+(cadr B) (* DistanciaEntreLinhas 0.01)) )
+            )
             ;
             (setq vlaoTxtO(vla-addtext Mspace (strcat "N="(rtos Y 2 0)) (vlax-3d-point A) TextScale))
             (vla-put-alignment vlaoTxtO acAlignmentLeft)
@@ -126,15 +215,15 @@
               YTextsD (vl-list* vlaoTxtD YTextsD)
             )
           )
-          (princ "\tSem Destino...")
+          (LogReport nil "Sem Destino...")
         )
-        (princ "\tSem Origem...")
+        (LogReport nil "Sem Origem...")
       )
       (setq Y (+ Y DistanciaEntreLinhas))
     )
     
     ; Corrigir Posicionamento ao Cruzar Informações
-    
+    (LogReport nil "Corrigir Posicionamento ao Cruzar Informações")
     (setq FatorMove 0.005)
     
     (foreach item YTextsD
@@ -198,6 +287,7 @@
     )
     
     ; Conversão e Acabamento
+    (LogReport nil "Conversão e Acabamento")
     (foreach item (append XTextsI XTextsS YTextsE YTextsD)
       (progn
         ; Extract
@@ -244,6 +334,8 @@
   
   ;---
   
+  (LogReport t "Incio do Ciclo...")
+  
   (setq
     acad (vlax-get-acad-object)
     doc (vla-get-activedocument acad)
@@ -261,9 +353,13 @@
   
   (vla-startundomark doc)
   (setvar 'cmdecho 0)
+  (ucsGetter)
+  (vl-cmdf "ucs" "" "")
   (main)
+  (ucsSetter)
   (setvar 'cmdecho 1)
   (vla-endundomark doc)
+  (LogReport nil "Fim do Ciclo...")
   (princ)
   
 )
@@ -277,23 +373,3 @@
 )
 
 ;|EDG(2026)[https://www.linkedin.com/in/ericdrumond]{https://github.com/ed9bh}|;
-
-
-;| Area de testes
-   
-   ; Cruzamento/Tangibilidade de Entidades
-  
-  (setq
-    Eobj1(entsel "\nSelecione a entidade : ")
-    Eobj2(entsel "\nSelecione a entidade : ")
-    Vlao1(vlax-ename->vla-object (car Eobj1))
-    Vlao2(vlax-ename->vla-object (car Eobj2))
-    Teste(vlax-invoke Vlao1 'IntersectWith Vlao2 acextendnone)
-  )
-  
-  (vlax-dump-object Vlao1 t)
-  
-  (vla-get-alignment Vlao1)
-  (vla-get-alignment Vlao2)
-  
-  |;

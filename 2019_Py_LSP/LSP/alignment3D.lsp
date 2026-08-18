@@ -62,6 +62,15 @@
     
   )
   
+  (defun add->to_file(filename inplace content / file_open)
+    (if (= inplace t)
+        (setq file_open(open (strcat (getvar'dwgprefix) filename) "a"))
+        (setq file_open(open filename "a"))
+        )
+    (write-line content file_open)
+    (close file_open)
+  )
+  
   ;;; --------------------------------------> Main
   
   (defun main ()
@@ -72,8 +81,10 @@
       distancia(getdist "\tDistancia entre pontos : ")
       data_points (point_getter vlao_profile distancia)
       data_points (reverse data_points)
+      table_points data_points
       data_points (apply'append(list data_points))
       data_points (apply'append data_points)
+      fname (strcat "Pontos_" (rtos(getvar'cdate)2 6) ".txt")
     )
     
     (setq 3dpoly
@@ -87,6 +98,11 @@
              )
            )
     )
+    
+    (foreach point table_points
+      (add->to_file fname t (strcat (rtos (car point) 2)"\t" (rtos (cadr point) 2)"\t" (rtos (caddr point) 2) ) )
+    )
+    
   )
   
   ;;; --------------------------------------> Rotina

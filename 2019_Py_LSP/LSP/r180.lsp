@@ -62,3 +62,6 @@
 (defun c:r-45 () (r_x (*(/ pi 4)-1)))
 (defun c:r-30 () (r_x (*(/ pi 6)-1)))
 (defun c:r-18 () (r_x (*(/ pi 10)-1)))
+
+
+;|EDG(2022)[https://www.linkedin.com/in/ericdrumond]{https://github.com/ed9bh}|;

@@ -28,3 +28,6 @@
   (vla-addline blk (vlax-3d-point 100 0 0) (vlax-3d-point 0 100 0))
   
 )
+
+;(ssget "_:v" '((0 . "LINE")))
+
