@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda - KMLIN_KMLOUT.lsp</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #FDF6E3; /* Cor de areia/pergaminho claro */
+            color: #583e2e; /* Marrom escuro terroso para texto */
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #F5EFE6; /* Tom mais claro para o conteúdo principal */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #D3C0A3;
+        }
+        h1, h2 {
+            color: #8B4513; /* Marrom sela - uma cor de solo rica */
+            border-bottom: 2px solid #D3C0A3; /* Borda em tom de argila */
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #EAE0D1; /* Bege mais escuro para blocos de código */
+            color: #654321; /* Marrom para o texto do código */
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid #D3C0A3;
+        }
+        .command-section {
+            margin-top: 20px;
+        }
+        ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #967969; /* Marrom acinzentado */
+        }
+        a {
+            color: #4682B4; /* Azul aço - bom contraste */
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>KMLIN & KMLOUT para AutoCAD</h1>
+        <p>Este documento descreve o funcionamento dos comandos LISP <code>kmlIN</code> e <code>kmlOUT</code>, projetados para facilitar a troca de informações entre o AutoCAD e o Google Earth.</p>
+
+        <div class="command-section">
+            <h2>Comando: <code>kmlOUT</code> (Exportar para KML)</h2>
+            <p><strong>Descrição:</strong><br>
+            Este comando exporta entidades selecionadas do seu desenho no AutoCAD (DWG) para um arquivo KML, que pode ser visualizado no Google Earth ou outros softwares de geoprocessamento.</p>
+            
+            <p><strong>Entidades Suportadas:</strong> Linhas, Polilinhas (2D e 3D), Pontos e Textos.</p>
+
+            <p><strong>Como Usar:</strong></p>
+            <ol>
+                <li>Digite <code>kmlOUT</code> no prompt de comando do AutoCAD e pressione Enter.</li>
+                <li><strong>Selecione o Fuso (UTM):</strong> Será solicitado que você escolha o fuso UTM correto para a sua área de trabalho.</li>
+                <li><strong>Selecione o Hemisfério:</strong> Informe se as coordenadas são do Hemisfério Sul (S) ou Norte (N).</li>
+                <li><strong>Selecione o DATUM:</strong> Escolha o sistema de referência geodésico (ex: <code>Sirgas-2000</code>, <code>sAd-69</code>).</li>
+                <li><strong>Selecione as Entidades:</strong> O programa pedirá para você selecionar os objetos no desenho que deseja exportar.</li>
+                <li><strong>Salvar o Arquivo:</strong> Uma janela de diálogo aparecerá para que você escolha o local e o nome do arquivo <code>.kml</code> a ser salvo.</li>
+            </ol>
+            <p><strong>Detalhes Importantes:</strong><br>
+            O script preserva as cores das entidades do AutoCAD, incluindo cores definidas por camada (<code>ByLayer</code>), por bloco (<code>ByBlock</code>), e cores diretas (TrueColor), convertendo-as para o formato correto no KML.</p>
+        </div>
+
+        <div class="command-section">
+            <h2>Comando: <code>kmlIN</code> (Importar de KML)</h2>
+            <p><strong>Descrição:</strong><br>
+            Este comando importa geometrias (Placemarks) de um arquivo KML para o seu desenho do AutoCAD, criando as entidades correspondentes.</p>
+
+            <p><strong>Como Usar:</strong></p>
+            <ol>
+                <li>Digite <code>kmlIN</code> no prompt de comando e pressione Enter.</li>
+                <li><strong>Configure a Conversão:</strong> Assim como na exportação, você precisará informar o <strong>Fuso</strong>, <strong>Hemisfério</strong> e <strong>DATUM</strong> para que as coordenadas geográficas (Latitude/Longitude) do KML sejam convertidas corretamente para o sistema UTM do seu projeto.</li>
+                <li><strong>Selecione o Arquivo:</strong> Uma janela de diálogo será aberta para você selecionar o arquivo <code>.kml</code> que deseja importar.</li>
+            </ol>
+            <p><strong>Detalhes Importantes:</strong><br>
+            O script lê os pontos e linhas dentro dos "Placemarks" do KML e os desenha no Model Space do AutoCAD. As cores definidas nos estilos do KML também são aplicadas às entidades criadas.</p>
+        </div>
+
+        <div class="command-section">
+            <h2>Notas Adicionais</h2>
+            <ul>
+                <li><strong>Dependência:</strong> Este script requer o arquivo <code>utm-geo_conversor.lsp</code> no mesmo diretório ou em um caminho de suporte do AutoCAD para funcionar corretamente, pois ele é responsável pelas conversões de coordenadas.</li>
+                <li><strong>Configuração Essencial:</strong> Para que os comandos LISP funcionem corretamente, a pasta contendo os arquivos LISP (<code>KMLIN_KMLOUT.lsp</code> e <code>utm-geo_conversor.lsp</code>) deve ser incluída no 'Support File Search Path' do AutoCAD (vá em Options > Files > Support File Search Path). Caso contrário, os comandos podem falhar ao serem carregados ou executados.</li>
+                <li><strong>Autor:</strong> O script original foi desenvolvido por Eric Drumond.</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>Documento de ajuda gerado para KMLIN_KMLOUT.lsp.<br>
+            Paleta de cores inspirada em geotecnia e geologia.</p>
+        </footer>
+    </div>
+</body>
+</html>
