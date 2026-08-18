@@ -1,33 +1,43 @@
-Objetivo: O objetivo é um AutoLISP capaz de calcular a área 2D de uma polilinha 3D.
+Objetivo: Criar um AutoLISP capaz de calcular a área 2D exata de uma polilinha 3D (projetada no plano XY).
 
-Limite: Deve se usar o "___Exemplo.txt" como base para se criar as funções, o site "https://www.lee-mac.com/programs.html" também pode ser usado como inspiração.
+Limite e Referências: 
+1. Use o conteúdo do arquivo "___Exemplo.txt" (fornecido em anexo/abaixo) como base estrutural.
+2. Utilize os padrões de programação limpa e funções Visual LISP do site "https://www.lee-mac.com/programs.html" como inspiração geométrica (ex: uso de vlax-curve-*).
 
-Formato: No inicio do lisp deve haver um bloco de comentários registrando as informações principais do lisp e a Data e Hora da ultima modificação.
+Requisitos Estritos:
+- O código DEVE declarar todas as variáveis como locais ( / var1 var2 ) para evitar vazamentos na sessão.
+- Incluir `(vl-load-com)` no início.
+- Compatibilidade total garantida com o ZWCAD.
 
-Saída: Saida é um arquivo "lsp" e deve ser compativel com o ZWCAD.
+Saída: Apenas o bloco de código do arquivo ".lsp".
 
-Extrutura Lisp (Algoritimo Base):
+Estrutura Lisp (Algoritmo Base):
 
-	; Informações
+	; ==============================================================================
+	; INFORMAÇÕES
+	; Objetivo: [Descrição curta]
 	; Data Inicial - Elaborador - Nome da IA/Versão
-	; Data Revisão / Numero da Revisão
-        ; DCL: Sim [ ] / Não [X]
+	; Data Revisão / Número da Revisão
+	; DCL: Sim [ ] / Não [X]
+	; ==============================================================================
 	
-	Nome do Comando
+	(vl-load-com)
+	
+	Nome do Comando Principal (c:NOME)
 	      |
 	      |
-	    *error* (Gerar IDs AlfaNumericos com Data/Hora e nome de registro do sistema do usuario Comuns de erro no print e log na pasta onde o desenho está sendo executado pra facilitar correção)
+	    *error* (Função de erro customizada. Gerar IDs Alfanuméricos com Data/Hora e registro do sistema. Tentar gerar log na pasta do DWG atual; se não houver permissão de escrita, usar a pasta %TEMP% do sistema).
 	      |
 	      |
-	    SubFunções ; Observações e Descrições
+	    SubFunções ; (Com observações e descrições curtas da lógica matemática/geométrica).
 	      |
 	      |
-	    Main ; Opções, Loops, Repeats, Foreachs e Execução de SubFunções
+	    Main ; (Opções, Loops, Repeats, Foreachs, seleção de objetos e Execução de SubFunções).
 	      |
 	      |
-	 Definições iniciais ; CAD/DOC/Space
-	 Start Undo
+	 Definições iniciais ; (Salvar variáveis de ambiente CAD/DOC/Space atuais).
+	 Start Undo Mark
 	  (Main)
-	  (Restauração de Variaveis)
-	 End Undo
-	 Fim...
+	 End Undo Mark
+	 (Restauração de Variáveis de ambiente)
+	 Fim (princ)
