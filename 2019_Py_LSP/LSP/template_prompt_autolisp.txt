@@ -1,0 +1,33 @@
+Objetivo: O objetivo é um AutoLISP capaz de calcular a área 2D de uma polilinha 3D.
+
+Limite: Deve se usar o "___Exemplo.txt" como base para se criar as funções, o site "https://www.lee-mac.com/programs.html" também pode ser usado como inspiração.
+
+Formato: No inicio do lisp deve haver um bloco de comentários registrando as informações principais do lisp e a Data e Hora da ultima modificação.
+
+Saída: Saida é um arquivo "lsp" e deve ser compativel com o ZWCAD.
+
+Extrutura Lisp (Algoritimo Base):
+
+	; Informações
+	; Data Inicial - Elaborador - Nome da IA/Versão
+	; Data Revisão / Numero da Revisão
+        ; DCL: Sim [ ] / Não [X]
+	
+	Nome do Comando
+	      |
+	      |
+	    *error* (Gerar IDs AlfaNumericos com Data/Hora e nome de registro do sistema do usuario Comuns de erro no print e log na pasta onde o desenho está sendo executado pra facilitar correção)
+	      |
+	      |
+	    SubFunções ; Observações e Descrições
+	      |
+	      |
+	    Main ; Opções, Loops, Repeats, Foreachs e Execução de SubFunções
+	      |
+	      |
+	 Definições iniciais ; CAD/DOC/Space
+	 Start Undo
+	  (Main)
+	  (Restauração de Variaveis)
+	 End Undo
+	 Fim...
