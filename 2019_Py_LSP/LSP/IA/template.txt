@@ -1,0 +1,7 @@
+Objetivo: [Prompt]
+
+Limite e Referências: [...]
+
+Requisitos Estritos: [...]
+
+Algoritmo Base): [...]
