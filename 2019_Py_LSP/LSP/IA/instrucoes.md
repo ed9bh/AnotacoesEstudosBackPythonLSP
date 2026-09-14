@@ -14,7 +14,10 @@ Requisitos Estritos:
 - Sub-funções do AutoLISP:
 	+ Quando forem totalmente dos meus Exemplos; (defun edg:...
 	+ Quando forem totalmente do LeeMac; (defun lm:...
-	+ Quando forem totalmente criadas pela IA; (defun ia:...
+	+ Quando forem totalmente criadas pela IA;
+ 		* Gemini = (defun iaG:...
+   		* ChatGPT = (defun iaCG:...
+     	* Claude = (defun iaC:...
 	+ Quando for modificação, melhoria, correção, adaptação de uma função minha pela IA; (defun iedg:...
 	+ Quando for modificação, melhoria, correção, adaptação de uma função do LeeMac pela IA; (defun ilm:...
 	+ Quando forem encontradas totalmente ou parcialmente na internet; (defun iweb:...
@@ -24,15 +27,15 @@ Saída: Apenas o bloco de código do arquivo ".lsp".
 
 Estrutura Lisp (Algoritmo Base):
 
-	; =========================================================================================
+	; =====================================================================================================
 	; INFORMAÇÕES
 	; Objetivo: [Descrição curta]
-	; Data Inicial - Elaborador Eric Drumond (ED Serviços & Projetos) - Nome da IA/Versão
-	; Data Revisão / Número da Revisão
-	; Exclusividade/Compatibilidade: AutoCAD [ ] / Civil 3D [ ] / Plant [ ] / Architeture [ ]
+	; [AAAA/MM/DD] - Elaborador Eric Drumond (ED Serviços & Projetos) - Nome da IA/Versão
+	; [Data Revisão] / [Número da Revisão]
+	; Exclusividade/Compatibilidade: AutoCAD [ ] / ZWCad [ ] / Civil 3D [ ] / Plant [ ] / Architeture [ ]
 	; Referencia Externa: Não [ ] / AutoLisp / DWG(Assets) [ ] / CSV [ ] / TXT [ ] / Excel [ ]
 	; DCL: Sim [ ] / Não [ ]
-	; =========================================================================================
+	; =====================================================================================================
 	
 	(vl-load-com)
 	
