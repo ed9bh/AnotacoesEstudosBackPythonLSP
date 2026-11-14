@@ -1,0 +1,3001 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizonte Oculto - Arena Paranormal 3v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; }
+        body { overflow: hidden; background: #05060a; color: #f8fafc; touch-action: none; overscroll-behavior: none; }
+        #game-canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+
+        /* Efeito de Camuflagem Óptica (Invisibilidade) */
+        #stealth-vignette {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0;
+            transition: opacity 0.35s ease;
+            box-shadow: inset 0 0 110px 35px rgba(0, 240, 255, 0.45);
+            background: radial-gradient(circle, transparent 55%, rgba(0, 240, 255, 0.14) 100%);
+            z-index: 4;
+        }
+
+        /* Vinheta de Tempestade Ultimate */
+        #ult-vignette {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: inset 0 0 130px 45px rgba(245, 158, 11, 0.5);
+            background: radial-gradient(circle, transparent 50%, rgba(255, 42, 109, 0.18) 100%);
+            z-index: 4;
+        }
+
+        /* Flash de Teletransporte */
+        #blink-flash {
+            position: fixed; inset: 0; pointer-events: none; opacity: 0;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.65), rgba(0, 240, 255, 0.3));
+            transition: opacity 0.2s ease-out; z-index: 5;
+        }
+
+        /* Mira Dinâmica */
+        #crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 26px; height: 26px; border: 2px solid rgba(0, 240, 255, 0.85);
+            border-radius: 50%; transition: all 0.12s ease;
+        }
+        #crosshair::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 4px; height: 4px; background: #00f0ff; border-radius: 50%;
+        }
+
+        .class-card {
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(15, 23, 42, 0.7);
+        }
+        .class-card.selected {
+            border-color: #00f0ff;
+            background: rgba(6, 182, 212, 0.16);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.75; }
+            50% { opacity: 1; }
+        }
+        .animate-glow { animation: pulseGlow 2s infinite; }
+
+        @keyframes ultReadyPulse {
+            0%, 100% { box-shadow: 0 0 12px rgba(245, 158, 11, 0.5), inset 0 0 8px rgba(245, 158, 11, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 28px rgba(245, 158, 11, 0.95), inset 0 0 15px rgba(245, 158, 11, 0.75); transform: scale(1.05); }
+        }
+        .ult-ready { animation: ultReadyPulse 1.2s infinite; border-color: #fbbf24 !important; }
+
+        /* Controles Touch Mobile */
+        .touch-btn {
+            pointer-events: auto;
+            touch-action: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            backdrop-filter: blur(6px);
+            transition: transform 0.08s ease, background-color 0.15s ease;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
+        }
+        .touch-btn:active, .touch-btn.active-touch {
+            transform: scale(0.90);
+            filter: brightness(1.3);
+        }
+
+        /* Modo Compacto para Smartphone (Evita poluição visual na tela) */
+        #hud.mobile-hud-active #desktop-status-panel {
+            left: 50% !important;
+            bottom: 0.4rem !important;
+            transform: translateX(-50%) !important;
+            width: min(210px, 46vw) !important;
+            padding: 0.3rem 0.55rem !important;
+            border-left-width: 2px !important;
+            border-radius: 0.6rem !important;
+            background: rgba(2, 6, 23, 0.72) !important;
+        }
+        #hud.mobile-hud-active #desktop-status-panel .status-header-row {
+            margin-bottom: 0.15rem !important;
+        }
+        #hud.mobile-hud-active #desktop-status-panel #hud-class-badge {
+            font-size: 8px !important;
+            padding: 1px 4px !important;
+        }
+        #hud.mobile-hud-active #desktop-status-panel #passive-status {
+            font-size: 8px !important;
+        }
+        #hud.mobile-hud-active #desktop-status-panel .bar-label-text {
+            font-size: 8px !important;
+            margin-bottom: 1px !important;
+        }
+        #hud.mobile-hud-active #desktop-status-panel .bar-track {
+            height: 0.28rem !important;
+            margin-bottom: 0.2rem !important;
+        }
+        #hud.mobile-hud-active #desktop-status-panel .ult-track {
+            height: 0.32rem !important;
+            margin-bottom: 0 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="game-canvas"></canvas>
+    <div id="stealth-vignette"></div>
+    <div id="ult-vignette"></div>
+    <div id="blink-flash"></div>
+
+    <!-- HUD DE COMBATE -->
+    <div id="hud" class="fixed inset-0 pointer-events-none hidden z-10">
+        <!-- Mira Central -->
+        <div id="crosshair"></div>
+        <div id="crosshair-label" class="absolute top-[53%] left-1/2 -translate-x-1/2 text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-cyan-300 opacity-90 text-center whitespace-nowrap"></div>
+
+        <!-- Barra de Progresso de Captura na Tela -->
+        <div id="capture-progress-box" class="absolute top-[58%] left-1/2 -translate-x-1/2 w-44 md:w-52 bg-slate-950/90 border border-cyan-500/40 px-2.5 py-1 rounded-lg hidden flex-col items-center gap-1 backdrop-blur-md">
+            <span id="capture-zone-name" class="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-cyan-300">CAPTURANDO [A] PRAÇA SETE</span>
+            <div class="w-full h-1.5 md:h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="capture-zone-bar" class="h-full bg-cyan-400 transition-all duration-75" style="width: 50%;"></div>
+            </div>
+        </div>
+
+        <!-- RADAR PARANORMAL / MINIMAPA (Canto Superior Esquerdo Compacto no Mobile) -->
+        <div class="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col items-start md:items-center gap-1">
+            <div class="relative w-16 h-16 sm:w-24 sm:h-24 md:w-36 md:h-36 rounded-full bg-slate-950/80 border border-cyan-500/50 shadow-[0_0_20px_rgba(0,240,255,0.2)] overflow-hidden backdrop-blur-md">
+                <canvas id="radar-canvas" width="144" height="144" class="w-full h-full block"></canvas>
+                <div class="absolute inset-0 rounded-full border border-cyan-300/20 pointer-events-none"></div>
+                <div class="absolute top-0.5 left-1/2 -translate-x-1/2 text-[7px] md:text-[8px] font-bold text-cyan-400/80">N</div>
+            </div>
+            <!-- Botões Rápidos de Troca de Classe (M) e Toggle Mobile -->
+            <div class="flex gap-1 pointer-events-auto">
+                <button id="btn-hud-class" class="bg-slate-950/80 hover:bg-slate-900 border border-cyan-500/40 text-cyan-300 text-[8px] md:text-[10px] font-bold px-1.5 py-0.5 md:px-2.5 md:py-1 rounded backdrop-blur-md transition">
+                    🔄 Classe
+                </button>
+                <button id="btn-hud-mobile" class="bg-slate-950/80 hover:bg-slate-900 border border-purple-500/40 text-purple-300 text-[8px] md:text-[10px] font-bold px-1.5 py-0.5 md:px-2.5 md:py-1 rounded backdrop-blur-md transition">
+                    📱 Touch
+                </button>
+                <button id="btn-hud-lobby" class="bg-slate-950/80 hover:bg-slate-900 border border-emerald-500/40 text-emerald-300 text-[8px] md:text-[10px] font-bold px-1.5 py-0.5 md:px-2.5 md:py-1 rounded backdrop-blur-md transition">
+                    👥 Sala (<span id="hud-online-count">1</span>/6)
+                </button>
+            </div>
+        </div>
+
+        <!-- Placar Superior 3v3 + Dominação de Marcos (Mais enxuto no celular) -->
+        <div class="absolute top-2 md:top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+            <div class="flex items-center gap-2 sm:gap-4 md:gap-6 bg-slate-950/80 border border-cyan-500/30 px-2.5 md:px-7 py-1 md:py-2 rounded-xl backdrop-blur-md shadow-2xl">
+                <div class="text-center">
+                    <div class="text-[7px] md:text-[10px] tracking-widest text-cyan-400 font-bold uppercase">Ordem</div>
+                    <div id="score-blue" class="text-sm sm:text-xl md:text-3xl font-bold text-cyan-300 leading-tight drop-shadow-[0_0_10px_rgba(0,240,255,0.7)]">0</div>
+                </div>
+
+                <div class="text-center border-x border-slate-800 px-2 md:px-5">
+                    <div class="text-[9px] md:text-[11px] uppercase tracking-widest text-slate-300 font-semibold hidden sm:block">Dominação • Belo Horizonte</div>
+                    <div id="shift-countdown" class="text-[8px] md:text-xs font-bold text-amber-400 tracking-wider">DISTORÇÃO: 22s</div>
+                    <!-- Indicadores dos 3 Marcos de Dominação (A, B, C) -->
+                    <div class="flex items-center justify-center gap-1 md:gap-2 mt-0.5">
+                        <div id="zone-badge-A" class="px-1.5 py-0.5 rounded text-[8px] md:text-[10px] font-bold border border-slate-600 bg-slate-800/80 text-slate-300 transition-all">[A]</div>
+                        <div id="zone-badge-B" class="px-1.5 py-0.5 rounded text-[8px] md:text-[10px] font-bold border border-slate-600 bg-slate-800/80 text-slate-300 transition-all">[B]</div>
+                        <div id="zone-badge-C" class="px-1.5 py-0.5 rounded text-[8px] md:text-[10px] font-bold border border-slate-600 bg-slate-800/80 text-slate-300 transition-all">[C]</div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <div class="text-[7px] md:text-[10px] tracking-widest text-rose-400 font-bold uppercase">Abismo</div>
+                    <div id="score-red" class="text-sm sm:text-xl md:text-3xl font-bold text-rose-500 leading-tight drop-shadow-[0_0_10px_rgba(255,42,109,0.7)]">0</div>
+                </div>
+
+                <!-- Botão de Tela Cheia (Essencial para Google Sites e Mobile) -->
+                <button id="btn-fullscreen" class="pointer-events-auto ml-1 p-1 sm:p-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-cyan-300 text-xs transition" title="Tela Cheia">
+                    ⛶
+                </button>
+            </div>
+        </div>
+
+        <!-- Alerta de Mutação de Cenário -->
+        <div id="anomaly-alert" class="absolute top-16 md:top-28 left-1/2 -translate-x-1/2 bg-amber-500/20 border border-amber-400/60 text-amber-300 px-2.5 py-0.5 md:px-4 md:py-1 rounded-lg text-[9px] md:text-sm font-bold tracking-widest uppercase opacity-0 transition-opacity duration-500 shadow-lg text-center whitespace-nowrap">
+            ⚠️ CONVERGÊNCIA NA SERRA DO CURRAL: ARQUITETURA DE BH EM MUTAÇÃO ⚠️
+        </div>
+
+        <!-- Killfeed Direita -->
+        <div id="killfeed" class="absolute top-2 right-2 md:top-4 md:right-5 flex flex-col gap-1 items-end max-w-[140px] md:max-w-xs"></div>
+
+        <!-- Painel de Status (Compactado automaticamente no modo Smartphone) -->
+        <div id="desktop-status-panel" class="absolute bottom-5 left-5 w-72 md:w-80 bg-slate-950/85 border-l-4 border-cyan-400 p-3.5 rounded-xl backdrop-blur-md shadow-xl transition-all">
+            <div class="status-header-row flex justify-between items-center mb-1.5">
+                <span id="hud-class-badge" class="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 truncate">
+                    ESPECTRO DA LAGOINHA
+                </span>
+                <span id="passive-status" class="text-[10px] font-semibold text-emerald-400 whitespace-nowrap ml-1">● PRONTO</span>
+            </div>
+
+            <div class="bar-label-text flex justify-between text-[11px] uppercase tracking-wider text-slate-300 mb-0.5">
+                <span>HP</span>
+                <span id="hp-text" class="font-bold text-emerald-400">100</span>
+            </div>
+            <div class="bar-track w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
+                <div id="hp-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-300 transition-all duration-150" style="width: 100%;"></div>
+            </div>
+
+            <div class="bar-label-text flex justify-between text-[11px] uppercase tracking-wider text-slate-300 mb-0.5">
+                <span>Energia</span>
+                <span id="energy-text" class="font-bold text-cyan-300">100</span>
+            </div>
+            <div class="bar-track w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-2">
+                <div id="energy-bar" class="h-full bg-gradient-to-r from-cyan-400 via-sky-500 to-purple-500 transition-all duration-75" style="width: 100%;"></div>
+            </div>
+
+            <!-- Barra de Ultimate (Tecla R) -->
+            <div class="bar-label-text flex justify-between text-[11px] uppercase tracking-wider text-amber-300 mb-0.5">
+                <span>⚡ Ult [R]</span>
+                <span id="ult-text" class="font-bold text-amber-400">0%</span>
+            </div>
+            <div class="ult-track w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-amber-500/30">
+                <div id="ult-bar" class="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-150" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Painel de Poderes Direito (Desktop) -->
+        <div id="desktop-powers-panel" class="absolute bottom-5 right-5 hidden md:flex gap-2">
+            <div class="bg-slate-950/85 border border-cyan-500/30 px-3 py-2 rounded-xl text-center min-w-[88px] backdrop-blur-md">
+                <span class="text-[10px] font-bold text-cyan-400 block uppercase">M1 (Esq)</span>
+                <span class="text-xs font-bold text-white">Pulso Etéreo</span>
+            </div>
+            <div class="bg-slate-950/85 border border-cyan-500/30 px-3 py-2 rounded-xl text-center min-w-[88px] backdrop-blur-md">
+                <span class="text-[10px] font-bold text-cyan-400 block uppercase">M2 (Dir)</span>
+                <span class="text-xs font-bold text-white">Rocha Brutalista</span>
+            </div>
+            <div class="bg-slate-950/85 border border-cyan-500/30 px-3 py-2 rounded-xl text-center min-w-[88px] backdrop-blur-md">
+                <span class="text-[10px] font-bold text-cyan-400 block uppercase">Tecla Q</span>
+                <span class="text-xs font-bold text-white">Onda Sísmica</span>
+            </div>
+            <div id="special-power-slot" class="bg-cyan-950/90 border border-cyan-400 px-3 py-2 rounded-xl text-center min-w-[115px] backdrop-blur-md shadow-[0_0_15px_rgba(0,240,255,0.25)]">
+                <span id="special-key-label" class="text-[10px] font-bold text-amber-300 block uppercase">Passiva (Parado)</span>
+                <span id="special-name-label" class="text-xs font-bold text-cyan-200">Manto Invisível</span>
+            </div>
+            <div id="ult-power-slot" class="bg-amber-950/90 border border-amber-500/50 px-3 py-2 rounded-xl text-center min-w-[110px] backdrop-blur-md">
+                <span class="text-[10px] font-bold text-amber-300 block uppercase">Tecla R (ULT)</span>
+                <span id="ult-slot-label" class="text-xs font-bold text-amber-100">Tempestade 0%</span>
+            </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- INTERFACE DE CONTROLES TOUCH PARA SMARTPHONE / MOBILE (COMPACTA)   -->
+        <!-- ================================================================== -->
+        <div id="mobile-controls" class="fixed inset-0 pointer-events-none hidden z-20">
+            <!-- Zona de Arraste da Câmera (Metade Direita da Tela) -->
+            <div id="touch-look-zone" class="
+                absolute top-12 right-0 bottom-0 w-3/5 pointer-events-auto
+            " style="touch-action: none;"></div>
+
+            <!-- Joystick Virtual Esquerdo Mais Compacto (Movimentação WASD 360°) -->
+            <div id="joystick-zone" class="
+                absolute bottom-3 left-3 w-24 h-24 rounded-full
+                bg-slate-950/50 border border-cyan-400/40
+                backdrop-blur-sm pointer-events-auto flex items-center justify-center
+                shadow-[0_0_15px_rgba(0,240,255,0.15)]
+            " style="touch-action: none;">
+                <div class="text-[7px] font-bold uppercase tracking-widest text-cyan-400/40 absolute top-1.5">MOVER</div>
+                <div id="joystick-knob" class="
+                    w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400/90 to-blue-600/90
+                    border border-white/60 shadow-[0_0_10px_rgba(0,240,255,0.7)]
+                    pointer-events-none transition-transform duration-75
+                "></div>
+            </div>
+
+            <!-- Cluster de Botões de Poderes na Direita (Mais Compacto para Smartphone) -->
+            <div class="absolute bottom-3 right-3 w-44 h-44 pointer-events-none">
+                <!-- Botão Principal M1: PULSO ETÉREO -->
+                <button id="btn-touch-m1" class="
+                    touch-btn absolute bottom-1 right-1 w-14 h-14
+                    bg-cyan-500/80 border-2 border-cyan-200 text-slate-950
+                ">
+                    <span class="text-[10px] font-extrabold uppercase tracking-tight leading-none">PULSO</span>
+                    <span class="text-[7px] font-bold opacity-80">M1</span>
+                </button>
+
+                <!-- Botão M2: ROCHA BRUTALISTA -->
+                <button id="btn-touch-m2" class="
+                    touch-btn absolute bottom-2 right-16 w-12 h-12
+                    bg-slate-900/80 border border-cyan-400 text-cyan-200
+                ">
+                    <span class="text-[9px] font-bold uppercase leading-none">ROCHA</span>
+                    <span class="text-[7px] text-cyan-400">M2</span>
+                </button>
+
+                <!-- Botão Q: ONDA SÍSMICA -->
+                <button id="btn-touch-q" class="
+                    touch-btn absolute bottom-14 right-16 w-11 h-11
+                    bg-slate-900/80 border border-sky-400 text-sky-200
+                ">
+                    <span class="text-[8px] font-bold uppercase leading-none">ONDA</span>
+                    <span class="text-[7px] text-sky-400">Q</span>
+                </button>
+
+                <!-- Botão ESPAÇO: PULO / SEGURAR PARA LEVITAR -->
+                <button id="btn-touch-jump" class="
+                    touch-btn absolute bottom-16 right-1 w-12 h-12
+                    bg-slate-900/80 border border-amber-400 text-amber-200
+                ">
+                    <span class="text-[8px] font-bold uppercase leading-none">PULAR</span>
+                    <span class="text-[7px] text-amber-300">VOAR</span>
+                </button>
+
+                <!-- Botão SHIFT/F: HABILIDADE DE CLASSE (TELEPORTE 30M / DASH) -->
+                <button id="btn-touch-class" class="
+                    touch-btn absolute bottom-24 right-14 w-11 h-11
+                    bg-purple-950/85 border border-purple-400 text-purple-200
+                ">
+                    <span id="touch-class-label" class="text-[8px] font-bold uppercase text-center leading-none">FENDA</span>
+                    <span class="text-[6px] text-purple-300">SHIFT</span>
+                </button>
+
+                <!-- Botão R: ULTIMATE (TEMPESTADE DO CURRAL) -->
+                <button id="btn-touch-ult" class="
+                    touch-btn absolute bottom-30 right-1 w-12 h-12
+                    bg-amber-950/85 border border-amber-500/60 text-amber-200
+                " style="bottom: 7.4rem;">
+                    <span class="text-[8px] font-extrabold uppercase text-amber-300 leading-none">ULT</span>
+                    <span id="touch-ult-pct" class="text-[8px] font-bold text-white">0%</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MENU INICIAL / SELEÇÃO DE ARQUÉTIPO & LOBBY 3v3 -->
+    <div id="menu-overlay" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center z-30 p-3 md:p-4 overflow-y-auto">
+        <div class="bg-slate-900/95 border border-cyan-500/30 rounded-2xl max-w-3xl w-full p-5 md:p-7 shadow-[0_0_60px_rgba(0,240,255,0.15)] my-auto">
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 mb-4 gap-2">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-wider uppercase text-cyan-400">Horizonte Oculto</h1>
+                    <p class="text-xs text-slate-400">Dominação Paranormal 3v3 • Belo Horizonte Brutalista (PC & Smartphone)</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-menu-mobile-toggle" class="text-xs bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-400/50 px-3 py-1.5 rounded-lg font-bold transition">
+                        📱 Controles Mobile: AUTO
+                    </button>
+                </div>
+            </div>
+
+            <!-- Escolha de Classe / Arquétipo Paranormal -->
+            <div class="mb-4">
+                <div class="text-xs font-bold uppercase tracking-wider text-cyan-300 mb-2">
+                    1. Escolha sua Especialização Paranormal (Tecla M troca durante a partida):
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                    <!-- Classe 1: Invisível parado -->
+                    <div class="class-card selected cursor-pointer p-3.5 rounded-xl" data-class="stealth" onclick="selectArchetype('stealth')">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold uppercase text-cyan-400">Furtivo</span>
+                            <span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded">Auto (Parado)</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white mb-1">Espectro da Lagoinha</h3>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            Fica <b>invisível automaticamente</b> sempre que permanece parado. Inimigos, Bots e o Radar perdem seu sinal.
+                        </p>
+                    </div>
+
+                    <!-- Classe 2: Teletransporte 30m -->
+                    <div class="class-card cursor-pointer p-3.5 rounded-xl" data-class="blink" onclick="selectArchetype('blink')">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold uppercase text-purple-400">Mobilidade</span>
+                            <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">SHIFT / Botão</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white mb-1">Saltador Sta. Tereza</h3>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            Rasga o espaço e <b>teletransporta instantaneamente até 30m</b> na direção da mira (inclusive para o topo de monumentos).
+                        </p>
+                    </div>
+
+                    <!-- Classe 3: Levitação -->
+                    <div class="class-card cursor-pointer p-3.5 rounded-xl" data-class="levitate" onclick="selectArchetype('levitate')">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold uppercase text-amber-400">Voo Psíquico</span>
+                            <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">Segurar PULO</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white mb-1">Ascendente do Curral</h3>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            Ao <b>segurar o botão de Pulo/Espaço</b>, ativa propulsão telecinética contínua para levitar e atacar do alto.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hall de Espera 3v3 & Identificação de Amigos Logados -->
+            <div class="bg-slate-950/90 border border-cyan-500/30 rounded-xl p-3.5 mb-4 shadow-inner">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 mb-3 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 block">
+                            🌐 Hall de Espera 3v3 • Esquadrões na Sala
+                        </span>
+                        <span id="peer-status" class="text-[11px] text-slate-400">Inicializando frequência P2P...</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="room-code-badge" class="text-xs font-mono font-bold bg-cyan-950/90 text-cyan-300 px-2.5 py-1 rounded border border-cyan-500/40">BH-....</span>
+                        <button id="btn-copy-id" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 transition font-semibold">
+                            Copiar Sala
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Configuração do Perfil do Usuário Local + Conexão com Amigo -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-2 mb-3">
+                    <div class="md:col-span-5 flex items-center gap-1.5 bg-slate-900/90 border border-slate-700/80 rounded-lg px-2.5 py-1.5">
+                        <span class="text-[10px] font-bold uppercase text-cyan-400 whitespace-nowrap">👤 Seu Nome:</span>
+                        <input type="text" id="player-name-input" maxlength="16" value="Agente BH" class="w-full bg-transparent text-xs font-bold text-white focus:outline-none" placeholder="Seu codinome...">
+                    </div>
+                    <div class="md:col-span-3 flex">
+                        <button id="btn-switch-team" class="w-full bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-cyan-300 border border-slate-600 rounded-lg py-1.5 px-2 transition flex items-center justify-center gap-1">
+                            🔄 Trocar Time
+                        </button>
+                    </div>
+                    <div class="md:col-span-4 flex gap-1.5">
+                        <input type="text" id="join-id" placeholder="Código BH-XXXX do amigo" class="flex-1 min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-400">
+                        <button id="btn-join" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 text-xs font-bold uppercase px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+                            Entrar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grade Visual de Slots 3v3 (Diferencia 👤 HUMANO ONLINE vs 🤖 BOT IA) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Time Azul: Ordem da Serra -->
+                    <div class="bg-slate-900/75 border border-cyan-500/30 rounded-lg p-2.5">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-cyan-400">🛡️ Ordem da Serra (Azul)</span>
+                            <span id="blue-human-count" class="text-[10px] font-semibold bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded">1 Humano • 2 Bots</span>
+                        </div>
+                        <div id="lobby-slots-blue" class="space-y-1.5"></div>
+                    </div>
+
+                    <!-- Time Vermelho: Filhos do Abismo -->
+                    <div class="bg-slate-900/75 border border-rose-500/30 rounded-lg p-2.5">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400">🔥 Filhos do Abismo (Vermelho)</span>
+                            <span id="red-human-count" class="text-[10px] font-semibold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded">0 Humanos • 3 Bots</span>
+                        </div>
+                        <div id="lobby-slots-red" class="space-y-1.5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão Principal de Iniciar -->
+            <button id="btn-start" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-base uppercase tracking-wider shadow-lg transition transform hover:-translate-y-0.5 mb-3">
+                Entrar na Arena de BH (Iniciar / Retomar Combate)
+            </button>
+
+            <!-- Resumo das Novidades -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-[11px] text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                <div>
+                    <strong class="text-cyan-300 block mb-0.5">👤 Diferenciação Humano vs. Bot IA:</strong>
+                    • <b>Jogadores Reais</b> exibem crachá <span class="text-emerald-300 font-bold">[👤 JOGADOR]</span>, anel dourado e ícone destacado no Radar.<br>
+                    • Vagas sem amigos logados são preenchidas por <span class="text-slate-300 font-bold">[🤖 BOT IA]</span> automaticamente.
+                </div>
+                <div>
+                    <strong class="text-amber-300 block mb-0.5">⚡ Ultimate [R] & Smartphone Touch:</strong>
+                    • <b>Ultimate (Tecla R / Botão ULT)</b>: Invoca a <i>Tempestade Telecinética do Curral</i> com carros e destroços.<br>
+                    • No <b>Smartphone</b>, use o analógico esquerdo + botões de poder na direita.
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ============================================================================
+// 1. ÁUDIO PROCEDURAL SINTETIZADO (WEB AUDIO API)
+// ============================================================================
+class AudioSynthesizer {
+    constructor() {
+        this.ctx = null;
+        this.levitateOsc = null;
+        this.levitateGain = null;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playPsychicBolt() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(820, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.18);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+    }
+
+    playBoulderCast() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(55, now + 0.35);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    }
+
+    playImpact(isHeavy = false) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(isHeavy ? 120 : 260, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + (isHeavy ? 0.45 : 0.2));
+        gain.gain.setValueAtTime(isHeavy ? 0.35 : 0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + (isHeavy ? 0.45 : 0.2));
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + (isHeavy ? 0.45 : 0.2));
+    }
+
+    playTeleportBlink() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(1100, now + 0.15);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+    }
+
+    playStealthShimmer(entering) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const startFreq = entering ? 300 : 800;
+        const endFreq = entering ? 750 : 220;
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.25);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+    }
+
+    setLevitationHum(active) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (active) {
+            if (!this.levitateOsc) {
+                this.levitateOsc = this.ctx.createOscillator();
+                this.levitateGain = this.ctx.createGain();
+                this.levitateOsc.type = 'sine';
+                this.levitateOsc.frequency.setValueAtTime(155, now);
+                this.levitateGain.gain.setValueAtTime(0.01, now);
+                this.levitateGain.gain.linearRampToValueAtTime(0.12, now + 0.15);
+                this.levitateOsc.connect(this.levitateGain);
+                this.levitateGain.connect(this.ctx.destination);
+                this.levitateOsc.start(now);
+            }
+        } else {
+            if (this.levitateOsc && this.levitateGain) {
+                this.levitateGain.gain.linearRampToValueAtTime(0.001, now + 0.1);
+                setTimeout(() => {
+                    if (this.levitateOsc) {
+                        try { this.levitateOsc.stop(); } catch (e) {}
+                        this.levitateOsc = null;
+                        this.levitateGain = null;
+                    }
+                }, 110);
+            }
+        }
+    }
+
+    playAnomalyHorn() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc1.type = 'sawtooth';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(65, now);
+        osc1.frequency.linearRampToValueAtTime(50, now + 1.8);
+        osc2.frequency.setValueAtTime(130, now);
+        osc2.frequency.linearRampToValueAtTime(100, now + 1.8);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 2.0);
+        osc2.stop(now + 2.0);
+    }
+
+    playUltimateStorm() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(90, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.8);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 1.2);
+    }
+
+    playZoneCaptured() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [440, 554, 659, 880].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.18, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.25);
+        });
+    }
+}
+const sfx = new AudioSynthesizer();
+
+// ============================================================================
+// 2. SELEÇÃO E GERENCIAMENTO DE ARQUÉTIPOS PARANORMAIS
+// ============================================================================
+let selectedArchetype = 'stealth';
+const archetypesList = ['stealth', 'blink', 'levitate'];
+
+function updateArchetypeUI() {
+    document.querySelectorAll('.class-card').forEach(card => {
+        if (card.dataset.class === selectedArchetype) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+
+    const badge = document.getElementById('hud-class-badge');
+    const touchClassLabel = document.getElementById('touch-class-label');
+    const specialKeyLabel = document.getElementById('special-key-label');
+    const specialNameLabel = document.getElementById('special-name-label');
+
+    if (selectedArchetype === 'stealth') {
+        if (badge) badge.innerText = 'ESPECTRO DA LAGOINHA';
+        if (touchClassLabel) touchClassLabel.innerText = 'DASH';
+        if (specialKeyLabel) specialKeyLabel.innerText = 'Passiva (Parado)';
+        if (specialNameLabel) specialNameLabel.innerText = 'Manto Invisível';
+    } else if (selectedArchetype === 'blink') {
+        if (badge) badge.innerText = 'SALTADOR STA. TEREZA';
+        if (touchClassLabel) touchClassLabel.innerText = 'FENDA';
+        if (specialKeyLabel) specialKeyLabel.innerText = 'SHIFT / [F]';
+        if (specialNameLabel) specialNameLabel.innerText = 'Teletransporte 30m';
+    } else if (selectedArchetype === 'levitate') {
+        if (badge) badge.innerText = 'ASCENDENTE DO CURRAL';
+        if (touchClassLabel) touchClassLabel.innerText = 'VOAR';
+        if (specialKeyLabel) specialKeyLabel.innerText = 'Segurar Espaço';
+        if (specialNameLabel) specialNameLabel.innerText = 'Levitação Livre';
+    }
+}
+
+window.selectArchetype = function(archetypeKey) {
+    if (!archetypesList.includes(archetypeKey)) return;
+    selectedArchetype = archetypeKey;
+    updateArchetypeUI();
+    if (typeof renderLobbyHall === 'function') renderLobbyHall();
+    if (typeof broadcastAction === 'function') {
+        broadcastAction({
+            type: 'profile',
+            id: myRoomId,
+            name: player.name,
+            team: player.team,
+            arch: selectedArchetype
+        });
+    }
+};
+
+function cycleArchetype() {
+    const currentIndex = archetypesList.indexOf(selectedArchetype);
+    const nextIndex = (currentIndex + 1) % archetypesList.length;
+    window.selectArchetype(archetypesList[nextIndex]);
+}
+
+document.getElementById('btn-hud-class').addEventListener('click', (e) => {
+    e.stopPropagation();
+    cycleArchetype();
+});
+
+document.getElementById('btn-hud-lobby').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const overlay = document.getElementById('menu-overlay');
+    overlay.style.display = overlay.style.display === 'none' ? 'flex' : 'none';
+});
+
+// ============================================================================
+// 3. CENA THREE.JS E MONUMENTOS DE BELO HORIZONTE COM FIDELIDADE VISUAL
+// ============================================================================
+const canvas = document.getElementById('game-canvas');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x060913);
+scene.fog = new THREE.FogExp2(0x060913, 0.0085);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 450);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+// Iluminação Realista: Céu Urbano Noturno + Luzes de Vapor de Sódio e Luar
+const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x090d16, 0.65);
+scene.add(hemiLight);
+
+const moonLight = new THREE.DirectionalLight(0xa5f3fc, 0.85);
+moonLight.position.set(70, 110, 60);
+moonLight.castShadow = true;
+moonLight.shadow.mapSize.width = 1024;
+moonLight.shadow.mapSize.height = 1024;
+moonLight.shadow.camera.near = 10;
+moonLight.shadow.camera.far = 280;
+moonLight.shadow.camera.left = -90;
+moonLight.shadow.camera.right = 90;
+moonLight.shadow.camera.top = 90;
+moonLight.shadow.camera.bottom = -90;
+scene.add(moonLight);
+
+const riftLight = new THREE.PointLight(0xff2a6d, 3.2, 210, 1.8);
+riftLight.position.set(0, 52, -125);
+scene.add(riftLight);
+
+// Skybox com Domo Celestial Noturno Procedural
+function createSkyDome() {
+    const c = document.createElement('canvas');
+    c.width = 1024; c.height = 512;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, 512);
+    grad.addColorStop(0, '#020409');
+    grad.addColorStop(0.55, '#070f23');
+    grad.addColorStop(0.85, '#1e112d'); // Brilho paranormal violeta da fenda
+    grad.addColorStop(1, '#05070d');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    // Estrelas e nébula da Serra do Curral
+    for (let i = 0; i < 400; i++) {
+        const sx = Math.random() * 1024;
+        const sy = Math.random() * 320;
+        const sr = Math.random() * 1.5;
+        ctx.fillStyle = Math.random() > 0.3 ? 'rgba(255,255,255,0.85)' : 'rgba(56,189,248,0.9)';
+        ctx.beginPath();
+        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    const tex = new THREE.CanvasTexture(c);
+    const skyMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false });
+    const skyGeo = new THREE.SphereGeometry(380, 32, 24);
+    const sky = new THREE.Mesh(skyGeo, skyMat);
+    scene.add(sky);
+}
+createSkyDome();
+
+// Gerador de Texturas PBR Detalhadas (Asfalto Molhado, Concreto Ranhurado, Azulejos)
+function createDetailedTexture(type) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    const ctx = c.getContext('2d');
+
+    if (type === 'asphalt') {
+        // Asfalto urbano escuro com pedriscos e faixas viárias
+        ctx.fillStyle = '#111622';
+        ctx.fillRect(0, 0, 512, 512);
+        for (let i = 0; i < 9000; i++) {
+            const val = Math.random();
+            ctx.fillStyle = val > 0.6 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.12)';
+            ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+        }
+        // Faixa amarela dupla contínua típica das avenidas de BH (Afonso Pena / Amazonas)
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.45)';
+        ctx.fillRect(250, 0, 4, 512);
+        ctx.fillRect(258, 0, 4, 512);
+
+        // Faixas de pedestre / retenção translúcidas
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+        for (let y = 30; y < 512; y += 80) {
+            ctx.fillRect(16, y, 70, 18);
+            ctx.fillRect(426, y, 70, 18);
+        }
+    } else if (type === 'concrete') {
+        // Concreto Brutalista com marcas de fôrma de madeira
+        ctx.fillStyle = '#263042';
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        for (let y = 0; y < 512; y += 64) {
+            ctx.fillRect(0, y, 512, 3);
+        }
+        for (let i = 0; i < 4000; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.06)';
+            ctx.fillRect(Math.random() * 512, Math.random() * 512, 3, 3);
+        }
+    } else if (type === 'niemeyer') {
+        // Fachada do Edifício Niemeyer com brises de alumínio e concreto escuro
+        ctx.fillStyle = '#1b2333';
+        ctx.fillRect(0, 0, 512, 512);
+        for (let y = 0; y < 512; y += 24) {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, y, 512, 8);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+            ctx.fillRect(0, y + 8, 512, 4);
+        }
+    } else if (type === 'pampulha') {
+        // Azulejaria azul e branca de Portinari
+        ctx.fillStyle = '#1e3a5f';
+        ctx.fillRect(0, 0, 512, 512);
+        ctx.strokeStyle = 'rgba(186, 230, 253, 0.55)';
+        ctx.lineWidth = 3;
+        for (let x = 0; x < 512; x += 48) {
+            for (let y = 0; y < 512; y += 48) {
+                ctx.strokeRect(x, y, 48, 48);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+                ctx.beginPath();
+                ctx.arc(x + 24, y + 24, 14, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    if (type === 'asphalt') tex.repeat.set(18, 18);
+    return tex;
+}
+
+const asphaltMat = new THREE.MeshStandardMaterial({
+    map: createDetailedTexture('asphalt'),
+    roughness: 0.35,
+    metalness: 0.15
+});
+const concreteMat = new THREE.MeshStandardMaterial({
+    map: createDetailedTexture('concrete'),
+    roughness: 0.72,
+    metalness: 0.08
+});
+const niemeyerMat = new THREE.MeshStandardMaterial({
+    map: createDetailedTexture('niemeyer'),
+    roughness: 0.4,
+    metalness: 0.3
+});
+const pampulhaMat = new THREE.MeshStandardMaterial({
+    map: createDetailedTexture('pampulha'),
+    roughness: 0.3,
+    metalness: 0.2
+});
+const neonCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+const neonRoseMat = new THREE.MeshBasicMaterial({ color: 0xff2a6d });
+
+// Piso Asfáltico com Meio-fio de Granito
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(280, 280), asphaltMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Postes de Luz Urbanos com Cone Volumétrico
+function spawnStreetLamp(x, z) {
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 12, 12), postMat);
+    post.position.set(x, 6, z);
+    post.castShadow = true;
+
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.2, 0.3), postMat);
+    arm.position.set(x + 0.8, 11.8, z);
+
+    const bulbMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.15, 0.4), new THREE.MeshBasicMaterial({ color: 0xfef08a }));
+    bulbMesh.position.set(x + 1.5, 11.6, z);
+
+    const pLight = new THREE.PointLight(0xfef08a, 1.2, 26, 1.5);
+    pLight.position.set(x + 1.5, 11.2, z);
+
+    // Cone de Luz Translúcido
+    const coneGeo = new THREE.ConeGeometry(4.8, 11, 16, 1, true);
+    const coneMat = new THREE.MeshBasicMaterial({
+        color: 0xfef08a,
+        transparent: true,
+        opacity: 0.065,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+    const cone = new THREE.Mesh(coneGeo, coneMat);
+    cone.position.set(x + 1.5, 5.5, z);
+
+    scene.add(post, arm, bulbMesh, pLight, cone);
+}
+spawnStreetLamp(-24, 20);
+spawnStreetLamp(24, 20);
+spawnStreetLamp(-24, -20);
+spawnStreetLamp(24, -20);
+
+// Lista de plataformas e estruturas que colidem e sofrem mutação
+const mapStructures = [];
+
+function registerColliderBox(mesh, w, h, d, canMutate = true) {
+    mapStructures.push({
+        mesh, w, h, d, canMutate,
+        targetPos: mesh.position.clone(),
+        targetRotY: mesh.rotation.y
+    });
+}
+
+// ----------------------------------------------------------------------------
+// MARCO 1: O PIRULITO DA PRAÇA SETE (Obelisco com Iluminação Espectral)
+// ----------------------------------------------------------------------------
+const obeliskGroup = new THREE.Group();
+const obeliskShaft = new THREE.Mesh(new THREE.BoxGeometry(3.6, 32, 3.6), concreteMat);
+obeliskShaft.position.y = 16;
+obeliskShaft.castShadow = true;
+obeliskShaft.receiveShadow = true;
+
+const obeliskTip = new THREE.Mesh(new THREE.ConeGeometry(2.8, 6.5, 4), neonCyanMat);
+obeliskTip.position.y = 35.2;
+obeliskTip.rotation.y = Math.PI / 4;
+
+const obeliskRing = new THREE.Mesh(new THREE.TorusGeometry(5.2, 0.35, 12, 48), neonRoseMat);
+obeliskRing.rotation.x = Math.PI / 2;
+obeliskRing.position.y = 20;
+
+obeliskGroup.add(obeliskShaft, obeliskTip, obeliskRing);
+scene.add(obeliskGroup);
+
+// ----------------------------------------------------------------------------
+// MARCO 2: IGREJINHA DA PAMPULHA (Curvas Parabólicas + Painel de Azulejos)
+// ----------------------------------------------------------------------------
+function buildIgrejinhaPampulha(x, z) {
+    const group = new THREE.Group();
+    const vaultRadii = [6.0, 4.8, 3.8, 5.2];
+    let offsetX = -10;
+
+    vaultRadii.forEach((r) => {
+        const vaultGeo = new THREE.CylinderGeometry(r, r, 16, 28, 1, false, 0, Math.PI);
+        const vault = new THREE.Mesh(vaultGeo, pampulhaMat);
+        vault.rotation.z = Math.PI / 2;
+        vault.rotation.y = Math.PI / 2;
+        vault.position.set(offsetX, 0, 0);
+        vault.castShadow = true;
+        vault.receiveShadow = true;
+        group.add(vault);
+        offsetX += r * 1.48;
+    });
+
+    // Torre Sineira com Cruz
+    const bellTower = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.0, 24, 4), concreteMat);
+    bellTower.position.set(-15, 12, 7);
+    bellTower.rotation.y = Math.PI / 4;
+    bellTower.castShadow = true;
+
+    const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.45, 3.8, 0.45), neonCyanMat);
+    crossV.position.set(-15, 25.5, 7);
+    const crossH = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.45, 0.45), neonCyanMat);
+    crossH.position.set(-15, 26, 7);
+
+    group.add(bellTower, crossV, crossH);
+    group.position.set(x, 0, z);
+    scene.add(group);
+
+    const proxy = new THREE.Mesh(new THREE.BoxGeometry(26, 10, 16), new THREE.MeshBasicMaterial({ visible: false }));
+    proxy.position.set(x, 5, z);
+    scene.add(proxy);
+    registerColliderBox(proxy, 26, 10, 16, false);
+}
+buildIgrejinhaPampulha(-44, -32);
+
+// ----------------------------------------------------------------------------
+// MARCO 3: EDIFÍCIO NIEMEYER (Brises de Concreto Curvo e Vidros Escuros)
+// ----------------------------------------------------------------------------
+function buildEdificioNiemeyer(x, z) {
+    const group = new THREE.Group();
+    const lobes = [
+        { ox: -6.5, oz: -4, r: 7.0, h: 30 },
+        { ox: 0,    oz: 2,  r: 7.8, h: 34 },
+        { ox: 7.0,  oz: -3, r: 6.4, h: 28 }
+    ];
+    lobes.forEach(l => {
+        const cyl = new THREE.Mesh(new THREE.CylinderGeometry(l.r, l.r, l.h, 32), niemeyerMat);
+        cyl.position.set(l.ox, l.h / 2, l.oz);
+        cyl.castShadow = true;
+        cyl.receiveShadow = true;
+        group.add(cyl);
+    });
+    group.position.set(x, 0, z);
+    scene.add(group);
+
+    const proxy = new THREE.Mesh(new THREE.BoxGeometry(24, 32, 16), new THREE.MeshBasicMaterial({ visible: false }));
+    proxy.position.set(x, 16, z);
+    scene.add(proxy);
+    registerColliderBox(proxy, 24, 32, 16, false);
+}
+buildEdificioNiemeyer(48, -28);
+
+// ----------------------------------------------------------------------------
+// MARCO 4: VIADUTO SANTA TEREZA (Arcos Duplos Reais e Pista Elevada)
+// ----------------------------------------------------------------------------
+function buildViadutoSantaTereza(x, z) {
+    const group = new THREE.Group();
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(42, 2.0, 10), concreteMat);
+    deck.position.set(x, 10, z);
+    deck.castShadow = true;
+    deck.receiveShadow = true;
+    scene.add(deck);
+    registerColliderBox(deck, 42, 2.0, 10, false);
+
+    [-4.2, 4.2].forEach(zOff => {
+        const arch = new THREE.Mesh(
+            new THREE.TorusGeometry(18, 0.85, 12, 48, Math.PI),
+            concreteMat
+        );
+        arch.position.set(x, 10, z + zOff);
+        arch.castShadow = true;
+        group.add(arch);
+
+        for (let hx = -14; hx <= 14; hx += 7) {
+            const hLen = Math.sqrt(Math.max(0, 18 * 18 - hx * hx));
+            const hanger = new THREE.Mesh(new THREE.BoxGeometry(0.28, hLen, 0.28), neonCyanMat);
+            hanger.position.set(x + hx, 10 + hLen / 2, z + zOff);
+            group.add(hanger);
+        }
+    });
+    scene.add(group);
+}
+buildViadutoSantaTereza(0, 38);
+
+// ----------------------------------------------------------------------------
+// MARCO 5: SERRA DO CURRAL REALISTA COM RELEVO ROCHOSO
+// ----------------------------------------------------------------------------
+function buildSerraDoCurral() {
+    const serraGroup = new THREE.Group();
+    const mountainMat = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        roughness: 0.95,
+        metalness: 0.1
+    });
+    const ridgeMat = new THREE.MeshBasicMaterial({ color: 0xff2a6d, wireframe: true });
+
+    for (let i = -6; i <= 6; i++) {
+        const w = 52 + Math.abs(i) * 8;
+        const h = 46 + (6 - Math.abs(i)) * 10;
+        const peak = new THREE.Mesh(new THREE.ConeGeometry(w, h, 6), mountainMat);
+        peak.position.set(i * 36, h / 2 - 4, -145 - Math.abs(i) * 7);
+        peak.rotation.y = Math.PI / 4;
+        serraGroup.add(peak);
+    }
+
+    const riftPortal = new THREE.Mesh(
+        new THREE.TorusKnotGeometry(18, 1.6, 96, 16, 2, 3),
+        ridgeMat
+    );
+    riftPortal.position.set(0, 62, -135);
+    serraGroup.add(riftPortal);
+    scene.add(serraGroup);
+    return riftPortal;
+}
+const serraRiftMesh = buildSerraDoCurral();
+
+// ----------------------------------------------------------------------------
+// BLOCOS URBANOS PROCEDURAIS COM DETALHES DE FACHADA
+// ----------------------------------------------------------------------------
+for (let i = 0; i < 22; i++) {
+    const w = 7 + Math.random() * 8;
+    const h = 7 + Math.random() * 20;
+    const d = 7 + Math.random() * 8;
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), concreteMat.clone());
+
+    const angle = (i / 22) * Math.PI * 2;
+    const radius = 24 + Math.random() * 60;
+    mesh.position.set(Math.cos(angle) * radius, h / 2, Math.sin(angle) * radius);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    // Janelas iluminadas aleatórias
+    const winGeo = new THREE.BoxGeometry(w + 0.15, 0.45, d + 0.15);
+    const winMat = i % 2 === 0 ? neonCyanMat : neonRoseMat;
+    const band = new THREE.Mesh(winGeo, winMat);
+    band.position.y = h * 0.35;
+    mesh.add(band);
+
+    scene.add(mesh);
+    registerColliderBox(mesh, w, h, d, true);
+}
+
+// ============================================================================
+// 4. MÃOS EM 1ª PESSOA REALISTAS COM RUNAS E VÓRTICE DE ULTIMATE
+// ============================================================================
+const viewmodelGroup = new THREE.Group();
+camera.add(viewmodelGroup);
+scene.add(camera);
+
+// Cria mão tática realista com dedos articulados e orbe de energia na palma
+function createFirstPersonHand(isLeft = true) {
+    const handGroup = new THREE.Group();
+    const sign = isLeft ? -1 : 1;
+
+    // Material da Luva Tática / Pele
+    const gloveMat = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        roughness: 0.5,
+        metalness: 0.2
+    });
+    const runeMat = new THREE.MeshBasicMaterial({
+        color: isLeft ? 0x00f0ff : 0xa855f7,
+        wireframe: true
+    });
+
+    // Antebraço e Punho
+    const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.55, 12), gloveMat);
+    forearm.rotation.x = Math.PI / 2.3;
+    forearm.rotation.z = sign * 0.2;
+    forearm.position.set(sign * 0.05, -0.15, -0.15);
+
+    // Palma da Mão
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.14), gloveMat);
+    palm.position.set(0, 0, -0.42);
+
+    // Runa Circular Holográfica sobre a Palma
+    const runeCircle = new THREE.Mesh(new THREE.RingGeometry(0.06, 0.09, 16), runeMat);
+    runeCircle.rotation.x = -Math.PI / 2;
+    runeCircle.position.set(0, 0.035, -0.42);
+
+    // Dedos Articulados
+    const fingersGroup = new THREE.Group();
+    for (let f = -2; f <= 1; f++) {
+        const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.12, 8), gloveMat);
+        finger.rotation.x = Math.PI / 2.6;
+        finger.position.set(f * 0.03, 0.02, -0.52);
+        fingersGroup.add(finger);
+    }
+
+    // Orbe Paranormal Pulsante
+    const orbMat = new THREE.MeshStandardMaterial({
+        color: isLeft ? 0x00f0ff : 0xa855f7,
+        emissive: isLeft ? 0x0284c7 : 0x7c3aed,
+        roughness: 0.1,
+        transparent: true,
+        opacity: 0.9
+    });
+    const energyOrb = new THREE.Mesh(new THREE.OctahedronGeometry(0.065, 2), orbMat);
+    energyOrb.position.set(0, 0.08, -0.42);
+
+    // Ponto de luz dinâmico na mão
+    const handLight = new THREE.PointLight(isLeft ? 0x00f0ff : 0xa855f7, 0.7, 3);
+    handLight.position.set(0, 0.08, -0.42);
+
+    handGroup.add(forearm, palm, runeCircle, fingersGroup, energyOrb, handLight);
+    handGroup.position.set(sign * 0.38, -0.28, -0.25);
+
+    return { handGroup, energyOrb, runeCircle, handLight, gloveMat, orbMat };
+}
+
+const leftHandObj = createFirstPersonHand(true);
+const rightHandObj = createFirstPersonHand(false);
+viewmodelGroup.add(leftHandObj.handGroup, rightHandObj.handGroup);
+
+// Marcador 3D no mundo para o Teletransporte de 30m
+const blinkMarker = new THREE.Mesh(
+    new THREE.RingGeometry(0.8, 1.4, 32),
+    new THREE.MeshBasicMaterial({ color: 0xa855f7, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+);
+blinkMarker.rotation.x = -Math.PI / 2;
+blinkMarker.visible = false;
+scene.add(blinkMarker);
+
+// Vórtice 3D com Carros e Destroços para Ultimate
+const ultimateVortexGroup = new THREE.Group();
+ultimateVortexGroup.visible = false;
+scene.add(ultimateVortexGroup);
+
+const vortexDebrisList = [];
+for (let i = 0; i < 8; i++) {
+    const isCarWreck = i % 2 === 0;
+    const itemGroup = new THREE.Group();
+    if (isCarWreck) {
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.9, 1.5), concreteMat);
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.75, 1.35), niemeyerMat);
+        cabin.position.y = 0.75;
+        const aura = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.8, 1.7), new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: true }));
+        aura.position.y = 0.38;
+        itemGroup.add(chassis, cabin, aura);
+    } else {
+        const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2, 1), concreteMat);
+        const aura = new THREE.Mesh(new THREE.DodecahedronGeometry(1.35, 1), new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true }));
+        itemGroup.add(boulder, aura);
+    }
+    ultimateVortexGroup.add(itemGroup);
+    vortexDebrisList.push({
+        mesh: itemGroup,
+        angleOffset: (i / 8) * Math.PI * 2,
+        radius: 6.8 + (i % 3) * 2.2,
+        heightOffset: 1.6 + (i % 4) * 1.5
+    });
+}
+
+// ============================================================================
+// 5. MUTAÇÃO AUTOMÁTICA DO CENÁRIO DE BELO HORIZONTE
+// ============================================================================
+let anomalyCountdown = 22;
+let isAnomalyActive = false;
+
+function triggerMapMutation() {
+    isAnomalyActive = !isAnomalyActive;
+    sfx.playAnomalyHorn();
+
+    const alertEl = document.getElementById('anomaly-alert');
+    alertEl.style.opacity = '1';
+    setTimeout(() => alertEl.style.opacity = '0', 4200);
+
+    if (isAnomalyActive) {
+        scene.fog.color.setHex(0x240717);
+        scene.background.setHex(0x240717);
+        alertEl.innerText = "⚠️ FENDA DA SERRA DO CURRAL ABERTA: GRAVIDADE REDUZIDA & BLOCOS LEVITANDO ⚠️";
+    } else {
+        scene.fog.color.setHex(0x070a12);
+        scene.background.setHex(0x070a12);
+        alertEl.innerText = "⚠️ REALIDADE RECONFIGURADA: SETOR URBANO REORGANIZADO ⚠️";
+    }
+
+    mapStructures.forEach((st) => {
+        if (!st.canMutate) return;
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 20 + Math.random() * 62;
+        const newY = isAnomalyActive && Math.random() > 0.35
+            ? st.h / 2 + 5 + Math.random() * 14
+            : st.h / 2;
+
+        st.targetPos.set(Math.cos(angle) * radius, newY, Math.sin(angle) * radius);
+        st.targetRotY = (Math.random() - 0.5) * Math.PI;
+    });
+}
+
+// ============================================================================
+// 6. ESTADO DO JOGADOR, PODERES E CLASSES ESPECIAIS
+// ============================================================================
+const player = {
+    name: 'Agente BH',
+    pos: new THREE.Vector3(0, 3, 55),
+    vel: new THREE.Vector3(),
+    yaw: 0,
+    pitch: 0,
+    hp: 100,
+    energy: 100,
+    ultCharge: 35, // Começa em 35% para testar rápido
+    ultActiveTimer: 0,
+    ultStrikeCooldown: 0,
+    team: 'blue',
+    onGround: false,
+    isInvisible: false,
+    stillTimer: 0,
+    blinkCooldown: 0
+};
+
+const keys = {};
+let isPlaying = false;
+
+// Estado dos Controles Touch para Smartphone
+const touchState = {
+    enabled: false,
+    autoDetected: false,
+    moveX: 0,
+    moveY: 0,
+    joyTouchId: null,
+    lookTouchId: null,
+    lastLookX: 0,
+    lastLookY: 0,
+    holdingJump: false
+};
+
+// Auto-detecção de Smartphone / Tablet Touch
+function detectMobileDevice() {
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 900);
+    touchState.autoDetected = isTouch;
+    setMobileControlsMode(isTouch);
+}
+
+function setMobileControlsMode(enable) {
+    touchState.enabled = enable;
+    const hudEl = document.getElementById('hud');
+    const mobContainer = document.getElementById('mobile-controls');
+    const btnHud = document.getElementById('btn-hud-mobile');
+    const btnMenu = document.getElementById('btn-menu-mobile-toggle');
+    const powersDesktop = document.getElementById('desktop-powers-panel');
+
+    if (enable) {
+        hudEl.classList.add('mobile-hud-active');
+        mobContainer.classList.remove('hidden');
+        if (powersDesktop) powersDesktop.style.display = 'none';
+        btnHud.innerText = '📱 Touch: ON';
+        btnMenu.innerText = '📱 Controles Mobile: ON';
+    } else {
+        hudEl.classList.remove('mobile-hud-active');
+        mobContainer.classList.add('hidden');
+        if (powersDesktop) powersDesktop.style.display = '';
+        btnHud.innerText = '📱 Touch: OFF';
+        btnMenu.innerText = '📱 Controles Mobile: OFF';
+    }
+}
+
+document.getElementById('btn-hud-mobile').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setMobileControlsMode(!touchState.enabled);
+});
+document.getElementById('btn-menu-mobile-toggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setMobileControlsMode(!touchState.enabled);
+});
+
+detectMobileDevice();
+
+// Eventos de Teclado (PC)
+document.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
+    if (!isPlaying) return;
+
+    if (e.code === 'KeyQ') castShockwave();
+    if (e.code === 'KeyR') triggerUltimateStorm();
+    if (e.code === 'KeyM') cycleArchetype();
+    if (e.code === 'KeyE') {
+        triggerMapMutation();
+        anomalyCountdown = 22;
+    }
+    if (e.code === 'ShiftLeft' || e.code === 'KeyF') {
+        triggerArchetypeMobility();
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    keys[e.code] = false;
+    if (e.code === 'Space') {
+        sfx.setLevitationHum(false);
+    }
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (document.pointerLockElement !== canvas) return;
+    player.yaw -= e.movementX * 0.0022;
+    player.pitch = Math.max(-Math.PI / 2.15, Math.min(Math.PI / 2.15, player.pitch - e.movementY * 0.0022));
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (!isPlaying) return;
+    // Ignora cliques se for em um botão do HUD ou se estiver usando os botões touch
+    if (e.target !== canvas) return;
+    sfx.init();
+    if (!touchState.enabled && document.pointerLockElement !== canvas) {
+        canvas.requestPointerLock();
+        return;
+    }
+    if (touchState.enabled) return;
+
+    player.stillTimer = -0.6;
+    if (e.button === 0) {
+        leftCrystal.position.z = -0.45;
+        castPsychicBolt(player.pos, getAimDirection(), player.team, `${player.name} (Você)`);
+        broadcastAction({ type: 'bolt', pos: player.pos.toArray(), dir: getAimDirection().toArray(), team: player.team, senderName: player.name });
+    }
+    if (e.button === 2) {
+        rightCrystal.position.z = -0.42;
+        castBrutalistBoulder(player.pos, getAimDirection(), player.team, `${player.name} (Você)`);
+        broadcastAction({ type: 'boulder', pos: player.pos.toArray(), dir: getAimDirection().toArray(), team: player.team, senderName: player.name });
+    }
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// ============================================================================
+// 6.5 CONFIGURAÇÃO DOS CONTROLES MULTI-TOUCH DE SMARTPHONE
+// ============================================================================
+function setupSmartphoneTouchControls() {
+    const joyZone = document.getElementById('joystick-zone');
+    const joyKnob = document.getElementById('joystick-knob');
+    const lookZone = document.getElementById('touch-look-zone');
+    const maxJoyRadius = 32;
+
+    // 1. Joystick Virtual Esquerdo (Movimentação 360°)
+    joyZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        sfx.init();
+        const t = e.changedTouches[0];
+        touchState.joyTouchId = t.identifier;
+        updateJoystick(t);
+    }, { passive: false });
+
+    joyZone.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchState.joyTouchId) {
+                updateJoystick(e.changedTouches[i]);
+            }
+        }
+    }, { passive: false });
+
+    const endJoystick = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchState.joyTouchId) {
+                touchState.joyTouchId = null;
+                touchState.moveX = 0;
+                touchState.moveY = 0;
+                joyKnob.style.transform = `translate(0px, 0px)`;
+            }
+        }
+    };
+    joyZone.addEventListener('touchend', endJoystick);
+    joyZone.addEventListener('touchcancel', endJoystick);
+
+    function updateJoystick(touch) {
+        const rect = joyZone.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        let dx = touch.clientX - centerX;
+        let dy = touch.clientY - centerY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > maxJoyRadius) {
+            dx = (dx / dist) * maxJoyRadius;
+            dy = (dy / dist) * maxJoyRadius;
+        }
+        joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+        touchState.moveX = dx / maxJoyRadius;
+        touchState.moveY = -dy / maxJoyRadius; // Para cima = positivo (W)
+    }
+
+    // 2. Zona de Mira / Rotação 3D na Direita
+    lookZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        sfx.init();
+        const t = e.changedTouches[0];
+        touchState.lookTouchId = t.identifier;
+        touchState.lastLookX = t.clientX;
+        touchState.lastLookY = t.clientY;
+    }, { passive: false });
+
+    lookZone.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            if (t.identifier === touchState.lookTouchId) {
+                const dx = t.clientX - touchState.lastLookX;
+                const dy = t.clientY - touchState.lastLookY;
+                touchState.lastLookX = t.clientX;
+                touchState.lastLookY = t.clientY;
+
+                player.yaw -= dx * 0.0055;
+                player.pitch = Math.max(-Math.PI / 2.15, Math.min(Math.PI / 2.15, player.pitch - dy * 0.0055));
+            }
+        }
+    }, { passive: false });
+
+    const endLook = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchState.lookTouchId) {
+                touchState.lookTouchId = null;
+            }
+        }
+    };
+    lookZone.addEventListener('touchend', endLook);
+    lookZone.addEventListener('touchcancel', endLook);
+
+    // 3. Botões de Ação Dedicados no Smartphone
+    function bindTouchActionButton(btnId, onPress, onRelease) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        const startHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            sfx.init();
+            btn.classList.add('active-touch');
+            if (onPress) onPress();
+        };
+        const endHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            btn.classList.remove('active-touch');
+            if (onRelease) onRelease();
+        };
+        btn.addEventListener('touchstart', startHandler, { passive: false });
+        btn.addEventListener('touchend', endHandler, { passive: false });
+        btn.addEventListener('touchcancel', endHandler, { passive: false });
+        btn.addEventListener('mousedown', startHandler);
+        btn.addEventListener('mouseup', endHandler);
+    }
+
+    // M1: Pulso Etéreo
+    bindTouchActionButton('btn-touch-m1', () => {
+        player.stillTimer = -0.6;
+        leftCrystal.position.z = -0.45;
+        castPsychicBolt(player.pos, getAimDirection(), player.team, `${player.name} (Você)`);
+        broadcastAction({ type: 'bolt', pos: player.pos.toArray(), dir: getAimDirection().toArray(), team: player.team, senderName: player.name });
+    });
+
+    // M2: Rocha Brutalista
+    bindTouchActionButton('btn-touch-m2', () => {
+        player.stillTimer = -0.6;
+        rightCrystal.position.z = -0.42;
+        castBrutalistBoulder(player.pos, getAimDirection(), player.team, `${player.name} (Você)`);
+        broadcastAction({ type: 'boulder', pos: player.pos.toArray(), dir: getAimDirection().toArray(), team: player.team, senderName: player.name });
+    });
+
+    // Q: Onda Sísmica
+    bindTouchActionButton('btn-touch-q', () => {
+        castShockwave();
+    });
+
+    // PULO / SEGURAR PARA LEVITAR
+    bindTouchActionButton('btn-touch-jump', () => {
+        touchState.holdingJump = true;
+    }, () => {
+        touchState.holdingJump = false;
+        sfx.setLevitationHum(false);
+    });
+
+    // HABILIDADE DE CLASSE (Teletransporte 30m ou Impulso)
+    bindTouchActionButton('btn-touch-class', () => {
+        triggerArchetypeMobility();
+    });
+
+    // R: ULTIMATE (Tempestade Telecinética do Curral)
+    bindTouchActionButton('btn-touch-ult', () => {
+        triggerUltimateStorm();
+    });
+}
+setupSmartphoneTouchControls();
+
+function getAimDirection() {
+    const dir = new THREE.Vector3(0, 0, -1);
+    dir.applyEuler(new THREE.Euler(player.pitch, player.yaw, 0, 'YXZ'));
+    return dir.normalize();
+}
+
+// ============================================================================
+// 6.8 PODER SUPREMO (ULTIMATE - TECLA R / BOTÃO ULT): TEMPESTADE DO CURRAL
+// ============================================================================
+function addUltimateCharge(amount) {
+    if (player.ultActiveTimer > 0) return;
+    player.ultCharge = Math.min(100, player.ultCharge + amount);
+    updateUltimateUI();
+}
+
+function updateUltimateUI() {
+    const pct = Math.floor(player.ultCharge);
+    document.getElementById('ult-bar').style.width = pct + '%';
+    document.getElementById('ult-text').innerText = player.ultActiveTimer > 0 ? 'ATIVO!' : (pct + '%');
+    document.getElementById('ult-slot-label').innerText = player.ultActiveTimer > 0 ? 'ATIVO!' : `Tempestade ${pct}%`;
+    document.getElementById('touch-ult-pct').innerText = player.ultActiveTimer > 0 ? 'ATIVO' : (pct + '%');
+
+    const desktopSlot = document.getElementById('ult-power-slot');
+    const mobileBtn = document.getElementById('btn-touch-ult');
+    if (pct >= 100 && player.ultActiveTimer <= 0) {
+        desktopSlot.classList.add('ult-ready');
+        mobileBtn.classList.add('ult-ready');
+    } else {
+        desktopSlot.classList.remove('ult-ready');
+        mobileBtn.classList.remove('ult-ready');
+    }
+}
+
+function triggerUltimateStorm() {
+    if (player.ultCharge < 100 || player.ultActiveTimer > 0) return;
+    player.ultCharge = 0;
+    player.ultActiveTimer = 7.0; // 7 segundos de Tempestade Telecinética
+    player.stillTimer = -1.0;
+
+    sfx.playUltimateStorm();
+    ultimateVortexGroup.visible = true;
+    document.getElementById('ult-vignette').style.opacity = '1';
+
+    const alertEl = document.getElementById('anomaly-alert');
+    alertEl.innerText = "⚡ ULTIMATE ATIVA: TEMPESTADE TELECINÉTICA DA SERRA DO CURRAL! ⚡";
+    alertEl.style.opacity = '1';
+    setTimeout(() => alertEl.style.opacity = '0', 3500);
+    updateUltimateUI();
+}
+
+// Habilidade de Teletransporte de 30m (Saltador Sta. Tereza) ou Dash padrão
+function triggerArchetypeMobility() {
+    if (selectedArchetype === 'blink') {
+        if (player.energy < 28 || player.blinkCooldown > 0) return;
+        player.energy -= 28;
+        player.blinkCooldown = 1.2;
+
+        const target = computeBlinkDestination(30);
+        spawnParticles(player.pos.clone(), 0xa855f7, 14);
+        player.pos.copy(target);
+        player.vel.set(0, 2, 0);
+        spawnParticles(player.pos.clone(), 0x00f0ff, 18);
+
+        sfx.playTeleportBlink();
+        const flash = document.getElementById('blink-flash');
+        flash.style.opacity = '1';
+        setTimeout(() => flash.style.opacity = '0', 180);
+    } else {
+        // Impulso astral curto para outras classes ao apertar Shift
+        if (player.energy < 22) return;
+        player.energy -= 22;
+        const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+        player.vel.addScaledVector(forward, 34);
+        player.vel.y = 4;
+        sfx.playTeleportBlink();
+    }
+}
+
+// Calcula ponto de teletransporte até 30 metros respeitando chão e topo de prédios
+function computeBlinkDestination(maxDist = 30) {
+    const dir = getAimDirection();
+    const raycaster = new THREE.Raycaster(player.pos.clone(), dir, 0.5, maxDist);
+    const meshes = mapStructures.map(s => s.mesh).concat([floor]);
+    const hits = raycaster.intersectObjects(meshes, false);
+
+    if (hits.length > 0) {
+        const hit = hits[0];
+        // Coloca o jogador um pouco antes do impacto ou em cima da estrutura
+        const dest = hit.point.clone().addScaledVector(dir, -1.2);
+        dest.y = Math.max(2.8, dest.y + 2.2);
+        return dest;
+    } else {
+        const dest = player.pos.clone().addScaledVector(dir, maxDist);
+        dest.y = Math.max(2.8, dest.y);
+        dest.x = THREE.MathUtils.clamp(dest.x, -110, 110);
+        dest.z = THREE.MathUtils.clamp(dest.z, -110, 110);
+        return dest;
+    }
+}
+
+// ============================================================================
+// 7. PROJÉTEIS E PODERES COMPARTILHADOS (M1, M2, Q)
+// ============================================================================
+const projectiles = [];
+const particles = [];
+
+function spawnParticles(pos, colorHex, count = 12) {
+    for (let i = 0; i < count; i++) {
+        const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(0.32, 0.32, 0.32),
+            new THREE.MeshBasicMaterial({ color: colorHex })
+        );
+        mesh.position.copy(pos);
+        scene.add(mesh);
+        particles.push({
+            mesh,
+            vel: new THREE.Vector3((Math.random() - 0.5) * 16, Math.random() * 12, (Math.random() - 0.5) * 16),
+            life: 0.5 + Math.random() * 0.4
+        });
+    }
+}
+
+// M1: Pulso Etéreo com Feixe e Luz Dinâmica
+function castPsychicBolt(origin, dir, team, ownerName) {
+    const isLocalOwner = ownerName && ownerName.includes('(Você)');
+    if (isLocalOwner) {
+        if (player.energy < 9) return;
+        player.energy -= 9;
+        sfx.playPsychicBolt();
+    }
+
+    const color = team === 'blue' ? 0x00f0ff : 0xff2a6d;
+    const group = new THREE.Group();
+
+    // Núcleo cristalino afiado
+    const core = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.5, 1),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    // Envelope de energia
+    const aura = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(0.72, 1),
+        new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.85 })
+    );
+    // Ponto de luz dinâmico que ilumina as paredes do cenário ao passar
+    const boltLight = new THREE.PointLight(color, 2.0, 14, 1.8);
+
+    group.add(core, aura, boltLight);
+    group.position.copy(origin).addScaledVector(dir, 1.8);
+    scene.add(group);
+
+    projectiles.push({
+        mesh: group,
+        vel: dir.clone().multiplyScalar(85),
+        gravity: 0,
+        radius: 1.7,
+        damage: 28,
+        team,
+        ownerName,
+        isLocalOwner,
+        life: 2.4
+    });
+}
+
+// M2: Rocha Brutalista com Rastro de Fogo Astral
+function castBrutalistBoulder(origin, dir, team, ownerName) {
+    const isLocalOwner = ownerName && ownerName.includes('(Você)');
+    if (isLocalOwner) {
+        if (player.energy < 32) return;
+        player.energy -= 32;
+        sfx.playBoulderCast();
+    }
+
+    const group = new THREE.Group();
+    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.25, 1), concreteMat);
+    const wireframeAura = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(1.45, 1),
+        new THREE.MeshBasicMaterial({ color: team === 'blue' ? 0x00f0ff : 0xff2a6d, wireframe: true })
+    );
+    const boulderLight = new THREE.PointLight(team === 'blue' ? 0x00f0ff : 0xff2a6d, 2.5, 18, 1.6);
+
+    group.add(rock, wireframeAura, boulderLight);
+    group.position.copy(origin).addScaledVector(dir, 2.2);
+    scene.add(group);
+
+    projectiles.push({
+        mesh: group,
+        vel: dir.clone().multiplyScalar(48).add(new THREE.Vector3(0, 6.8, 0)),
+        gravity: 18,
+        radius: 5.0,
+        damage: 68,
+        team,
+        ownerName,
+        isLocalOwner,
+        life: 4.0
+    });
+}
+
+// Tecla Q: Onda Sísmica Gravitacional
+function castShockwave() {
+    if (player.energy < 40) return;
+    player.energy -= 40;
+    player.stillTimer = -0.6;
+    sfx.playImpact(true);
+
+    const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(2.2, 0.28, 10, 36),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.copy(player.pos);
+    scene.add(ring);
+
+    particles.push({ mesh: ring, vel: new THREE.Vector3(), life: 0.45, isRing: true });
+
+    bots.forEach(b => {
+        if (!b.active) return;
+        if (b.team !== player.team && b.mesh.position.distanceTo(player.pos) < 18) {
+            damageAgent(b, 58, `${player.name} (Você)`);
+            const push = b.mesh.position.clone().sub(player.pos).normalize().multiplyScalar(26);
+            b.mesh.position.add(push);
+        }
+    });
+}
+
+// ============================================================================
+// 8. MODELAGEM HUMANOIDE DETALHADA PARA JOGADORES E BOTS (CORPO ARTICULADO)
+// ============================================================================
+function buildHumanoidModel(team, isHuman, entityName) {
+    const group = new THREE.Group();
+    const teamColor = team === 'blue' ? 0x0ea5e9 : 0xe11d48;
+    const accentColor = team === 'blue' ? 0x00f0ff : 0xff2a6d;
+
+    // Materiais PBR
+    const suitMat = new THREE.MeshStandardMaterial({
+        color: isHuman ? 0x0f172a : 0x1e293b,
+        roughness: 0.45,
+        metalness: 0.35,
+        transparent: true,
+        opacity: 1
+    });
+    const vestMat = new THREE.MeshStandardMaterial({
+        color: teamColor,
+        roughness: 0.3,
+        metalness: 0.6,
+        transparent: true,
+        opacity: 1
+    });
+    const visorMat = new THREE.MeshBasicMaterial({
+        color: isHuman ? 0xfacc15 : accentColor,
+        transparent: true,
+        opacity: 1
+    });
+
+    // 1. Pélvis e Pernas Articuladas
+    const pelvis = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.3, 0.45), suitMat);
+    pelvis.position.y = 1.35;
+    group.add(pelvis);
+
+    const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 1.25, 12), suitMat);
+    leftLeg.position.set(-0.24, 0.65, 0);
+    leftLeg.castShadow = true;
+
+    const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 1.25, 12), suitMat);
+    rightLeg.position.set(0.24, 0.65, 0);
+    rightLeg.castShadow = true;
+
+    group.add(leftLeg, rightLeg);
+
+    // 2. Torso com Colete Balístico Astral
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.95, 0.52), vestMat);
+    torso.position.y = 1.95;
+    torso.castShadow = true;
+    group.add(torso);
+
+    // 3. Braços Articulados
+    const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.11, 0.9, 10), suitMat);
+    leftArm.position.set(-0.54, 1.9, 0);
+    leftArm.castShadow = true;
+
+    const rightArm = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.11, 0.9, 10), suitMat);
+    rightArm.position.set(0.54, 1.9, 0);
+    rightArm.castShadow = true;
+
+    group.add(leftArm, rightArm);
+
+    // 4. Cabeça com Elmo / Visor Tático
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.46, 0.44), suitMat);
+    head.position.y = 2.68;
+    head.castShadow = true;
+
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.15, 0.18), visorMat);
+    visor.position.set(0, 2.7, 0.2);
+    group.add(head, visor);
+
+    // Se for Humano, adiciona halo astral dourado sobre a cabeça
+    if (isHuman) {
+        const crownHalo = new THREE.Mesh(
+            new THREE.TorusGeometry(0.65, 0.05, 8, 24),
+            new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+        );
+        crownHalo.rotation.x = Math.PI / 2;
+        crownHalo.position.y = 3.15;
+        group.add(crownHalo);
+    }
+
+    // Placa de identificação (Sprite 3D)
+    const labelSprite = createEntityLabelSprite(entityName, team, isHuman);
+    labelSprite.position.y = 3.65;
+    group.add(labelSprite);
+
+    return { group, head, leftLeg, rightLeg, leftArm, rightArm, suitMat, vestMat, visorMat, labelSprite };
+}
+
+function createEntityLabelSprite(text, team, isHuman) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 256, 64);
+
+    ctx.fillStyle = isHuman ? 'rgba(15, 23, 42, 0.85)' : 'rgba(2, 6, 23, 0.7)';
+    ctx.strokeStyle = team === 'blue' ? '#00f0ff' : '#ff2a6d';
+    ctx.lineWidth = 3;
+    ctx.fillRect(8, 8, 240, 48);
+    ctx.strokeRect(8, 8, 240, 48);
+
+    ctx.fillStyle = isHuman ? '#facc15' : '#e2e8f0';
+    ctx.font = 'bold 20px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${isHuman ? '👤' : '🤖'} ${text}`, 128, 32);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+    const sprite = new THREE.Sprite(spriteMat);
+    sprite.scale.set(3.2, 0.8, 1);
+    return sprite;
+}
+
+const botRoster = {
+    blue: [
+        { name: 'Agente Savassi', arch: 'stealth' },
+        { name: 'Guardião Mangabeiras', arch: 'levitate' },
+        { name: 'Sentinela Floresta', arch: 'blink' }
+    ],
+    red: [
+        { name: 'Espectro Lagoinha', arch: 'stealth' },
+        { name: 'Sombra Pampulha', arch: 'blink' },
+        { name: 'Vulto Acaiaca', arch: 'levitate' }
+    ]
+};
+
+const bots = [];
+const remotePlayers = {};
+const score = { blue: 0, red: 0 };
+
+// Configuração das Zonas de Dominação dos Marcos de BH
+function createDominationZone(id, name, pos, colorHex) {
+    const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, wireframe: true, side: THREE.DoubleSide });
+    const ringMesh = new THREE.Mesh(new THREE.RingGeometry(5.8, 6.2, 36), ringMat);
+    ringMesh.rotation.x = -Math.PI / 2;
+    ringMesh.position.set(pos.x, 0.15, pos.z);
+    scene.add(ringMesh);
+
+    const beamMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false });
+    const beamMesh = new THREE.Mesh(new THREE.CylinderGeometry(5.8, 5.8, 28, 32, 1, true), beamMat);
+    beamMesh.position.set(pos.x, 14, pos.z);
+    scene.add(beamMesh);
+
+    const beaconMat = new THREE.MeshBasicMaterial({ color: colorHex });
+    const beaconMesh = new THREE.Mesh(new THREE.OctahedronGeometry(1.4, 0), beaconMat);
+    beaconMesh.position.set(pos.x, 14, pos.z);
+    scene.add(beaconMesh);
+
+    return {
+        id,
+        name,
+        pos,
+        radius: 6.2,
+        owner: null,
+        progress: 0,
+        ringMat,
+        beamMat,
+        beaconMat,
+        beaconMesh,
+        badgeEl: document.getElementById(`zone-badge-${id}`)
+    };
+}
+
+const dominationZones = [
+    createDominationZone('A', 'Praça Sete', new THREE.Vector3(0, 0, 0), 0x94a3b8),
+    createDominationZone('B', 'Igrejinha Pampulha', new THREE.Vector3(-44, 0, -32), 0x94a3b8),
+    createDominationZone('C', 'Viaduto Sta. Tereza', new THREE.Vector3(0, 0, 38), 0x94a3b8)
+];
+
+function createBot(info, team, slotIndex) {
+    const rawName = info.name;
+    const model = buildHumanoidModel(team, false, rawName);
+    respawnEntity(model.group, team);
+    scene.add(model.group);
+
+    bots.push({
+        name: `[BOT] ${rawName}`,
+        rawName,
+        arch: info.arch,
+        team,
+        slotIndex,
+        active: true,
+        isBot: true,
+        mesh: model.group,
+        head: model.head,
+        leftLeg: model.leftLeg,
+        rightLeg: model.rightLeg,
+        leftArm: model.leftArm,
+        rightArm: model.rightArm,
+        bodyMat: model.suitMat,
+        headMat: model.visorMat,
+        labelSprite: model.labelSprite,
+        hp: 100,
+        shootCooldown: 1 + Math.random() * 1.5,
+        strafeDir: Math.random() * Math.PI * 2,
+        specialTimer: 3 + Math.random() * 4,
+        animTime: Math.random() * 10
+    });
+}
+
+function ensureRemotePlayerMesh(peerId, profile) {
+    if (remotePlayers[peerId]) {
+        const rp = remotePlayers[peerId];
+        if (rp.name !== profile.name || rp.team !== profile.team) {
+            rp.name = profile.name;
+            rp.team = profile.team;
+            rp.mesh.remove(rp.labelSprite);
+            rp.labelSprite = createEntityLabelSprite(profile.name, profile.team, true);
+            rp.mesh.add(rp.labelSprite);
+        }
+        rp.arch = profile.arch || 'stealth';
+        return rp;
+    }
+
+    const model = buildHumanoidModel(profile.team, true, profile.name);
+    respawnEntity(model.group, profile.team);
+    scene.add(model.group);
+
+    remotePlayers[peerId] = {
+        id: peerId,
+        name: profile.name,
+        team: profile.team,
+        arch: profile.arch || 'stealth',
+        isBot: false,
+        mesh: model.group,
+        head: model.head,
+        leftLeg: model.leftLeg,
+        rightLeg: model.rightLeg,
+        leftArm: model.leftArm,
+        rightArm: model.rightArm,
+        bodyMat: model.suitMat,
+        headMat: model.visorMat,
+        labelSprite: model.labelSprite,
+        hp: 100,
+        animTime: 0
+    };
+    return remotePlayers[peerId];
+}
+
+function respawnEntity(meshOrPos, team) {
+    const angle = (team === 'blue' ? 0 : Math.PI) + (Math.random() - 0.5) * 1.3;
+    const dist = 42 + Math.random() * 22;
+    const target = meshOrPos.position || meshOrPos;
+    target.set(Math.cos(angle) * dist, 3, Math.sin(angle) * dist);
+}
+
+botRoster.blue.forEach((b, idx) => createBot(b, 'blue', idx));
+botRoster.red.forEach((b, idx) => createBot(b, 'red', idx));
+
+// Ativa apenas os Bots necessários para completar 3 agentes por equipe (3v3)
+function rebalanceBotsForTeams() {
+    const allHumans = getConnectedHumanProfiles();
+    const blueHumans = allHumans.filter(h => h.team === 'blue').length;
+    const redHumans = allHumans.filter(h => h.team === 'red').length;
+
+    const neededBlueBots = Math.max(0, 3 - blueHumans);
+    const neededRedBots = Math.max(0, 3 - redHumans);
+
+    let activeBlue = 0;
+    let activeRed = 0;
+
+    bots.forEach(bot => {
+        if (bot.team === 'blue') {
+            bot.active = activeBlue < neededBlueBots;
+            bot.mesh.visible = bot.active;
+            if (bot.active) activeBlue++;
+        } else {
+            bot.active = activeRed < neededRedBots;
+            bot.mesh.visible = bot.active;
+            if (bot.active) activeRed++;
+        }
+    });
+}
+
+function addKillfeed(killer, victim, killerTeam) {
+    const feed = document.getElementById('killfeed');
+    const div = document.createElement('div');
+    div.className = 'bg-slate-950/85 px-3 py-1 rounded text-xs border-r-4 shadow-md transition-opacity duration-500';
+    div.style.borderColor = killerTeam === 'blue' ? '#00f0ff' : '#ff2a6d';
+    div.innerHTML = `<span class="font-bold text-white">${killer}</span> <span class="text-slate-400">baniu</span> <span class="font-bold text-slate-200">${victim}</span>`;
+    feed.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+}
+
+function damageAgent(bot, amount, attackerName) {
+    if (!bot.active) return;
+    bot.hp -= amount;
+    spawnParticles(bot.mesh.position.clone().add(new THREE.Vector3(0, 2, 0)), bot.team === 'blue' ? 0x00f0ff : 0xff2a6d, 9);
+    if (bot.hp <= 0) {
+        bot.hp = 100;
+        const killerTeam = bot.team === 'blue' ? 'red' : 'blue';
+        score[killerTeam]++;
+        document.getElementById('score-blue').innerText = score.blue;
+        document.getElementById('score-red').innerText = score.red;
+        addKillfeed(attackerName, bot.name, killerTeam);
+        respawnEntity(bot.mesh, bot.team);
+        if (attackerName && attackerName.includes('(Você)')) {
+            addUltimateCharge(25); // +25% de Ultimate por abate!
+        }
+    }
+}
+
+// ============================================================================
+// 9.5 RADAR PARANORMAL 2D (MINIMAPA COM DIFERENCIAÇÃO HUMANO vs. BOT)
+// ============================================================================
+const radarCanvas = document.getElementById('radar-canvas');
+const radarCtx = radarCanvas.getContext('2d');
+
+function renderParanormalRadar() {
+    const w = radarCanvas.width;
+    const h = radarCanvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const scale = 0.52;
+
+    radarCtx.clearRect(0, 0, w, h);
+
+    // Grade circular de fundo
+    radarCtx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+    radarCtx.lineWidth = 1;
+    [22, 44, 66].forEach(r => {
+        radarCtx.beginPath();
+        radarCtx.arc(cx, cy, r, 0, Math.PI * 2);
+        radarCtx.stroke();
+    });
+
+    // Cone de visão do jogador
+    radarCtx.save();
+    radarCtx.translate(cx, cy);
+    radarCtx.rotate(-player.yaw);
+    radarCtx.fillStyle = 'rgba(0, 240, 255, 0.16)';
+    radarCtx.beginPath();
+    radarCtx.moveTo(0, 0);
+    radarCtx.arc(0, 0, 38, -Math.PI / 2 - 0.45, -Math.PI / 2 + 0.45);
+    radarCtx.closePath();
+    radarCtx.fill();
+    radarCtx.restore();
+
+    function toRadarXY(worldPos) {
+        const dx = (worldPos.x - player.pos.x) * scale;
+        const dz = (worldPos.z - player.pos.z) * scale;
+        return { x: cx + dx, y: cy + dz };
+    }
+
+    // Desenha Prédios e Monumentos próximos
+    radarCtx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+    mapStructures.forEach(st => {
+        const pt = toRadarXY(st.mesh.position);
+        const rw = Math.max(3, st.w * scale);
+        const rd = Math.max(3, st.d * scale);
+        if (Math.hypot(pt.x - cx, pt.y - cy) < cx - 4) {
+            radarCtx.fillRect(pt.x - rw / 2, pt.y - rd / 2, rw, rd);
+        }
+    });
+
+    // Desenha as 3 Zonas de Dominação (A, B, C)
+    dominationZones.forEach(zone => {
+        const pt = toRadarXY(zone.pos);
+        const dist = Math.hypot(pt.x - cx, pt.y - cy);
+        const clampedX = dist > cx - 10 ? cx + ((pt.x - cx) / dist) * (cx - 10) : pt.x;
+        const clampedY = dist > cy - 10 ? cy + ((pt.y - cy) / dist) * (cy - 10) : pt.y;
+
+        radarCtx.strokeStyle = zone.owner === 'blue' ? '#00f0ff' : (zone.owner === 'red' ? '#ff2a6d' : '#cbd5e1');
+        radarCtx.lineWidth = 2;
+        radarCtx.beginPath();
+        radarCtx.arc(clampedX, clampedY, 7, 0, Math.PI * 2);
+        radarCtx.stroke();
+
+        radarCtx.fillStyle = '#ffffff';
+        radarCtx.font = 'bold 8px Space Grotesk, sans-serif';
+        radarCtx.textAlign = 'center';
+        radarCtx.textBaseline = 'middle';
+        radarCtx.fillText(zone.id, clampedX, clampedY);
+    });
+
+    // Desenha BOTS (Quadrados menores ocos para fácil distinção)
+    bots.forEach(bot => {
+        if (!bot.active) return;
+        if (bot.team !== player.team && bot.bodyMat.opacity < 0.5) return;
+        const pt = toRadarXY(bot.mesh.position);
+        if (Math.hypot(pt.x - cx, pt.y - cy) < cx - 5) {
+            radarCtx.strokeStyle = bot.team === 'blue' ? '#38bdf8' : '#fb7185';
+            radarCtx.lineWidth = 1.5;
+            radarCtx.strokeRect(pt.x - 3, pt.y - 3, 6, 6);
+        }
+    });
+
+    // Desenha JOGADORES HUMANOS REMOTOS (Círculos maiores com anel dourado)
+    Object.values(remotePlayers).forEach(rp => {
+        const pt = toRadarXY(rp.mesh.position);
+        if (Math.hypot(pt.x - cx, pt.y - cy) < cx - 5) {
+            radarCtx.fillStyle = rp.team === 'blue' ? '#00f0ff' : '#ff2a6d';
+            radarCtx.strokeStyle = '#fde047';
+            radarCtx.lineWidth = 1.8;
+            radarCtx.beginPath();
+            radarCtx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
+            radarCtx.fill();
+            radarCtx.stroke();
+        }
+    });
+
+    // Ponto Central (Você - Humano Local)
+    radarCtx.fillStyle = player.isInvisible ? '#a5f3fc' : '#ffffff';
+    radarCtx.strokeStyle = '#fde047';
+    radarCtx.lineWidth = 1.5;
+    radarCtx.beginPath();
+    radarCtx.arc(cx, cy, 4.2, 0, Math.PI * 2);
+    radarCtx.fill();
+    radarCtx.stroke();
+}
+
+// ============================================================================
+// 9. MULTIPLAYER P2P & HALL DE ESPERA 3v3 (IDENTIFICAÇÃO DE QUEM ESTÁ LOGADO)
+// ============================================================================
+let peer = null;
+let myRoomId = 'BH-' + Math.floor(1000 + Math.random() * 9000);
+const connections = [];
+const lobbyPeers = {}; // peerId -> { id, name, team, arch, online: true }
+
+const archLabels = {
+    stealth: 'Espectro (Invisível)',
+    blink: 'Saltador (Fenda 30m)',
+    levitate: 'Ascendente (Voo)'
+};
+
+function getConnectedHumanProfiles() {
+    const list = [{
+        id: myRoomId,
+        name: player.name,
+        team: player.team,
+        arch: selectedArchetype,
+        isLocal: true
+    }];
+    Object.values(lobbyPeers).forEach(p => {
+        if (p && p.online) list.push(p);
+    });
+    return list;
+}
+
+// Renderiza o Hall de Espera 3v3 diferenciando Amigos Logados (👤) de Bots IA (🤖)
+function renderLobbyHall() {
+    const humans = getConnectedHumanProfiles();
+    document.getElementById('hud-online-count').innerText = humans.length;
+
+    ['blue', 'red'].forEach(team => {
+        const container = document.getElementById(`lobby-slots-${team}`);
+        const countBadge = document.getElementById(`${team}-human-count`);
+        if (!container) return;
+
+        const teamHumans = humans.filter(h => h.team === team);
+        const teamBots = botRoster[team];
+        const botCount = Math.max(0, 3 - teamHumans.length);
+
+        countBadge.innerText = `${teamHumans.length} Humano${teamHumans.length !== 1 ? 's' : ''} • ${botCount} Bot${botCount !== 1 ? 's' : ''}`;
+
+        let html = '';
+        for (let slot = 0; slot < 3; slot++) {
+            const human = teamHumans[slot];
+            if (human) {
+                const isMe = human.isLocal;
+                const badgeColor = team === 'blue' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+                html += `
+                    <div class="flex items-center justify-between bg-slate-950/90 border ${isMe ? 'border-cyan-400/70' : 'border-emerald-500/40'} px-2.5 py-1.5 rounded-lg">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                            <div class="truncate">
+                                <div class="text-xs font-bold text-white truncate">
+                                    👤 ${human.name} ${isMe ? '<span class="text-[10px] text-cyan-300 font-normal">(Você)</span>' : ''}
+                                </div>
+                                <div class="text-[10px] text-slate-400 truncate">${archLabels[human.arch] || 'Agente Paranormal'}</div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${badgeColor} shrink-0 ml-1">
+                            ONLINE
+                        </span>
+                    </div>
+                `;
+            } else {
+                const botInfo = teamBots[slot];
+                html += `
+                    <div class="flex items-center justify-between bg-slate-950/45 border border-slate-800 px-2.5 py-1.5 rounded-lg opacity-80">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-2 h-2 rounded-full bg-slate-500 shrink-0"></span>
+                            <div class="truncate">
+                                <div class="text-xs font-semibold text-slate-300 truncate">
+                                    🤖 [BOT] ${botInfo.name}
+                                </div>
+                                <div class="text-[10px] text-slate-500 truncate">${archLabels[botInfo.arch]} • Preenchendo vaga</div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 shrink-0 ml-1">
+                            BOT IA
+                        </span>
+                    </div>
+                `;
+            }
+        }
+        container.innerHTML = html;
+    });
+
+    rebalanceBotsForTeams();
+}
+
+// Alternar entre Time Azul e Vermelho no Lobby
+document.getElementById('btn-switch-team').addEventListener('click', () => {
+    player.team = player.team === 'blue' ? 'red' : 'blue';
+    const input = document.getElementById('player-name-input');
+    if (input && input.value.trim()) player.name = input.value.trim();
+    renderLobbyHall();
+    broadcastAction({
+        type: 'profile',
+        id: myRoomId,
+        name: player.name,
+        team: player.team,
+        arch: selectedArchetype
+    });
+});
+
+document.getElementById('player-name-input').addEventListener('input', (e) => {
+    player.name = e.target.value.trim() || 'Agente BH';
+    renderLobbyHall();
+});
+
+// Botão de Fullscreen
+document.getElementById('btn-fullscreen').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+});
+
+// Eventos de clique nas mãos em primeira pessoa
+document.addEventListener('mousedown', (e) => {
+    if (!isPlaying) return;
+    if (e.target !== canvas) return;
+    sfx.init();
+    if (!touchState.enabled && document.pointerLockElement !== canvas) {
+        canvas.requestPointerLock();
+        return;
+    }
+    if (touchState.enabled) return;
+
+    player.stillTimer = -0.6;
+    if (e.button === 0) {
+        leftHandObj.handGroup.position.z = -0.15;
+        castPsychicBolt(player.pos, getAimDirection(), player.team, `${player.name} (Você)`);
+        broadcastAction({ type: 'bolt', pos: player.pos.toArray(), dir: getAimDirection().toArray(), team: player.team, senderName: player.name });
+    }
+    if (e.button === 2) {
+        rightHandObj.handGroup.position.z = -0.15;
+        castBrutalistBoulder(player.pos, getAimDirection(), player.team, `${player.name} (Você)`);
+        broadcastAction({ type: 'boulder', pos: player.pos.toArray(), dir: getAimDirection().toArray(), team: player.team, senderName: player.name });
+    }
+});
+
+// Inicialização PeerJS
+try {
+    document.getElementById('room-code-badge').innerText = myRoomId;
+    peer = new Peer(myRoomId);
+    peer.on('open', (id) => {
+        myRoomId = id;
+        document.getElementById('room-code-badge').innerText = id;
+        document.getElementById('peer-status').innerHTML = `Sala Ativa! Compartilhe o código <b class="text-cyan-300">${id}</b> com seus amigos.`;
+        renderLobbyHall();
+    });
+    peer.on('connection', (conn) => setupConn(conn));
+} catch (err) {
+    document.getElementById('peer-status').innerText = 'Modo Local Ativo (3v3 com Bots IA)';
+    renderLobbyHall();
+}
+
+function setupConn(conn) {
+    connections.push(conn);
+    conn.on('open', () => {
+        // Envia nosso perfil assim que o amigo conecta
+        conn.send({
+            type: 'profile',
+            id: myRoomId,
+            name: player.name,
+            team: player.team,
+            arch: selectedArchetype
+        });
+    });
+
+    conn.on('data', (data) => {
+        if (data.type === 'profile') {
+            lobbyPeers[data.id] = {
+                id: data.id,
+                name: data.name || 'Amigo Online',
+                team: data.team || 'blue',
+                arch: data.arch || 'stealth',
+                online: true
+            };
+            ensureRemotePlayerMesh(data.id, lobbyPeers[data.id]);
+            renderLobbyHall();
+            addKillfeed(`👤 ${data.name}`, 'entrou no Hall da Sala', data.team);
+        } else if (data.type === 'move' && data.id) {
+            if (lobbyPeers[data.id]) {
+                const rp = ensureRemotePlayerMesh(data.id, lobbyPeers[data.id]);
+                rp.mesh.position.fromArray(data.pos);
+                rp.mesh.position.y -= 2.7;
+            }
+        } else if (data.type === 'bolt') {
+            castPsychicBolt(new THREE.Vector3().fromArray(data.pos), new THREE.Vector3().fromArray(data.dir), data.team, `👤 ${data.senderName || 'Jogador Online'}`);
+        } else if (data.type === 'boulder') {
+            castBrutalistBoulder(new THREE.Vector3().fromArray(data.pos), new THREE.Vector3().fromArray(data.dir), data.team, `👤 ${data.senderName || 'Jogador Online'}`);
+        }
+    });
+
+    conn.on('close', () => {
+        Object.keys(lobbyPeers).forEach(pid => {
+            if (conn.peer === pid) {
+                if (remotePlayers[pid]) {
+                    scene.remove(remotePlayers[pid].mesh);
+                    delete remotePlayers[pid];
+                }
+                delete lobbyPeers[pid];
+            }
+        });
+        renderLobbyHall();
+    });
+}
+
+function broadcastAction(payload) {
+    connections.forEach(c => {
+        if (c.open) c.send(payload);
+    });
+}
+
+document.getElementById('btn-copy-id').addEventListener('click', () => {
+    const temp = document.createElement('input');
+    temp.value = myRoomId;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+    document.getElementById('btn-copy-id').innerText = 'Copiado!';
+    setTimeout(() => document.getElementById('btn-copy-id').innerText = 'Copiar Sala', 2000);
+});
+
+document.getElementById('btn-join').addEventListener('click', () => {
+    const targetId = document.getElementById('join-id').value.trim().toUpperCase();
+    if (peer && targetId && targetId !== myRoomId) {
+        const conn = peer.connect(targetId);
+        setupConn(conn);
+        document.getElementById('peer-status').innerHTML = `Conectado à sala <b class="text-emerald-400">${targetId}</b>!`;
+    }
+});
+
+document.getElementById('btn-start').addEventListener('click', () => {
+    sfx.init();
+    document.getElementById('menu-overlay').style.display = 'none';
+    document.getElementById('hud').classList.remove('hidden');
+    isPlaying = true;
+    if (!touchState.enabled && canvas.requestPointerLock) {
+        canvas.requestPointerLock();
+    }
+});
+
+renderLobbyHall();
+
+// ============================================================================
+// 10. LOOP PRINCIPAL (DOMINAÇÃO, ULTIMATE, INVISIBILIDADE, TELEPORTE E TOUCH)
+// ============================================================================
+let lastTime = performance.now();
+let domScoreTimer = 0;
+let netSyncTimer = 0;
+
+function animate(now) {
+    requestAnimationFrame(animate);
+    const dt = Math.min((now - lastTime) / 1000, 0.1);
+    lastTime = now;
+
+    // Animação contínua dos Monumentos de BH e da Fenda na Serra do Curral
+    obeliskGroup.rotation.y += dt * 0.65;
+    obeliskGroup.position.y = Math.sin(now * 0.0022) * 2.2 + (isAnomalyActive ? 7 : 0);
+    serraRiftMesh.rotation.z -= dt * 0.45;
+    serraRiftMesh.rotation.x += dt * 0.25;
+
+    mapStructures.forEach(st => {
+        if (st.canMutate) {
+            st.mesh.position.lerp(st.targetPos, dt * 1.8);
+            st.mesh.rotation.y += (st.targetRotY - st.mesh.rotation.y) * dt * 1.8;
+        }
+    });
+
+    if (!isPlaying) {
+        camera.position.set(Math.cos(now * 0.00025) * 72, 30, Math.sin(now * 0.00025) * 72);
+        camera.lookAt(0, 12, 0);
+        renderer.render(scene, camera);
+        return;
+    }
+
+    // Sincroniza posição do jogador com os amigos conectados na sala P2P
+    netSyncTimer += dt;
+    if (netSyncTimer >= 0.08 && connections.length > 0) {
+        netSyncTimer = 0;
+        broadcastAction({
+            type: 'move',
+            id: myRoomId,
+            pos: player.pos.toArray()
+        });
+    }
+
+    // Contador de Distorção na Serra do Curral
+    anomalyCountdown -= dt;
+    if (anomalyCountdown <= 0) {
+        triggerMapMutation();
+        anomalyCountdown = 22;
+    }
+    document.getElementById('shift-countdown').innerText = `DISTORÇÃO: ${Math.ceil(anomalyCountdown)}s`;
+
+    // Recuperação de Status e Carga Passiva de Ultimate
+    player.energy = Math.min(100, player.energy + dt * 17);
+    player.hp = Math.min(100, player.hp + dt * 3.5);
+    player.blinkCooldown = Math.max(0, player.blinkCooldown - dt);
+    addUltimateCharge(dt * 2.2);
+
+    document.getElementById('hp-bar').style.width = player.hp + '%';
+    document.getElementById('hp-text').innerText = Math.ceil(player.hp);
+    document.getElementById('energy-bar').style.width = player.energy + '%';
+    document.getElementById('energy-text').innerText = Math.ceil(player.energy);
+
+    // ------------------------------------------------------------------------
+    // LÓGICA DA ULTIMATE ATIVA: TEMPESTADE TELECINÉTICA DO CURRAL (TECLA R)
+    // ------------------------------------------------------------------------
+    if (player.ultActiveTimer > 0) {
+        player.ultActiveTimer -= dt;
+        player.ultStrikeCooldown -= dt;
+        ultimateVortexGroup.position.copy(player.pos);
+
+        // Faz os carros e blocos de concreto girarem furiosamente ao redor do jogador
+        vortexDebrisList.forEach((item, idx) => {
+            const ang = now * 0.0045 + item.angleOffset;
+            item.mesh.position.set(
+                Math.cos(ang) * item.radius,
+                item.heightOffset + Math.sin(now * 0.006 + idx) * 1.1,
+                Math.sin(ang) * item.radius
+            );
+            item.mesh.rotation.x += dt * 3.5;
+            item.mesh.rotation.y += dt * 4.2;
+        });
+
+        // Atinge inimigos próximos com relâmpagos psíquicos e destroços a cada 0.45s
+        if (player.ultStrikeCooldown <= 0) {
+            player.ultStrikeCooldown = 0.45;
+            bots.forEach(bot => {
+                if (!bot.active) return;
+                if (bot.team !== player.team && bot.mesh.position.distanceTo(player.pos) < 22) {
+                    damageAgent(bot, 34, `${player.name} (Você) [ULT]`);
+                    spawnParticles(bot.mesh.position.clone().add(new THREE.Vector3(0, 2, 0)), 0xf59e0b, 12);
+                    sfx.playImpact(false);
+                }
+            });
+        }
+
+        if (player.ultActiveTimer <= 0) {
+            ultimateVortexGroup.visible = false;
+            document.getElementById('ult-vignette').style.opacity = '0';
+            updateUltimateUI();
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // LÓGICA DO MODO DOMINAÇÃO (CAPTURA DOS 3 MARCOS DE BH: A, B, C)
+    // ------------------------------------------------------------------------
+    let activeCaptureZone = null;
+    dominationZones.forEach(zone => {
+        zone.beaconMesh.rotation.y += dt * 1.8;
+        zone.beaconMesh.position.y = 13.5 + Math.sin(now * 0.003) * 1.2;
+
+        // Conta quantos agentes de cada time estão dentro do anel do monumento
+        let blueCount = 0;
+        let redCount = 0;
+
+        const playerDist2D = Math.hypot(player.pos.x - zone.pos.x, player.pos.z - zone.pos.z);
+        if (playerDist2D <= zone.radius) {
+            if (player.team === 'blue') blueCount++;
+            else redCount++;
+            activeCaptureZone = zone;
+        }
+
+        bots.forEach(bot => {
+            if (!bot.active) return;
+            const d = Math.hypot(bot.mesh.position.x - zone.pos.x, bot.mesh.position.z - zone.pos.z);
+            if (d <= zone.radius) {
+                if (bot.team === 'blue') blueCount++;
+                else redCount++;
+            }
+        });
+
+        // Evolução da barra de captura (-100 = Vermelho, +100 = Azul)
+        if (blueCount > redCount) {
+            const prevOwner = zone.owner;
+            zone.progress = Math.min(100, zone.progress + dt * 24 * (blueCount - redCount));
+            if (zone.progress >= 100 && prevOwner !== 'blue') {
+                zone.owner = 'blue';
+                sfx.playZoneCaptured();
+                addUltimateCharge(20);
+                addKillfeed('Ordem da Serra', `Capturou [${zone.id}] ${zone.name}`, 'blue');
+            }
+        } else if (redCount > blueCount) {
+            const prevOwner = zone.owner;
+            zone.progress = Math.max(-100, zone.progress - dt * 24 * (redCount - blueCount));
+            if (zone.progress <= -100 && prevOwner !== 'red') {
+                zone.owner = 'red';
+                addKillfeed('Filhos do Abismo', `Dominou [${zone.id}] ${zone.name}`, 'red');
+            }
+        }
+
+        // Atualiza cores 3D e badges no HUD
+        const hexColor = zone.owner === 'blue' ? 0x00f0ff : (zone.owner === 'red' ? 0xff2a6d : 0x94a3b8);
+        zone.ringMat.color.setHex(hexColor);
+        zone.beamMat.color.setHex(hexColor);
+        zone.beaconMat.color.setHex(hexColor);
+
+        if (zone.owner === 'blue') {
+            zone.badgeEl.className = 'px-1.5 py-0.5 rounded text-[8px] md:text-[10px] font-bold border border-cyan-400 bg-cyan-500/30 text-cyan-200 transition-all';
+        } else if (zone.owner === 'red') {
+            zone.badgeEl.className = 'px-1.5 py-0.5 rounded text-[8px] md:text-[10px] font-bold border border-rose-500 bg-rose-500/30 text-rose-200 transition-all';
+        }
+    });
+
+    // Exibe barra de captura quando o jogador está pisando em um Marco de BH
+    const capBox = document.getElementById('capture-progress-box');
+    if (activeCaptureZone) {
+        capBox.classList.remove('hidden');
+        capBox.classList.add('flex');
+        document.getElementById('capture-zone-name').innerText = `MARCO [${activeCaptureZone.id}] ${activeCaptureZone.name.toUpperCase()}`;
+        const normalizedPct = Math.round((activeCaptureZone.progress + 100) / 2);
+        const capBar = document.getElementById('capture-zone-bar');
+        capBar.style.width = normalizedPct + '%';
+        capBar.className = activeCaptureZone.progress >= 0
+            ? 'h-full bg-cyan-400 transition-all duration-75'
+            : 'h-full bg-rose-500 transition-all duration-75';
+    } else {
+        capBox.classList.add('hidden');
+        capBox.classList.remove('flex');
+    }
+
+    // Pontos periódicos de Dominação a cada 4 segundos para cada Marco controlado
+    domScoreTimer += dt;
+    if (domScoreTimer >= 4.0) {
+        domScoreTimer = 0;
+        dominationZones.forEach(z => {
+            if (z.owner === 'blue') score.blue++;
+            if (z.owner === 'red') score.red++;
+        });
+        document.getElementById('score-blue').innerText = score.blue;
+        document.getElementById('score-red').innerText = score.red;
+    }
+
+    // Vetor de Movimento Combinado (Teclado WASD + Joystick Virtual Mobile)
+    const speed = 22;
+    const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+    const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.yaw);
+
+    const moveDir = new THREE.Vector3();
+    if (keys['KeyW']) moveDir.add(forward);
+    if (keys['KeyS']) moveDir.sub(forward);
+    if (keys['KeyD']) moveDir.add(right);
+    if (keys['KeyA']) moveDir.sub(right);
+
+    if (Math.abs(touchState.moveX) > 0.05 || Math.abs(touchState.moveY) > 0.05) {
+        moveDir.addScaledVector(forward, touchState.moveY);
+        moveDir.addScaledVector(right, touchState.moveX);
+    }
+
+    const isMovingHorizontally = moveDir.lengthSq() > 0.01;
+    if (isMovingHorizontally) moveDir.normalize();
+
+    player.vel.x = THREE.MathUtils.lerp(player.vel.x, moveDir.x * speed, dt * 10);
+    player.vel.z = THREE.MathUtils.lerp(player.vel.z, moveDir.z * speed, dt * 10);
+
+    // ------------------------------------------------------------------------
+    // MECÂNICAS EXCLUSIVAS DAS 3 CLASSES PARANORMAIS
+    // ------------------------------------------------------------------------
+    const passiveStatusEl = document.getElementById('passive-status');
+    const crosshairLabel = document.getElementById('crosshair-label');
+    const stealthVignette = document.getElementById('stealth-vignette');
+
+    // 1. ESPECTRO DA LAGOINHA: Invisível enquanto está parado
+    if (selectedArchetype === 'stealth') {
+        blinkMarker.visible = false;
+        if (!isMovingHorizontally && player.onGround) {
+            player.stillTimer += dt;
+        } else {
+            player.stillTimer = 0;
+        }
+
+        const shouldBeInvisible = player.stillTimer >= 0.35;
+        if (shouldBeInvisible !== player.isInvisible) {
+            player.isInvisible = shouldBeInvisible;
+            sfx.playStealthShimmer(shouldBeInvisible);
+        }
+
+        if (player.isInvisible) {
+            stealthVignette.style.opacity = '1';
+            leftHandObj.orbMat.opacity = 0.2;
+            rightHandObj.orbMat.opacity = 0.2;
+            passiveStatusEl.innerText = '👻 INVISÍVEL (OCULTO)';
+            passiveStatusEl.className = 'text-[11px] font-bold text-cyan-300 animate-pulse';
+            crosshairLabel.innerText = 'CAMUFLAGEM ATIVA';
+        } else {
+            stealthVignette.style.opacity = '0';
+            leftHandObj.orbMat.opacity = 0.9;
+            rightHandObj.orbMat.opacity = 0.9;
+            passiveStatusEl.innerText = '● PARE PARA FICAR INVISÍVEL';
+            passiveStatusEl.className = 'text-[11px] font-semibold text-slate-400';
+            crosshairLabel.innerText = '';
+        }
+    } else {
+        player.isInvisible = false;
+        stealthVignette.style.opacity = '0';
+        leftHandObj.orbMat.opacity = 0.9;
+        rightHandObj.orbMat.opacity = 0.9;
+    }
+
+    // 2. SALTADOR DE SANTA TEREZA: Teletransporte para até 30m
+    if (selectedArchetype === 'blink') {
+        const dest = computeBlinkDestination(30);
+        blinkMarker.position.copy(dest);
+        blinkMarker.position.y -= 1.9;
+        blinkMarker.visible = true;
+        blinkMarker.rotation.z += dt * 4;
+
+        const dist = Math.round(player.pos.distanceTo(dest));
+        if (player.blinkCooldown <= 0 && player.energy >= 28) {
+            passiveStatusEl.innerText = `⚡ TELEPORTE PRONTO (${dist}m)`;
+            passiveStatusEl.className = 'text-[10px] font-bold text-purple-300';
+            crosshairLabel.innerText = `[SHIFT] TELEPORTAR ${dist}m`;
+        } else {
+            passiveStatusEl.innerText = '⏳ RECARREGANDO FENDA';
+            passiveStatusEl.className = 'text-[10px] font-semibold text-slate-400';
+            crosshairLabel.innerText = '';
+        }
+    }
+
+    // 3. ASCENDENTE DO CURRAL: Levitar ao segurar tecla de pulo (Espaço ou Botão Mobile)
+    const gravity = isAnomalyActive ? 14 : 26;
+    player.vel.y -= gravity * dt;
+
+    const isHoldingJump = keys['Space'] || touchState.holdingJump;
+
+    if (isHoldingJump) {
+        if (player.onGround) {
+            player.vel.y = 14.5;
+            player.onGround = false;
+        } else if (selectedArchetype === 'levitate' && player.energy > 4) {
+            // Propulsão telecinética ascendente ao segurar Espaço ou Botão Touch!
+            player.vel.y = Math.min(11.5, player.vel.y + 42 * dt);
+            player.energy = Math.max(0, player.energy - dt * 16);
+            sfx.setLevitationHum(true);
+            passiveStatusEl.innerText = '🕊️ LEVITANDO (PROPULSÃO ATIVA)';
+            passiveStatusEl.className = 'text-[10px] font-bold text-amber-300';
+            crosshairLabel.innerText = 'PROPULSÃO TELECINÉTICA';
+        } else if (player.vel.y < 0) {
+            // Queda amortecida leve para as demais classes
+            player.vel.y = Math.max(player.vel.y, -7.5);
+        }
+    } else if (selectedArchetype === 'levitate') {
+        sfx.setLevitationHum(false);
+        passiveStatusEl.innerText = '● SEGURE PULO PARA LEVITAR';
+        passiveStatusEl.className = 'text-[10px] font-semibold text-amber-400';
+        crosshairLabel.innerText = '';
+    }
+
+    // Aplica velocidade e colisão com monumentos e prédios de BH
+    player.pos.addScaledVector(player.vel, dt);
+
+    let floorHeight = 2.7;
+    mapStructures.forEach(st => {
+        const dx = Math.abs(player.pos.x - st.mesh.position.x);
+        const dz = Math.abs(player.pos.z - st.mesh.position.z);
+        if (dx < st.w / 2 + 0.85 && dz < st.d / 2 + 0.85) {
+            const topY = st.mesh.position.y + st.h / 2 + 2.7;
+            if (player.pos.y >= topY - 2.3 && player.vel.y <= 0) {
+                floorHeight = Math.max(floorHeight, topY);
+            } else if (player.pos.y < topY - 1.8) {
+                const pushDir = player.pos.clone().sub(st.mesh.position).setY(0).normalize();
+                player.pos.addScaledVector(pushDir, 0.42);
+            }
+        }
+    });
+
+    if (player.pos.y <= floorHeight) {
+        player.pos.y = floorHeight;
+        player.vel.y = 0;
+        player.onGround = true;
+    } else {
+        player.onGround = false;
+    }
+
+    // Limites da Arena
+    player.pos.x = THREE.MathUtils.clamp(player.pos.x, -118, 118);
+    player.pos.z = THREE.MathUtils.clamp(player.pos.z, -118, 118);
+
+    camera.position.copy(player.pos);
+    camera.rotation.set(player.pitch, player.yaw, 0, 'YXZ');
+
+    // Animação das Mãos Realistas em Primeira Pessoa
+    leftHandObj.energyOrb.rotation.x += dt * 2.2;
+    leftHandObj.energyOrb.rotation.y += dt * 2.8;
+    leftHandObj.runeCircle.rotation.z += dt * 1.5;
+
+    rightHandObj.energyOrb.rotation.x -= dt * 2.2;
+    rightHandObj.energyOrb.rotation.y += dt * 2.8;
+    rightHandObj.runeCircle.rotation.z -= dt * 1.5;
+
+    leftHandObj.handGroup.position.z = THREE.MathUtils.lerp(leftHandObj.handGroup.position.z, -0.25, dt * 8);
+    rightHandObj.handGroup.position.z = THREE.MathUtils.lerp(rightHandObj.handGroup.position.z, -0.25, dt * 8);
+
+    // Balanço sutil de respiração e caminhada
+    const walkBob = isMovingHorizontally ? Math.sin(now * 0.012) * 0.03 : Math.sin(now * 0.003) * 0.008;
+    viewmodelGroup.position.y = walkBob;
+
+    // ------------------------------------------------------------------------
+    // ATUALIZAÇÃO E ANIMAÇÃO DA MARCHA DOS BOTS 3v3
+    // ------------------------------------------------------------------------
+    bots.forEach(bot => {
+        if (!bot.active) return;
+        bot.animTime += dt * 8;
+        bot.head.rotation.y += dt * 2.5;
+        bot.shootCooldown -= dt;
+        bot.specialTimer -= dt;
+
+        // Animação articulada de pernas e braços ao caminhar
+        if (bot.leftLeg && bot.rightLeg) {
+            bot.leftLeg.rotation.x = Math.sin(bot.animTime) * 0.45;
+            bot.rightLeg.rotation.x = -Math.sin(bot.animTime) * 0.45;
+            bot.leftArm.rotation.x = -Math.sin(bot.animTime) * 0.45;
+            bot.rightArm.rotation.x = Math.sin(bot.animTime) * 0.45;
+        }
+
+        // Procura inimigo visível mais próximo (Ignora o jogador se ele estiver INVISÍVEL!)
+        let nearestTarget = null;
+        let minDist = 999;
+
+        if (bot.team !== player.team && !player.isInvisible) {
+            const dToPlayer = bot.mesh.position.distanceTo(player.pos);
+            if (dToPlayer < minDist) {
+                minDist = dToPlayer;
+                nearestTarget = { pos: player.pos };
+            }
+        }
+
+        bots.forEach(other => {
+            if (!other.active) return;
+            if (other.team !== bot.team) {
+                const d = bot.mesh.position.distanceTo(other.mesh.position);
+                if (d < minDist) {
+                    minDist = d;
+                    nearestTarget = { pos: other.mesh.position };
+                }
+            }
+        });
+
+        // Bots também usam suas habilidades de classe!
+        if (bot.specialTimer <= 0) {
+            bot.specialTimer = 4 + Math.random() * 4;
+            if (bot.arch === 'blink') {
+                spawnParticles(bot.mesh.position.clone().add(new THREE.Vector3(0, 1.5, 0)), 0xa855f7, 8);
+                bot.mesh.position.x += (Math.random() - 0.5) * 24;
+                bot.mesh.position.z += (Math.random() - 0.5) * 24;
+            } else if (bot.arch === 'levitate') {
+                bot.mesh.position.y = 12 + Math.random() * 8;
+            } else if (bot.arch === 'stealth') {
+                bot.bodyMat.opacity = 0.22;
+                bot.headMat.opacity = 0.22;
+                setTimeout(() => {
+                    bot.bodyMat.opacity = 1;
+                    bot.headMat.opacity = 1;
+                }, 2200);
+            }
+        }
+
+        if (bot.mesh.position.y > 0) {
+            bot.mesh.position.y = Math.max(0, bot.mesh.position.y - dt * 3.5);
+        }
+
+        bot.strafeDir += (Math.random() - 0.5) * dt * 2.2;
+        const moveVec = new THREE.Vector3(Math.cos(bot.strafeDir), 0, Math.sin(bot.strafeDir));
+        const targetZone = dominationZones[Math.floor((now * 0.0001) % dominationZones.length)];
+        if (nearestTarget && minDist > 24) {
+            moveVec.lerp(nearestTarget.pos.clone().sub(bot.mesh.position).setY(0).normalize(), 0.55);
+        } else if (targetZone && targetZone.owner !== bot.team) {
+            moveVec.lerp(targetZone.pos.clone().sub(bot.mesh.position).setY(0).normalize(), 0.45);
+        }
+        bot.mesh.position.addScaledVector(moveVec, dt * 11.5);
+        bot.mesh.position.x = THREE.MathUtils.clamp(bot.mesh.position.x, -95, 95);
+        bot.mesh.position.z = THREE.MathUtils.clamp(bot.mesh.position.z, -95, 95);
+
+        if (nearestTarget && minDist < 70 && bot.shootCooldown <= 0) {
+            bot.shootCooldown = 1.35 + Math.random() * 1.2;
+            const aim = nearestTarget.pos.clone().sub(bot.mesh.position.clone().add(new THREE.Vector3(0, 2, 0))).normalize();
+            aim.x += (Math.random() - 0.5) * 0.11;
+            aim.z += (Math.random() - 0.5) * 0.11;
+            castPsychicBolt(bot.mesh.position.clone().add(new THREE.Vector3(0, 2.2, 0)), aim.normalize(), bot.team, bot.name);
+        }
+    });
+
+    // Animação de caminhada para Jogadores Remotos
+    Object.values(remotePlayers).forEach(rp => {
+        rp.animTime = (rp.animTime || 0) + dt * 6;
+        if (rp.leftLeg && rp.rightLeg) {
+            rp.leftLeg.rotation.x = Math.sin(rp.animTime) * 0.4;
+            rp.rightLeg.rotation.x = -Math.sin(rp.animTime) * 0.4;
+        }
+    });
+
+    // ------------------------------------------------------------------------
+    // ATUALIZAÇÃO DE PROJÉTEIS E COLISÕES
+    // ------------------------------------------------------------------------
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        const p = projectiles[i];
+        p.life -= dt;
+        p.vel.y -= p.gravity * dt;
+        p.mesh.position.addScaledVector(p.vel, dt);
+        p.mesh.rotation.x += dt * 5;
+        p.mesh.rotation.y += dt * 5;
+
+        let hit = false;
+
+        bots.forEach(bot => {
+            if (!bot.active) return;
+            if (bot.team !== p.team && p.mesh.position.distanceTo(bot.mesh.position.clone().add(new THREE.Vector3(0, 1.6, 0))) < p.radius + 1.2) {
+                damageAgent(bot, p.damage, p.ownerName);
+                hit = true;
+            }
+        });
+
+        if (p.team !== player.team && p.mesh.position.distanceTo(player.pos) < p.radius + 1.2) {
+            player.hp -= p.damage * 0.38;
+            hit = true;
+            if (player.hp <= 0) {
+                player.hp = 100;
+                const enemyTeam = player.team === 'blue' ? 'red' : 'blue';
+                score[enemyTeam]++;
+                document.getElementById('score-blue').innerText = score.blue;
+                document.getElementById('score-red').innerText = score.red;
+                addKillfeed(p.ownerName, `👤 ${player.name} (Você)`, enemyTeam);
+                respawnEntity(player.pos, player.team);
+            }
+        }
+
+        if (p.mesh.position.y <= 0.5 || p.life <= 0 || hit) {
+            if (p.isLocalOwner) sfx.playImpact(p.radius > 2);
+            spawnParticles(p.mesh.position, p.team === 'blue' ? 0x00f0ff : 0xff2a6d, p.radius > 2 ? 22 : 8);
+            scene.remove(p.mesh);
+            projectiles.splice(i, 1);
+        }
+    }
+
+    // Partículas
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const pt = particles[i];
+        pt.life -= dt;
+        if (pt.isRing) {
+            pt.mesh.scale.addScalar(dt * 15);
+        } else {
+            pt.vel.y -= 16 * dt;
+            pt.mesh.position.addScaledVector(pt.vel, dt);
+            pt.mesh.scale.multiplyScalar(0.94);
+        }
+        if (pt.life <= 0) {
+            scene.remove(pt.mesh);
+            particles.splice(i, 1);
+        }
+    }
+
+    // Atualiza o Radar Paranormal 2D no canto superior esquerdo
+    renderParanormalRadar();
+
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+window.onload = function () {
+    requestAnimationFrame(animate);
+};
+</script>
+</body>
+</html>

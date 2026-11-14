@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TRON: Praça da Liberdade 2084</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts: Orbitron & Rajdhani -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .font-orbitron {
+      font-family: 'Orbitron', monospace, sans-serif;
+    }
+    .neon-white-glow {
+      text-shadow: 0 0 10px #ffffff, 0 0 20px #e2e8f0;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+    .neon-uv-glow {
+      text-shadow: 0 0 10px #c084fc, 0 0 25px #9333ea;
+      box-shadow: 0 0 15px rgba(147, 51, 234, 0.6);
+    }
+    .tron-panel {
+      background: rgba(8, 14, 28, 0.85);
+      border: 1px solid rgba(6, 182, 212, 0.5);
+      backdrop-filter: blur(10px);
+    }
+    .crosshair-line {
+      position: absolute;
+      background-color: rgba(6, 182, 212, 0.9);
+      box-shadow: 0 0 8px #22d3ee;
+    }
+    .scanlines {
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+    }
+    /* Scrollbar personalizada */
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(3, 7, 18, 0.7);
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(6, 182, 212, 0.6);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="relative w-full h-full text-slate-100 overflow-hidden">
+
+  <!-- 3D Canvas -->
+  <div id="game-canvas-container" class="absolute inset-0 z-0 cursor-crosshair"></div>
+
+  <!-- Scanlines de atmosfera Tron -->
+  <div class="scanlines absolute inset-0 z-10 pointer-events-none"></div>
+
+  <!-- RETÍCULO DE MIRA (Exclusivo para Drone) -->
+  <div id="hud-crosshair" class="absolute inset-0 pointer-events-none z-20 hidden items-center justify-center">
+    <div class="relative w-8 h-8 flex items-center justify-center">
+      <div class="crosshair-line w-2 h-0.5 left-0"></div>
+      <div class="crosshair-line w-2 h-0.5 right-0"></div>
+      <div class="crosshair-line w-0.5 h-2 top-0"></div>
+      <div class="crosshair-line w-0.5 h-2 bottom-0"></div>
+      <div class="w-1.5 h-1.5 bg-cyan-300 rounded-full shadow-[0_0_8px_#67e8f9]"></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICAÇÃO CENTRAL HUD (Minimalista / Compacta) -->
+  <div class="absolute top-12 inset-x-0 z-25 flex justify-center pointer-events-none px-4">
+    <div id="hud-banner" class="opacity-0 transition-opacity duration-300 font-orbitron text-center py-1 px-4 rounded-full bg-slate-950/75 border border-cyan-400/80 text-cyan-300 text-[11px] sm:text-xs font-bold tracking-wide shadow-[0_0_12px_rgba(6,182,212,0.4)] backdrop-blur-sm">
+      SISTEMA PRONTO
+    </div>
+  </div>
+
+  <!-- AVISO DE ORIENTAÇÃO (MODO RETRATO) -->
+  <div id="orientation-warning" class="fixed top-2 inset-x-3 z-40 bg-amber-950/90 border border-amber-500/80 text-amber-300 text-[11px] py-1.5 px-3 rounded-full font-orbitron text-center shadow-lg hidden flex items-center justify-center gap-2 pointer-events-auto backdrop-blur-md">
+    <span>🔄</span>
+    <span>Gire o celular na <b>HORIZONTAL (Paisagem)</b> para melhor visão!</span>
+    <button onclick="document.getElementById('orientation-warning').classList.add('hidden')" class="ml-2 text-slate-400 hover:text-white font-bold">✕</button>
+  </div>
+
+  <!-- IN-GAME HUD MINIMALISTA -->
+  <div id="game-hud" class="absolute inset-0 z-20 pointer-events-none p-2 sm:p-3 flex flex-col justify-between hidden">
+    
+    <!-- Linha Superior: Info do Jogador (Esq) | Placar Pill Central | Mini Radar & Giro (Dir) -->
+    <div class="w-full flex items-start justify-between">
+      
+      <!-- Top-Left: Tag de Função & Feed de Eliminações Compacto -->
+      <div class="flex flex-col gap-1 max-w-[170px] sm:max-w-xs">
+        <div class="flex items-center gap-1.5 bg-slate-950/60 backdrop-blur-sm border border-slate-700/60 px-2 py-0.5 rounded-full w-fit">
+          <span id="hud-team-tag" class="text-[9px] font-orbitron font-bold text-white">BRANCO</span>
+          <span class="text-slate-500 text-[9px]">•</span>
+          <span id="hud-player-role" class="text-[9px] font-orbitron font-bold text-cyan-400">MOTO</span>
+        </div>
+        <!-- Feed discreto no canto superior esquerdo -->
+        <div id="hud-kill-feed" class="text-[9px] font-mono space-y-0.5 text-left opacity-80"></div>
+      </div>
+
+      <!-- Top-Center: Placar Minimalista Cápsula Tron -->
+      <div class="flex flex-col items-center">
+        <div class="bg-slate-950/75 backdrop-blur-md border border-cyan-500/40 rounded-full px-3 py-1 flex items-center gap-2 sm:gap-3 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+          <!-- Time Branco -->
+          <div class="flex items-center gap-1 text-white font-orbitron font-bold text-xs sm:text-sm">
+            <span class="w-2 h-2 rounded-full bg-white shadow-[0_0_6px_#ffffff]"></span>
+            <span id="hud-score-blue-flags">0</span>
+            <span class="text-[9px] font-normal text-slate-400">K:<b id="hud-score-blue-kills" class="text-white">0</b></span>
+          </div>
+
+          <!-- Divisor / Temporizador da Bandeira -->
+          <div class="flex items-center gap-1 border-x border-slate-700/80 px-2 text-yellow-300 font-orbitron text-xs sm:text-sm font-black">
+            <span class="text-[11px] animate-pulse">⚑</span>
+            <span id="hud-flag-timer">60s</span>
+          </div>
+
+          <!-- Time Luz Negra (UV) -->
+          <div class="flex items-center gap-1 text-purple-400 font-orbitron font-bold text-xs sm:text-sm">
+            <span class="text-[9px] font-normal text-slate-400">K:<b id="hud-score-orange-kills" class="text-purple-300">0</b></span>
+            <span id="hud-score-orange-flags">0</span>
+            <span class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_6px_#a855f7]"></span>
+          </div>
+        </div>
+
+        <!-- Indicador de Zona / Portador da Bandeira -->
+        <div class="mt-0.5 flex items-center gap-1.5 text-[9px] text-slate-400 font-mono">
+          <span id="hud-flag-carrier" class="text-yellow-400 font-bold">LIVRE NA PRAÇA</span>
+          <span>•</span>
+          <span id="hud-flag-zone" class="truncate max-w-[110px] sm:max-w-none">Coreto Central</span>
+        </div>
+
+        <!-- Elementos ocultos mas mantidos para compatibilidade JS -->
+        <span id="hud-score-blue-loots" class="hidden">0</span>
+        <span id="hud-score-orange-loots" class="hidden">0</span>
+        <div id="hud-bar-blue" class="hidden"></div>
+        <div id="hud-bar-orange" class="hidden"></div>
+      </div>
+
+      <!-- Top-Right: Radar Minimap + Controles Rápidos do Giroscópio -->
+      <div class="flex flex-col items-end gap-1.5">
+        <div class="relative w-14 h-14 sm:w-20 sm:h-20 bg-slate-950/60 backdrop-blur-md rounded-xl border border-cyan-500/40 overflow-hidden shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+          <canvas id="radar-canvas" width="128" height="128" class="w-full h-full block opacity-85"></canvas>
+        </div>
+        <!-- Botões Rápidos do Acelerômetro/Giroscópio -->
+        <div class="flex items-center gap-1 pointer-events-auto">
+          <button id="btn-toggle-gyro" title="Toque para ativar/calibrar sensores" class="px-2 py-0.5 rounded-full bg-slate-950/80 border border-cyan-500/50 text-[9px] font-orbitron text-cyan-300 active:scale-95 flex items-center gap-1 shadow">
+            <span>🧭</span> <span id="gyro-status-text">GIRO: ATIVAR</span>
+          </button>
+          <button id="btn-calib-gyro" title="Calibrar inclinação neutra" class="px-1.5 py-0.5 rounded-full bg-slate-950/80 border border-slate-700 text-[9px] font-orbitron text-slate-300 active:scale-95">
+            ZERAR
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Centro Inferior: Barras Vitais Minimalistas (Deixa as laterais 100% livres para os dedos) -->
+    <div class="w-full flex flex-col items-center pb-1 gap-1">
+      
+      <!-- Munição de Plasma (Drone) -->
+      <div id="hud-ammo-container" class="hidden items-center gap-1 text-[10px] bg-slate-950/70 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono text-amber-300">
+        <span>PLASMA:</span>
+        <span id="hud-ammo-text" class="font-orbitron font-bold">60 / 60</span>
+      </div>
+
+      <!-- Dicas de Controle PC (apenas em telas grandes) -->
+      <div id="hud-controls-helper" class="text-[10px] text-slate-400 hidden lg:flex items-center gap-3 bg-black/40 px-3 py-0.5 rounded-full border border-slate-800">
+        <div><span class="text-cyan-300 font-mono">WASD</span> Mover</div>
+        <div id="ctrl-shoot-tip"><span class="text-cyan-300 font-mono">MOUSE</span> Atirar</div>
+        <div id="ctrl-vertical-tip"><span class="text-cyan-300 font-mono">ESPAÇO/C</span> Voo</div>
+      </div>
+
+      <!-- Barra de Vida & Energia Compacta -->
+      <div class="bg-slate-950/70 backdrop-blur-md border border-slate-700/60 rounded-full px-3 py-1 flex items-center gap-3 shadow-lg">
+        <!-- HP -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-[9px] font-orbitron font-bold text-rose-400">HP</span>
+          <div class="w-20 sm:w-28 bg-slate-900/80 h-1.5 rounded-full overflow-hidden border border-rose-500/30">
+            <div id="hud-hp-bar" class="bg-rose-500 h-full w-full transition-all duration-200"></div>
+          </div>
+          <span id="hud-hp-text" class="text-[9px] font-mono text-rose-300 min-w-[36px]">120</span>
+        </div>
+
+        <span class="text-slate-600 text-xs">|</span>
+
+        <!-- Turbo / Propulsor -->
+        <div class="flex items-center gap-1.5">
+          <span id="hud-energy-label" class="text-[9px] font-orbitron font-bold text-cyan-400">NRG</span>
+          <div class="w-16 sm:w-24 bg-slate-900/80 h-1.5 rounded-full overflow-hidden border border-cyan-500/30">
+            <div id="hud-shield-bar" class="bg-cyan-400 h-full w-full transition-all duration-200"></div>
+          </div>
+          <span id="hud-shield-text" class="text-[9px] font-mono text-cyan-300 min-w-[28px]">100%</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOUCH CONTROLS OVERLAY (Estilo Translúcido / Sem Poluição Visual) -->
+  <div id="touch-controls" class="absolute inset-0 pointer-events-none z-30 hidden select-none">
+    
+    <!-- Zona Ampla de Mira Touch (Cobre toda a metade direita, sem margens cegas) -->
+    <div id="touch-look-zone" class="absolute inset-y-0 right-0 w-[65%] pointer-events-auto touch-none z-10"></div>
+
+    <!-- Joystick Virtual Translúcido (Canto Inferior Esquerdo) -->
+    <div id="touch-joystick-zone" class="absolute bottom-4 left-4 w-28 h-28 rounded-full border border-cyan-400/30 bg-slate-950/25 backdrop-blur-[2px] pointer-events-auto flex items-center justify-center touch-none z-20">
+      <div id="touch-joystick-thumb" class="w-10 h-10 rounded-full bg-cyan-400/40 border border-cyan-200/60 shadow-[0_0_10px_rgba(6,182,212,0.4)] pointer-events-none transition-transform duration-75"></div>
+    </div>
+
+    <!-- Botões de Ação Touch Translúcidos (Canto Inferior Direito) -->
+    <div id="touch-action-buttons" class="absolute bottom-4 right-4 pointer-events-auto flex flex-col items-end gap-2.5 touch-none z-20">
+      <!-- Voo do Drone: Subir e Descer -->
+      <div id="touch-flight-group" class="flex gap-2 hidden">
+        <button id="btn-touch-up" class="w-11 h-11 rounded-full bg-slate-950/40 border border-sky-400/60 text-sky-300 font-orbitron font-bold text-xs backdrop-blur-sm active:scale-90 flex items-center justify-center">▲</button>
+        <button id="btn-touch-down" class="w-11 h-11 rounded-full bg-slate-950/40 border border-sky-400/60 text-sky-300 font-orbitron font-bold text-xs backdrop-blur-sm active:scale-90 flex items-center justify-center">▼</button>
+      </div>
+
+      <div class="flex gap-2.5 items-center">
+        <!-- Disparar (Drone) -->
+        <button id="btn-touch-shoot" class="w-14 h-14 rounded-full bg-rose-950/40 border border-rose-500/70 text-rose-300 font-orbitron font-black text-xs shadow-[0_0_12px_rgba(244,63,94,0.4)] backdrop-blur-sm active:scale-90 hidden flex items-center justify-center">
+          FOGO
+        </button>
+        <!-- Turbo (Moto) -->
+        <button id="btn-touch-turbo" class="w-14 h-14 rounded-full bg-cyan-950/40 border border-cyan-400/70 text-cyan-300 font-orbitron font-black text-xs shadow-[0_0_12px_rgba(6,182,212,0.4)] backdrop-blur-sm active:scale-90 flex items-center justify-center">
+          TURBO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENU / LOBBY INICIAL (Com scroll e sem duplicações) -->
+  <div id="lobby-screen" class="absolute inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/95 backdrop-blur-md overflow-y-auto">
+    <div class="max-w-2xl w-full max-h-[92vh] overflow-y-auto custom-scroll my-auto tron-panel p-5 sm:p-7 rounded-2xl border-cyan-500 shadow-[0_0_40px_rgba(6,182,212,0.35)] flex flex-col gap-4 sm:gap-5">
+      
+      <!-- Cabeçalho -->
+      <div class="text-center">
+        <h1 class="text-2xl sm:text-5xl font-black font-orbitron tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-200 to-purple-400">
+          TRON: LIBERDADE 2084
+        </h1>
+        <p class="text-slate-400 text-xs sm:text-sm mt-1">
+          Batalha Cyberpunk 3v3 em Primeira Pessoa na Praça da Liberdade — Belo Horizonte / MG
+        </p>
+        <div class="inline-block mt-2 px-3 py-1 bg-slate-900 border border-cyan-500/40 rounded-full text-[11px] text-cyan-300 font-mono">
+          🎮 Suporte: Celular Touch, Teclado/Mouse e Controle Gamepad USB/Bluetooth
+        </div>
+      </div>
+
+      <!-- Configuração de Rede P2P Local -->
+      <div class="p-3 sm:p-4 bg-slate-900/80 rounded-xl border border-cyan-500/30 flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="flex-1 w-full">
+          <label class="block text-[11px] uppercase text-slate-400 mb-1 font-orbitron tracking-wider">Sala P2P Local / WebRTC</label>
+          <div class="flex gap-2">
+            <input id="input-room-code" type="text" placeholder="CÓDIGO (EX: BH2084)" 
+              class="w-full bg-slate-950 border border-cyan-500/50 rounded-lg px-3 py-1.5 text-cyan-300 font-mono text-xs uppercase focus:outline-none focus:border-cyan-400">
+            <button id="btn-join-room" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-orbitron text-xs font-bold transition">
+              ENTRAR
+            </button>
+          </div>
+          <div id="net-status" class="text-[11px] mt-1 text-slate-400">Partida com Bots Autônomos caso jogue sozinho.</div>
+        </div>
+
+        <div class="flex flex-col items-center sm:border-l sm:border-slate-800 sm:pl-3 text-center">
+          <span class="text-[9px] text-slate-400 uppercase">Seu ID P2P</span>
+          <span id="my-peer-id" class="text-xs font-mono text-cyan-400 font-bold bg-slate-950 px-2 py-0.5 rounded border border-cyan-800">GRID_BH</span>
+          <button id="btn-copy-id" class="text-[10px] text-slate-400 hover:text-cyan-300 underline mt-1">Copiar ID</button>
+        </div>
+      </div>
+
+      <!-- Seleção de Esquadrão: Branco Neon vs Luz Negra -->
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-2 font-orbitron tracking-wider">Selecione seu Time</label>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="btn-team-blue" class="p-3 rounded-xl border-2 border-white bg-white/10 text-white font-orbitron font-bold text-sm flex flex-col items-center gap-1 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition transform active:scale-95">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-white shadow-[0_0_8px_#ffffff]"></span>
+              <span>TIME BRANCO NEON</span>
+            </div>
+            <span class="text-[10px] text-slate-300 font-normal">Base: Palácio da Liberdade (Norte)</span>
+          </button>
+          <button id="btn-team-orange" class="p-3 rounded-xl border-2 border-slate-700 bg-slate-900/40 text-slate-400 font-orbitron font-bold text-sm flex flex-col items-center gap-1 hover:border-purple-500/60 hover:text-purple-300 transition transform active:scale-95">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-purple-600 shadow-[0_0_8px_#9333ea]"></span>
+              <span>TIME LUZ NEGRA (UV)</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-normal">Base: Rotatória Niemeyer (Sul)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Seleção de Papel Tático (3 Funções Rígidas) -->
+      <div>
+        <label class="block text-xs uppercase text-slate-400 mb-2 font-orbitron tracking-wider">Selecione seu Papel Tático</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          
+          <!-- Motoqueiro -->
+          <div id="card-role-bike" onclick="selectRole('bike')" class="cursor-pointer p-3 rounded-xl border-2 border-cyan-400 bg-cyan-950/30 flex flex-col justify-between transition">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-orbitron font-bold text-xs text-cyan-300">🏍️ MOTOQUEIRO</span>
+                <span class="text-[9px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-mono">SUPRIMENTOS</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-2">
+                Hipervelocidade e rastro de neon. <b>Único que pode coletar suprimentos e recarregar o time</b>.
+              </p>
+            </div>
+            <div class="text-[10px] text-cyan-400 mt-2.5 space-y-0.5">
+              <div>✦ Hipervelocidade & Turbo</div>
+              <div>✦ Coletor Exclusivo de Loot</div>
+              <div class="text-rose-400 font-bold">✖ Não atira | ✖ Não pega bandeira</div>
+            </div>
+          </div>
+
+          <!-- Drone -->
+          <div id="card-role-drone" onclick="selectRole('drone')" class="cursor-pointer p-3 rounded-xl border border-slate-700 bg-slate-900/50 flex flex-col justify-between transition hover:border-cyan-400">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-orbitron font-bold text-xs text-sky-400">🛸 DRONE AÉREO</span>
+                <span class="text-[9px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded font-mono">ATAQUE TOTAL</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-2">
+                Voo 3D livre. <b>Único combatente armado com canhões de plasma</b> (48 de dano). Frágil e vulnerável a batidas.
+              </p>
+            </div>
+            <div class="text-[10px] text-sky-400 mt-2.5 space-y-0.5">
+              <div>✦ Disparos rápidos devastadores</div>
+              <div>✦ Voo livre na praça (50 HP)</div>
+              <div class="text-rose-400 font-bold">✖ Não pega bandeira | ✖ Não pega loot</div>
+            </div>
+          </div>
+
+          <!-- Robô -->
+          <div id="card-role-tank" onclick="selectRole('tank')" class="cursor-pointer p-3 rounded-xl border border-slate-700 bg-slate-900/50 flex flex-col justify-between transition hover:border-cyan-400">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-orbitron font-bold text-xs text-amber-400">🤖 ROBÔ PESADO</span>
+                <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">BANDEIRA</span>
+              </div>
+              <p class="text-[11px] text-slate-300 mt-2">
+                Titã de titânio (360 HP). <b>Único capaz de carregar e pontuar a bandeira</b>. Lento, resistente e pesado.
+              </p>
+            </div>
+            <div class="text-[10px] text-amber-400 mt-2.5 space-y-0.5">
+              <div>✦ Blindagem colossal & Massa titânica</div>
+              <div>✦ Transportador Exclusivo de Bandeira</div>
+              <div class="text-rose-400 font-bold">✖ Não atira | ✖ Não pega loot</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Botão para Iniciar a Partida -->
+      <button id="btn-start-game" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-orbitron font-black text-base sm:text-lg tracking-widest rounded-xl shadow-[0_0_25px_rgba(6,182,212,0.5)] transition transform active:scale-98">
+        ENTRAR NO GRID DA PRAÇA
+      </button>
+
+      <!-- Critérios de Vitória -->
+      <div class="text-[10px] sm:text-[11px] text-slate-400 text-center border-t border-slate-800 pt-2.5">
+        <span class="text-cyan-300 font-bold">Critério de Vitória:</span> Mais Bandeiras Capturadas ➔ Desempate por Maior Kills ➔ Maior Loot Coletado. A bandeira translada a cada 60s aleatoriamente pela Praça!
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE VITÓRIA / RESULTADOS -->
+  <div id="gameover-modal" class="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-lg hidden items-center justify-center p-4">
+    <div class="max-w-md w-full tron-panel p-6 rounded-2xl border-cyan-400 text-center flex flex-col gap-4">
+      <h2 id="winner-title" class="text-3xl font-black font-orbitron text-white neon-white-glow">VITÓRIA TIME BRANCO</h2>
+      <div id="winner-reason" class="text-xs text-slate-300">Critério de Desempate Aplicado</div>
+
+      <div class="grid grid-cols-2 gap-3 my-2">
+        <div class="p-3 bg-slate-900/80 rounded-xl border border-white/80 shadow-[0_0_12px_rgba(255,255,255,0.2)]">
+          <div class="font-orbitron font-bold text-white text-xs">TIME BRANCO</div>
+          <div class="text-2xl font-black text-white mt-1" id="final-blue-flags">0</div>
+          <div class="text-[11px] text-slate-300 mt-1 space-y-0.5">
+            <div>Kills: <span id="final-blue-kills" class="text-white">0</span></div>
+            <div>Loot: <span id="final-blue-loots" class="text-white">0</span></div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-purple-950/50 rounded-xl border border-purple-500 shadow-[0_0_12px_rgba(147,51,234,0.3)]">
+          <div class="font-orbitron font-bold text-purple-400 text-xs">TIME LUZ NEGRA</div>
+          <div class="text-2xl font-black text-white mt-1" id="final-orange-flags">0</div>
+          <div class="text-[11px] text-slate-300 mt-1 space-y-0.5">
+            <div>Kills: <span id="final-orange-kills" class="text-purple-300">0</span></div>
+            <div>Loot: <span id="final-orange-loots" class="text-purple-300">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <button id="btn-restart" class="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold text-xs tracking-wider rounded-xl transition">
+        JOGAR NOVAMENTE
+      </button>
+    </div>
+  </div>
+
+  <!-- MOTOR DO JOGO E CÓDIGO JAVASCRIPT -->
+  <script>
+    /* =====================================================================
+     * AUDIO SYNTHESIZER (Web Audio API)
+     * ===================================================================== */
+    class TronAudioEngine {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playLaser(freq = 900, decay = 0.12) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + decay);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + decay);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + decay);
+      }
+      playPickup() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+      playFlagAlert() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [0, 0.1, 0.2].forEach((offset, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(550 + idx * 220, now + offset);
+          gain.gain.setValueAtTime(0.18, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.09);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.09);
+        });
+      }
+      playExplosion() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.3;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        filter.frequency.exponentialRampToValueAtTime(60, now + 0.3);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+        whiteNoise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        whiteNoise.start(now);
+        whiteNoise.stop(now + 0.3);
+      }
+    }
+    const audio = new TronAudioEngine();
+
+    /* =====================================================================
+     * CONFIGURAÇÃO GERAL DO JOGO
+     * ===================================================================== */
+    const CONFIG = {
+      MAP_SIZE: 220,
+      FLAG_TIMER_SECONDS: 60,
+      TARGET_FLAG_CAPTURES: 3,
+      TOTAL_SCATTERED_LOOT: 8,
+      LOOT_RESPAWN_TIME_MS: 30000,
+      TEAMS: {
+        blue: {
+          name: 'TIME BRANCO NEON',
+          color: 0xffffff,
+          hex: '#ffffff'
+        },
+        orange: {
+          name: 'TIME LUZ NEGRA',
+          color: 0x9333ea,
+          hex: '#a855f7'
+        }
+      },
+      ROLES: {
+        bike: {
+          name: 'MOTOQUEIRO',
+          mass: 400,
+          radius: 1.8,
+          hp: 120,
+          speed: 40,
+          accel: 55,
+          jump: 7,
+          canShoot: false,
+          canCarryFlag: false,
+          canCollectLoot: true
+        },
+        drone: {
+          name: 'DRONE AÉREO',
+          mass: 90,
+          radius: 1.4,
+          hp: 50,
+          speed: 24,
+          accel: 30,
+          ammo: 60,
+          fireRate: 0.12,
+          damage: 48,
+          canShoot: true,
+          canCarryFlag: false,
+          canCollectLoot: false
+        },
+        tank: {
+          name: 'ROBÔ PESADO',
+          mass: 3500,
+          radius: 2.3,
+          hp: 360,
+          speed: 8.0,
+          accel: 14,
+          jump: 3,
+          canShoot: false,
+          canCarryFlag: true,
+          canCollectLoot: false
+        }
+      },
+      FLAG_SPOTS: [
+        { name: 'Coreto Central da Praça', x: 0, z: 0, y: 1.5 },
+        { name: 'Palácio da Liberdade (Alameda Norte)', x: 0, z: -86, y: 1.5 },
+        { name: 'Rotatória Niemeyer (Extremo Sul)', x: 0, z: 88, y: 1.5 },
+        { name: 'Rainha da Sucata (Esquina Sudoeste)', x: -78, z: 58, y: 1.5 },
+        { name: 'Secretaria da Fazenda (Noroeste)', x: -82, z: -68, y: 1.5 },
+        { name: 'Memorial Minas Gerais (Nordeste)', x: 80, z: -70, y: 1.5 },
+        { name: 'Labirinto das Palmeiras (Oeste)', x: -85, z: 0, y: 1.5 },
+        { name: 'Jardins Franceses (Leste)', x: 86, z: 0, y: 1.5 },
+        { name: 'Recanto do Lago Escuro (Sudeste)', x: 78, z: 65, y: 1.5 }
+      ],
+      TEAM_BASES: {
+        blue: { x: 0, z: -88, radius: 14, color: 0xffffff },
+        orange: { x: 0, z: 88, radius: 14, color: 0x9333ea }
+      }
+    };
+
+    /* =====================================================================
+     * ESTADO GLOBAL DO JOGO
+     * ===================================================================== */
+    const state = {
+      roomCode: '',
+      peerId: null,
+      myTeam: 'blue',
+      myRole: 'bike',
+      isPlaying: false,
+      isGameOver: false,
+      scores: {
+        blue: { flags: 0, kills: 0, loots: 0 },
+        orange: { flags: 0, kills: 0, loots: 0 }
+      },
+      flag: {
+        x: 0, y: 1.5, z: 0,
+        carrierId: null,
+        carrierTeam: null,
+        timer: 60,
+        spotIndex: 0
+      },
+      players: {},
+      localPlayerId: 'local_' + Math.random().toString(36).substr(2, 6),
+      projectiles: [],
+      pickups: [],
+      trails: [],
+      mazeObstacles: []
+    };
+
+    /* =====================================================================
+     * CRIAÇÃO DO MUNDO 3D: PRAÇA DA LIBERDADE CYBERPUNK
+     * ===================================================================== */
+    let scene, camera, renderer;
+    let flagMesh;
+    let baseBlueMesh, baseOrangeMesh;
+    const container = document.getElementById('game-canvas-container');
+
+    function initThree() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x02050e);
+      scene.fog = new THREE.FogExp2(0x02050e, 0.012);
+
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 400);
+      camera.position.set(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      // Grid Neon no Chão
+      const gridHelper = new THREE.GridHelper(CONFIG.MAP_SIZE * 1.2, 70, 0x00f0ff, 0x0f2847);
+      gridHelper.position.y = 0;
+      scene.add(gridHelper);
+
+      const groundGeo = new THREE.PlaneGeometry(CONFIG.MAP_SIZE * 1.3, CONFIG.MAP_SIZE * 1.3);
+      const groundMat = new THREE.MeshBasicMaterial({ color: 0x020817 });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.05;
+      scene.add(ground);
+
+      const ambLight = new THREE.AmbientLight(0x1e293b, 1.2);
+      scene.add(ambLight);
+
+      buildPracaLiberdade();
+      createFlagObject();
+      createBaseZones();
+      createLootPickups();
+
+      window.addEventListener('resize', onWindowResize);
+      window.addEventListener('orientationchange', handleOrientationChange);
+      onWindowResize();
+    }
+
+    function handleOrientationChange() {
+      setTimeout(onWindowResize, 100);
+      setTimeout(onWindowResize, 350);
+      setTimeout(onWindowResize, 600);
+      if (gyroState.calibrated) calibrateGyro();
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const aspect = width / height;
+
+      camera.aspect = aspect;
+      // FOV Adaptativo: Evita que a visão fique esticada/túnel no modo retrato
+      if (aspect < 1.0) {
+        camera.fov = 2 * Math.atan(Math.tan((75 * Math.PI / 360)) / aspect) * (360 / Math.PI);
+        const warn = document.getElementById('orientation-warning');
+        if (warn && state.isPlaying) warn.classList.remove('hidden');
+      } else {
+        camera.fov = 75;
+        const warn = document.getElementById('orientation-warning');
+        if (warn) warn.classList.add('hidden');
+      }
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    /* Construção dos Monumentos da Praça da Liberdade */
+    function buildPracaLiberdade() {
+      // 1. Palmeiras Imperiais na Alameda Central
+      const palmTrunkMat = new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true });
+      const palmLeavesMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+
+      for (let z = -70; z <= 70; z += 16) {
+        if (Math.abs(z) < 14) continue;
+        [-11, 11].forEach(x => {
+          const trunkGeo = new THREE.CylinderGeometry(0.35, 0.6, 14, 6);
+          const trunk = new THREE.Mesh(trunkGeo, palmTrunkMat);
+          trunk.position.set(x, 7, z);
+          scene.add(trunk);
+
+          const crownGeo = new THREE.TorusGeometry(2.5, 0.15, 6, 12);
+          const crown = new THREE.Mesh(crownGeo, palmLeavesMat);
+          crown.rotation.x = Math.PI / 2;
+          crown.position.set(x, 14, z);
+          scene.add(crown);
+        });
+      }
+
+      // 2. Coreto Central da Praça
+      const coretoGroup = new THREE.Group();
+      const coretoBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(8, 9, 1.2, 8),
+        new THREE.MeshBasicMaterial({ color: 0x1e3a8a, wireframe: true })
+      );
+      coretoBase.position.y = 0.6;
+      coretoGroup.add(coretoBase);
+
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const col = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.2, 0.2, 6, 5),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+        );
+        col.position.set(Math.cos(angle) * 7, 3.6, Math.sin(angle) * 7);
+        coretoGroup.add(col);
+      }
+
+      const domeGeo = new THREE.SphereGeometry(7.2, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+      const domeMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: true });
+      const dome = new THREE.Mesh(domeGeo, domeMat);
+      dome.position.y = 6.6;
+      coretoGroup.add(dome);
+      scene.add(coretoGroup);
+
+      // 3. Palácio da Liberdade (Norte)
+      const palaceGroup = new THREE.Group();
+      const mainHall = new THREE.Mesh(
+        new THREE.BoxGeometry(50, 16, 20),
+        new THREE.MeshBasicMaterial({ color: 0x0284c7, wireframe: true })
+      );
+      mainHall.position.y = 8;
+      palaceGroup.add(mainHall);
+
+      const roofGeo = new THREE.ConeGeometry(30, 7, 4);
+      const roofMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true });
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.rotation.y = Math.PI / 4;
+      roof.position.y = 19.5;
+      palaceGroup.add(roof);
+      palaceGroup.position.set(0, 0, -100);
+      scene.add(palaceGroup);
+
+      // 4. Edifício Rainha da Sucata (Sudoeste)
+      const sucataGroup = new THREE.Group();
+      const sucataBase = new THREE.Mesh(
+        new THREE.BoxGeometry(26, 22, 22),
+        new THREE.MeshBasicMaterial({ color: 0xef4444, wireframe: true })
+      );
+      sucataBase.position.y = 11;
+      sucataGroup.add(sucataBase);
+
+      const sucataCone = new THREE.Mesh(
+        new THREE.ConeGeometry(9, 14, 5),
+        new THREE.MeshBasicMaterial({ color: 0x1e1b4b, wireframe: true })
+      );
+      sucataCone.position.set(0, 29, 0);
+      sucataGroup.add(sucataCone);
+      sucataGroup.position.set(-82, 0, 68);
+      scene.add(sucataGroup);
+
+      // 5. Edifício Niemeyer (Sudeste)
+      const niemeyerGroup = new THREE.Group();
+      for (let floor = 0; floor < 10; floor++) {
+        const floorGeo = new THREE.TorusGeometry(10 + Math.sin(floor * 0.5) * 2.5, 0.4, 4, 18, Math.PI * 1.4);
+        const floorMesh = new THREE.Mesh(floorGeo, new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true }));
+        floorMesh.rotation.x = Math.PI / 2;
+        floorMesh.position.y = floor * 2.8 + 2;
+        niemeyerGroup.add(floorMesh);
+      }
+      niemeyerGroup.position.set(82, 0, 72);
+      scene.add(niemeyerGroup);
+
+      // 6. Labirinto de Sebes Francesas
+      buildGardenMaze();
+    }
+
+    /* Paredes e Sebes do Labirinto */
+    function buildGardenMaze() {
+      const hedgeMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true });
+      const hedgeSolid = new THREE.MeshBasicMaterial({ color: 0x064e3b, transparent: true, opacity: 0.65 });
+
+      const addWall = (x, z, width, depth) => {
+        const wallGroup = new THREE.Group();
+        const solid = new THREE.Mesh(new THREE.BoxGeometry(width, 2.4, depth), hedgeSolid);
+        solid.position.y = 1.2;
+        wallGroup.add(solid);
+
+        const wire = new THREE.Mesh(new THREE.BoxGeometry(width, 2.4, depth), hedgeMat);
+        wire.position.y = 1.2;
+        wallGroup.add(wire);
+
+        wallGroup.position.set(x, 0, z);
+        scene.add(wallGroup);
+
+        state.mazeObstacles.push({
+          minX: x - width / 2 - 0.5,
+          maxX: x + width / 2 + 0.5,
+          minZ: z - depth / 2 - 0.5,
+          maxZ: z + depth / 2 + 0.5,
+          cx: x,
+          cz: z
+        });
+      };
+
+      [-1, 1].forEach(sign => {
+        addWall(sign * 36, -35, 32, 2.2);
+        addWall(sign * 36, 35, 32, 2.2);
+        addWall(sign * 52, 0, 2.2, 50);
+
+        addWall(sign * 22, -18, 2.2, 26);
+        addWall(sign * 22, 18, 2.2, 26);
+        addWall(sign * 36, -10, 16, 2.2);
+        addWall(sign * 36, 10, 16, 2.2);
+
+        addWall(sign * 68, -45, 2.2, 34);
+        addWall(sign * 68, 45, 2.2, 34);
+      });
+    }
+
+    /* Bandeira Holográfica */
+    function createFlagObject() {
+      const flagGroup = new THREE.Group();
+
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.12, 6, 8),
+        new THREE.MeshBasicMaterial({ color: 0xffffff })
+      );
+      pole.position.y = 3;
+      flagGroup.add(pole);
+
+      const bannerGeo = new THREE.PlaneGeometry(3, 1.8);
+      const bannerMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, wireframe: true });
+      const banner = new THREE.Mesh(bannerGeo, bannerMat);
+      banner.position.set(1.5, 4.8, 0);
+      flagGroup.add(banner);
+
+      const crystalGeo = new THREE.OctahedronGeometry(0.7, 0);
+      const crystalMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, wireframe: true });
+      const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+      crystal.position.y = 6.2;
+      flagGroup.add(crystal);
+      flagGroup.crystalMesh = crystal;
+
+      const beaconGeo = new THREE.CylinderGeometry(0.3, 0.3, 120, 8);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, transparent: true, opacity: 0.25 });
+      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+      beacon.position.y = 60;
+      flagGroup.add(beacon);
+
+      flagMesh = flagGroup;
+      scene.add(flagMesh);
+      repositionFlag(0);
+    }
+
+    /* Zonas de Base */
+    function createBaseZones() {
+      const blueGeo = new THREE.RingGeometry(10, 12, 24);
+      const blueMat = new THREE.MeshBasicMaterial({ color: CONFIG.TEAMS.blue.color, side: THREE.DoubleSide });
+      baseBlueMesh = new THREE.Mesh(blueGeo, blueMat);
+      baseBlueMesh.rotation.x = -Math.PI / 2;
+      baseBlueMesh.position.set(CONFIG.TEAM_BASES.blue.x, 0.1, CONFIG.TEAM_BASES.blue.z);
+      scene.add(baseBlueMesh);
+
+      const orangeGeo = new THREE.RingGeometry(10, 12, 24);
+      const orangeMat = new THREE.MeshBasicMaterial({ color: CONFIG.TEAMS.orange.color, side: THREE.DoubleSide });
+      baseOrangeMesh = new THREE.Mesh(orangeGeo, orangeMat);
+      baseOrangeMesh.rotation.x = -Math.PI / 2;
+      baseOrangeMesh.position.set(CONFIG.TEAM_BASES.orange.x, 0.1, CONFIG.TEAM_BASES.orange.z);
+      scene.add(baseOrangeMesh);
+    }
+
+    /* Suprimentos Escassos */
+    function createLootPickups() {
+      for (let i = 0; i < CONFIG.TOTAL_SCATTERED_LOOT; i++) {
+        spawnPickup();
+      }
+    }
+
+    function spawnPickup() {
+      const type = Math.random() > 0.5 ? 'energy' : 'ammo';
+      const color = type === 'energy' ? 0x06b6d4 : 0xf59e0b;
+      const geo = type === 'energy' ? new THREE.BoxGeometry(1.2, 1.2, 1.2) : new THREE.TetrahedronGeometry(1.1);
+      const mat = new THREE.MeshBasicMaterial({ color: color, wireframe: true });
+      const mesh = new THREE.Mesh(geo, mat);
+
+      const x = (Math.random() - 0.5) * (CONFIG.MAP_SIZE * 0.7);
+      const z = (Math.random() - 0.5) * (CONFIG.MAP_SIZE * 0.7);
+      mesh.position.set(x, 1, z);
+
+      scene.add(mesh);
+      state.pickups.push({
+        id: Math.random().toString(),
+        type: type,
+        mesh: mesh,
+        x: x,
+        z: z,
+        collected: false
+      });
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    /* Modelos 3D de Jogadores/Bots */
+    function createPlayerMesh(role, team) {
+      const group = new THREE.Group();
+      const teamColor = (CONFIG.TEAMS[team] || CONFIG.TEAMS.blue).color;
+      const wireMat = new THREE.MeshBasicMaterial({ color: teamColor, wireframe: true });
+
+      if (role === 'bike') {
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 4.2), wireMat);
+        chassis.position.y = 0.6;
+        group.add(chassis);
+
+        const wheelGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.4, 12);
+        const wheelFront = new THREE.Mesh(wheelGeo, wireMat);
+        wheelFront.rotation.z = Math.PI / 2;
+        wheelFront.position.set(0, 0.8, -1.8);
+        group.add(wheelFront);
+
+        const wheelBack = wheelFront.clone();
+        wheelBack.position.set(0, 0.8, 1.8);
+        group.add(wheelBack);
+      } else if (role === 'drone') {
+        const core = new THREE.Mesh(new THREE.OctahedronGeometry(1.2, 1), wireMat);
+        core.position.y = 1.8;
+        group.add(core);
+
+        for (let i = 0; i < 4; i++) {
+          const angle = (i / 4) * Math.PI * 2;
+          const thruster = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.3, 0.4, 8), wireMat);
+          thruster.position.set(Math.cos(angle) * 1.8, 1.8, Math.sin(angle) * 1.8);
+          group.add(thruster);
+        }
+      } else {
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 1.8), wireMat);
+        torso.position.y = 2.4;
+        group.add(torso);
+
+        const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), wireMat);
+        head.position.y = 4.2;
+        group.add(head);
+
+        const shoulderL = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.2, 0.8), wireMat);
+        shoulderL.position.set(-1.6, 2.4, 0);
+        group.add(shoulderL);
+
+        const shoulderR = shoulderL.clone();
+        shoulderR.position.set(1.6, 2.4, 0);
+        group.add(shoulderR);
+      }
+
+      const ring = new THREE.Mesh(new THREE.RingGeometry(1.4, 1.6, 8), wireMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.1;
+      group.add(ring);
+
+      return group;
+    }
+
+    /* =====================================================================
+     * CONTROLES & CÂMERA EM PRIMEIRA PESSOA + GIROSCÓPIO
+     * ===================================================================== */
+    const keys = {};
+    let pitchObject = new THREE.Object3D();
+    let yawObject = new THREE.Object3D();
+
+    const touchState = {
+      active: false,
+      moveX: 0,
+      moveZ: 0,
+      lookDeltaX: 0,
+      lookDeltaY: 0,
+      isTurbo: false,
+      isShoot: false,
+      isUp: false,
+      isDown: false
+    };
+
+    /* Estado do Acelerômetro / Giroscópio */
+    const gyroState = {
+      enabled: true,
+      hasHardware: false,
+      calibrated: false,
+      mode: 'orientation', // 'orientation' ou fallback 'motion'
+      rawBeta: 0,
+      rawGamma: 0,
+      rawGravX: 0,
+      rawGravY: 0,
+      neutralBeta: 0,
+      neutralGamma: 0,
+      neutralGravX: 0,
+      neutralGravY: 0,
+      eventsCount: 0
+    };
+
+    function handleDeviceOrientation(e) {
+      if (e.beta === null && e.gamma === null) return;
+      gyroState.hasHardware = true;
+      gyroState.mode = 'orientation';
+      gyroState.rawBeta = e.beta || 0;
+      gyroState.rawGamma = e.gamma || 0;
+      gyroState.eventsCount++;
+
+      if (!gyroState.calibrated && gyroState.eventsCount > 3) {
+        calibrateGyro(false);
+        gyroState.calibrated = true;
+      }
+    }
+
+    function handleDeviceMotion(e) {
+      const grav = e.accelerationIncludingGravity || e.acceleration;
+      if (!grav || (grav.x === null && grav.y === null)) return;
+
+      gyroState.rawGravX = grav.x || 0;
+      gyroState.rawGravY = grav.y || 0;
+      gyroState.eventsCount++;
+
+      // Se deviceorientation não enviou dados válidos, ativa o modo motion
+      if (!gyroState.hasHardware) {
+        gyroState.hasHardware = true;
+        gyroState.mode = 'motion';
+        if (!gyroState.calibrated && gyroState.eventsCount > 3) {
+          calibrateGyro(false);
+          gyroState.calibrated = true;
+        }
+      }
+    }
+
+    function calibrateGyro(notify = true) {
+      gyroState.neutralBeta = gyroState.rawBeta;
+      gyroState.neutralGamma = gyroState.rawGamma;
+      gyroState.neutralGravX = gyroState.rawGravX;
+      gyroState.neutralGravY = gyroState.rawGravY;
+      if (notify) showNotification('🧭 SENSORES CALIBRADOS NA POSIÇÃO ATUAL!');
+    }
+
+    async function requestGyroPermission() {
+      // 1. Tenta API do iOS (DeviceOrientationEvent com requestPermission)
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+          const resp = await DeviceOrientationEvent.requestPermission();
+          if (resp === 'granted') {
+            window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+          }
+        } catch (err) {
+          console.warn('Permissão DeviceOrientation:', err);
+        }
+      } else if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleDeviceOrientation, true);
+      }
+
+      // 2. Tenta API do iOS (DeviceMotionEvent com requestPermission)
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+          const respMotion = await DeviceMotionEvent.requestPermission();
+          if (respMotion === 'granted') {
+            window.addEventListener('devicemotion', handleDeviceMotion, true);
+          }
+        } catch (err) {
+          console.warn('Permissão DeviceMotion:', err);
+        }
+      } else if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', handleDeviceMotion, true);
+      }
+    }
+
+    function setupControls() {
+      camera.position.set(0, 0, 0);
+      camera.rotation.set(0, 0, 0);
+      pitchObject.position.set(0, 0, 0);
+      pitchObject.add(camera);
+      yawObject.position.set(0, 1.8, 0);
+      yawObject.add(pitchObject);
+      scene.add(yawObject);
+
+      document.addEventListener('keydown', (e) => { keys[e.code] = true; });
+      document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+      window.addEventListener('mousedown', (e) => {
+        if (!state.isPlaying) return;
+        if (document.pointerLockElement !== container && !touchState.active) {
+          container.requestPointerLock?.();
+        } else if (e.button === 0) {
+          playerShoot();
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement !== container) return;
+        const movementX = e.movementX || 0;
+        const movementY = e.movementY || 0;
+
+        yawObject.rotation.y -= movementX * 0.0024;
+        pitchObject.rotation.x -= movementY * 0.0024;
+        pitchObject.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitchObject.rotation.x));
+      });
+
+      setupMobileTouchControls();
+
+      // Botões do HUD para Giroscópio
+      const btnToggle = document.getElementById('btn-toggle-gyro');
+      const textToggle = document.getElementById('gyro-status-text');
+      if (btnToggle) {
+        btnToggle.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          // Dispara solicitação de permissão no clique explícito do usuário
+          await requestGyroPermission();
+          gyroState.enabled = !gyroState.enabled;
+          if (gyroState.enabled) {
+            calibrateGyro(false);
+            showNotification('🧭 GIROSCÓPIO ATIVADO');
+          } else {
+            showNotification('🧭 GIROSCÓPIO DESATIVADO');
+          }
+        });
+      }
+
+      const btnCalib = document.getElementById('btn-calib-gyro');
+      if (btnCalib) {
+        btnCalib.addEventListener('click', (e) => {
+          e.stopPropagation();
+          calibrateGyro(true);
+        });
+      }
+    }
+
+    /* Configuração de Toque Mobile Ampliada e Otimizada */
+    function setupMobileTouchControls() {
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if (isTouch) touchState.active = true;
+
+      const joystickZone = document.getElementById('touch-joystick-zone');
+      const joystickThumb = document.getElementById('touch-joystick-thumb');
+      const lookZone = document.getElementById('touch-look-zone');
+
+      let joyTouchId = null;
+      let joyCenter = { x: 0, y: 0 };
+      const maxRadius = 38;
+
+      joystickZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        joyTouchId = touch.identifier;
+        const rect = joystickZone.getBoundingClientRect();
+        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      }, { passive: false });
+
+      joystickZone.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === joyTouchId) {
+            let dx = touch.clientX - joyCenter.x;
+            let dy = touch.clientY - joyCenter.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > maxRadius) {
+              dx = (dx / dist) * maxRadius;
+              dy = (dy / dist) * maxRadius;
+            }
+
+            joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+            touchState.moveX = dx / maxRadius;
+            touchState.moveZ = dy / maxRadius;
+          }
+        }
+      }, { passive: false });
+
+      const resetJoy = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joyTouchId) {
+            joyTouchId = null;
+            joystickThumb.style.transform = `translate(0px, 0px)`;
+            touchState.moveX = 0;
+            touchState.moveZ = 0;
+          }
+        }
+      };
+      joystickZone.addEventListener('touchend', resetJoy);
+      joystickZone.addEventListener('touchcancel', resetJoy);
+
+      let lookTouchId = null;
+      let lastLookPos = { x: 0, y: 0 };
+
+      lookZone.addEventListener('touchstart', (e) => {
+        // Ignora toques se clicou nos botões de ação
+        if (e.target.closest('#touch-action-buttons')) return;
+        const touch = e.changedTouches[0];
+        lookTouchId = touch.identifier;
+        lastLookPos = { x: touch.clientX, y: touch.clientY };
+      }, { passive: true });
+
+      lookZone.addEventListener('touchmove', (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === lookTouchId) {
+            const dx = touch.clientX - lastLookPos.x;
+            const dy = touch.clientY - lastLookPos.y;
+            touchState.lookDeltaX += dx;
+            touchState.lookDeltaY += dy;
+            lastLookPos = { x: touch.clientX, y: touch.clientY };
+          }
+        }
+      }, { passive: true });
+
+      const resetLook = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === lookTouchId) {
+            lookTouchId = null;
+          }
+        }
+      };
+      lookZone.addEventListener('touchend', resetLook);
+      lookZone.addEventListener('touchcancel', resetLook);
+
+      const bindTouch = (id, onStart, onEnd) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); onStart(); }, { passive: false });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); onEnd(); }, { passive: false });
+      };
+
+      bindTouch('btn-touch-turbo', () => { touchState.isTurbo = true; }, () => { touchState.isTurbo = false; });
+      bindTouch('btn-touch-shoot', () => { touchState.isShoot = true; playerShoot(); }, () => { touchState.isShoot = false; });
+      bindTouch('btn-touch-up', () => { touchState.isUp = true; }, () => { touchState.isUp = false; });
+      bindTouch('btn-touch-down', () => { touchState.isDown = true; }, () => { touchState.isDown = false; });
+    }
+
+    /* Leitura de Gamepad (USB/Bluetooth) */
+    let lastGpShoot = 0;
+    function pollGamepad() {
+      if (!navigator.getGamepads) return null;
+      const gamepads = navigator.getGamepads();
+      let gp = null;
+      for (let i = 0; i < gamepads.length; i++) {
+        if (gamepads[i] && gamepads[i].connected) { gp = gamepads[i]; break; }
+      }
+      if (!gp) return null;
+
+      const dz = (v) => Math.abs(v) > 0.16 ? v : 0;
+      return {
+        moveX: dz(gp.axes[0]),
+        moveZ: dz(gp.axes[1]),
+        lookX: dz(gp.axes[2]),
+        lookY: dz(gp.axes[3]),
+        shoot: gp.buttons[7]?.pressed || (gp.buttons[7]?.value > 0.3) || gp.buttons[5]?.pressed,
+        turbo: gp.buttons[6]?.pressed || (gp.buttons[6]?.value > 0.3) || gp.buttons[1]?.pressed,
+        up: gp.buttons[0]?.pressed,
+        down: gp.buttons[1]?.pressed
+      };
+    }
+
+    /* =====================================================================
+     * INICIALIZAÇÃO DE JOGADORES & BOTS (3v3)
+     * ===================================================================== */
+    function initializePlayers() {
+      const roleCfg = CONFIG.ROLES[state.myRole];
+      const startSpawn = getTeamSpawn(state.myTeam);
+      const eyeHeight = state.myRole === 'tank' ? 2.8 : (state.myRole === 'drone' ? 3.5 : 1.2);
+
+      yawObject.position.set(startSpawn.x, eyeHeight, startSpawn.z);
+      yawObject.rotation.y = state.myTeam === 'blue' ? 0 : Math.PI;
+      pitchObject.rotation.x = 0;
+
+      state.players[state.localPlayerId] = {
+        id: state.localPlayerId,
+        isLocal: true,
+        isBot: false,
+        name: 'VOCÊ',
+        team: state.myTeam,
+        role: state.myRole,
+        hp: roleCfg.hp,
+        maxHp: roleCfg.hp,
+        shield: 100,
+        ammo: roleCfg.ammo || 0,
+        maxAmmo: roleCfg.ammo || 0,
+        speed: roleCfg.speed,
+        mass: roleCfg.mass,
+        radius: roleCfg.radius,
+        jumpPower: roleCfg.jump || 0,
+        canShoot: roleCfg.canShoot,
+        canCarryFlag: roleCfg.canCarryFlag,
+        canCollectLoot: roleCfg.canCollectLoot,
+        vy: 0,
+        impulse: new THREE.Vector3(),
+        eyeHeight: eyeHeight,
+        isGrounded: true,
+        kills: 0,
+        loots: 0,
+        flags: 0,
+        hasFlag: false
+      };
+
+      setupBotSquads();
+    }
+
+    function setupBotSquads() {
+      const roles = ['bike', 'drone', 'tank'];
+      
+      roles.forEach(r => {
+        if (state.myTeam === 'blue' && state.myRole === r) return;
+        createBot('blue', r, `BRANCO_${CONFIG.ROLES[r].name.split(' ')[0]}`);
+      });
+
+      roles.forEach(r => {
+        if (state.myTeam === 'orange' && state.myRole === r) return;
+        createBot('orange', r, `UV_${CONFIG.ROLES[r].name.split(' ')[0]}`);
+      });
+    }
+
+    function createBot(team, role, name) {
+      const id = 'bot_' + Math.random().toString(36).substr(2, 6);
+      const roleCfg = CONFIG.ROLES[role];
+      const spawn = getTeamSpawn(team);
+      const mesh = createPlayerMesh(role, team);
+      mesh.position.set(spawn.x, spawn.y, spawn.z);
+      scene.add(mesh);
+
+      state.players[id] = {
+        id: id,
+        isLocal: false,
+        isBot: true,
+        name: name,
+        team: team,
+        role: role,
+        hp: roleCfg.hp,
+        maxHp: roleCfg.hp,
+        shield: 100,
+        ammo: roleCfg.ammo || 0,
+        maxAmmo: roleCfg.ammo || 0,
+        speed: roleCfg.speed,
+        mass: roleCfg.mass,
+        radius: roleCfg.radius,
+        jumpPower: roleCfg.jump || 0,
+        canShoot: roleCfg.canShoot,
+        canCarryFlag: roleCfg.canCarryFlag,
+        canCollectLoot: roleCfg.canCollectLoot,
+        vy: 0,
+        x: spawn.x,
+        y: spawn.y,
+        z: spawn.z,
+        impulse: new THREE.Vector3(),
+        kills: 0,
+        loots: 0,
+        flags: 0,
+        hasFlag: false,
+        mesh: mesh,
+        lastShootTime: 0
+      };
+    }
+
+    function getTeamSpawn(team) {
+      const zOffset = team === 'blue' ? -86 : 86;
+      return {
+        x: (Math.random() - 0.5) * 36,
+        y: 1.8,
+        z: zOffset + (Math.random() - 0.5) * 15
+      };
+    }
+
+    function respawnPlayer(player) {
+      const spawn = getTeamSpawn(player.team);
+      player.hp = player.maxHp;
+      player.shield = 100;
+      player.ammo = player.maxAmmo;
+      player.hasFlag = false;
+
+      if (player.isLocal) {
+        yawObject.position.set(spawn.x, player.eyeHeight, spawn.z);
+        showNotification('RESPAWN NO GRID DA PRAÇA!');
+      } else {
+        player.x = spawn.x;
+        player.y = spawn.y;
+        player.z = spawn.z;
+        if (player.mesh) player.mesh.position.set(spawn.x, spawn.y, spawn.z);
+      }
+    }
+
+    /* =====================================================================
+     * COMBATE & CANHÃO DE PLASMA (Exclusivo do Drone)
+     * ===================================================================== */
+    let lastLocalShoot = 0;
+
+    function playerShoot() {
+      const p = state.players[state.localPlayerId];
+      if (!p || p.hp <= 0) return;
+
+      if (!p.canShoot) {
+        showNotification(p.role === 'bike' 
+          ? 'MOTOQUEIRO NÃO ATIRA! PEGUE SUPRIMENTOS.' 
+          : 'O ROBÔ NÃO ATIRA! RESGATE A BANDEIRA.');
+        return;
+      }
+
+      const roleCfg = CONFIG.ROLES[p.role];
+      const now = performance.now();
+
+      if (p.ammo <= 0) {
+        showNotification('SEM MUNIÇÃO! AGUARDE O MOTOQUEIRO COLETAR SUPRIMENTOS.');
+        return;
+      }
+      if (now - lastLocalShoot < roleCfg.fireRate * 1000) return;
+
+      lastLocalShoot = now;
+      p.ammo--;
+      updateHudStats();
+
+      audio.playLaser(1400, 0.12);
+
+      const dir = new THREE.Vector3();
+      camera.getWorldDirection(dir);
+      const origin = yawObject.position.clone();
+
+      spawnPlasmaBolt(origin, dir, p.id, p.team, roleCfg.damage);
+    }
+
+    function spawnPlasmaBolt(origin, dir, shooterId, team, damage = 48) {
+      const color = (CONFIG.TEAMS[team] || CONFIG.TEAMS.blue).color;
+      const geo = new THREE.SphereGeometry(0.45, 8, 8);
+      const mat = new THREE.MeshBasicMaterial({ color: color });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(origin);
+      scene.add(mesh);
+
+      state.projectiles.push({
+        mesh: mesh,
+        dir: dir.clone().normalize(),
+        speed: 110,
+        distanceTraveled: 0,
+        maxDistance: 180,
+        shooterId: shooterId,
+        team: team,
+        damage: damage
+      });
+    }
+
+    /* =====================================================================
+     * BANDEIRA & CAPTURA (Exclusivo do Robô)
+     * ===================================================================== */
+    function repositionFlag(newIndex = null) {
+      if (newIndex === null) {
+        let next = Math.floor(Math.random() * CONFIG.FLAG_SPOTS.length);
+        if (next === state.flag.spotIndex) next = (next + 1) % CONFIG.FLAG_SPOTS.length;
+        state.flag.spotIndex = next;
+      } else {
+        state.flag.spotIndex = newIndex;
+      }
+
+      const spot = CONFIG.FLAG_SPOTS[state.flag.spotIndex];
+      const randomOffsetX = (Math.random() - 0.5) * 20;
+      const randomOffsetZ = (Math.random() - 0.5) * 20;
+      state.flag.x = Math.max(-98, Math.min(98, spot.x + randomOffsetX));
+      state.flag.y = spot.y;
+      state.flag.z = Math.max(-98, Math.min(98, spot.z + randomOffsetZ));
+      state.flag.timer = CONFIG.FLAG_TIMER_SECONDS;
+
+      if (state.flag.carrierId && state.players[state.flag.carrierId]) {
+        state.players[state.flag.carrierId].hasFlag = false;
+      }
+      state.flag.carrierId = null;
+      state.flag.carrierTeam = null;
+
+      if (flagMesh) {
+        flagMesh.position.set(state.flag.x, state.flag.y, state.flag.z);
+        flagMesh.visible = true;
+      }
+
+      audio.playFlagAlert();
+      showNotification(`BANDEIRA TELEPORTADA: ${spot.name.toUpperCase()}!`);
+
+      const zoneNameEl = document.getElementById('hud-flag-zone');
+      if (zoneNameEl) zoneNameEl.innerText = spot.name;
+
+      const carrierEl = document.getElementById('hud-flag-carrier');
+      if (carrierEl) carrierEl.innerText = 'LIVRE NA PRAÇA';
+    }
+
+    function checkFlagInteractions() {
+      if (state.flag.carrierId) {
+        const carrier = state.players[state.flag.carrierId];
+        if (!carrier || carrier.hp <= 0) {
+          state.flag.carrierId = null;
+          state.flag.carrierTeam = null;
+          showNotification('A BANDEIRA FOI DERRUBADA NO CHÃO!');
+          return;
+        }
+
+        const carrierPos = carrier.isLocal ? yawObject.position : carrier.mesh.position;
+        state.flag.x = carrierPos.x;
+        state.flag.y = carrierPos.y + 2.5;
+        state.flag.z = carrierPos.z;
+        flagMesh.position.set(state.flag.x, state.flag.y, state.flag.z);
+
+        const base = CONFIG.TEAM_BASES[carrier.team];
+        const distToBase = Math.hypot(carrierPos.x - base.x, carrierPos.z - base.z);
+
+        if (distToBase < base.radius) {
+          scoreFlagCapture(carrier);
+        }
+      } else {
+        Object.values(state.players).forEach(p => {
+          if (p.hp <= 0) return;
+          const pos = p.isLocal ? yawObject.position : p.mesh.position;
+          const dist = Math.hypot(pos.x - state.flag.x, pos.z - state.flag.z);
+
+          if (dist < 4.2) {
+            if (!p.canCarryFlag) {
+              if (p.isLocal) {
+                showNotification('APENAS O ROBÔ PESADO PODE CARREGAR A BANDEIRA!');
+              }
+              return;
+            }
+
+            state.flag.carrierId = p.id;
+            state.flag.carrierTeam = p.team;
+            p.hasFlag = true;
+            audio.playPickup();
+
+            showNotification(`ROBÔ ${p.name} CAPTUROU A BANDEIRA! ESCOLTEM-NO!`);
+            const carrierEl = document.getElementById('hud-flag-carrier');
+            if (carrierEl) carrierEl.innerText = `${p.name} (${p.team.toUpperCase()})`;
+          }
+        });
+      }
+    }
+
+    function scoreFlagCapture(carrier) {
+      state.scores[carrier.team].flags++;
+      carrier.flags++;
+      carrier.hasFlag = false;
+
+      audio.playPickup();
+      showNotification(`PONTO! TIME ${carrier.team.toUpperCase()} ENTREGOU A BANDEIRA!`);
+      addKillFeed(`🚩 ${carrier.name} marcou 1 PONTO para o Time ${carrier.team.toUpperCase()}!`);
+      updateScoreboardDisplay();
+
+      if (state.scores[carrier.team].flags >= CONFIG.TARGET_FLAG_CAPTURES) {
+        endGame(carrier.team, 'Limite de Bandeiras Atingido (3x)');
+        return;
+      }
+
+      repositionFlag();
+    }
+
+    /* =====================================================================
+     * FIM DE JOGO & CRITÉRIOS DE DESEMPATE
+     * ===================================================================== */
+    function endGame(winningTeam, reason) {
+      state.isPlaying = false;
+      state.isGameOver = true;
+      document.exitPointerLock?.();
+
+      const modal = document.getElementById('gameover-modal');
+      const winTitle = document.getElementById('winner-title');
+      const winReason = document.getElementById('winner-reason');
+
+      const isBlue = winningTeam === 'blue';
+      const teamInfo = CONFIG.TEAMS[winningTeam] || CONFIG.TEAMS.blue;
+      winTitle.innerText = `VITÓRIA ${teamInfo.name}`;
+      winTitle.className = `text-3xl font-black font-orbitron ${isBlue ? 'text-white neon-white-glow' : 'text-purple-400 neon-uv-glow'}`;
+      winReason.innerText = `Critério: ${reason}`;
+
+      document.getElementById('final-blue-flags').innerText = state.scores.blue.flags;
+      document.getElementById('final-blue-kills').innerText = state.scores.blue.kills;
+      document.getElementById('final-blue-loots').innerText = state.scores.blue.loots;
+
+      document.getElementById('final-orange-flags').innerText = state.scores.orange.flags;
+      document.getElementById('final-orange-kills').innerText = state.scores.orange.kills;
+      document.getElementById('final-orange-loots').innerText = state.scores.orange.loots;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    /* =====================================================================
+     * FÍSICA DE COLISÕES MECÂNICAS & CONSEQUÊNCIAS
+     * ===================================================================== */
+    function resolveVehicleCollisions(delta) {
+      const playerList = Object.values(state.players);
+
+      for (let i = 0; i < playerList.length; i++) {
+        for (let j = i + 1; j < playerList.length; j++) {
+          const p1 = playerList[i];
+          const p2 = playerList[j];
+
+          if (p1.hp <= 0 || p2.hp <= 0) continue;
+
+          const pos1 = p1.isLocal ? yawObject.position : (p1.mesh ? p1.mesh.position : null);
+          const pos2 = p2.isLocal ? yawObject.position : (p2.mesh ? p2.mesh.position : null);
+          if (!pos1 || !pos2) continue;
+
+          if (Math.abs(pos1.y - pos2.y) > 3.2) continue;
+
+          const dx = pos2.x - pos1.x;
+          const dz = pos2.z - pos1.z;
+          const dist = Math.hypot(dx, dz);
+          const minDist = p1.radius + p2.radius;
+
+          if (dist < minDist && dist > 0.001) {
+            const nx = dx / dist;
+            const nz = dz / dist;
+            const overlap = (minDist - dist);
+
+            const m1 = p1.mass || 400;
+            const m2 = p2.mass || 400;
+            const totalMass = m1 + m2;
+
+            pos1.x -= nx * (m2 / totalMass) * overlap;
+            pos1.z -= nz * (m2 / totalMass) * overlap;
+            pos2.x += nx * (m1 / totalMass) * overlap;
+            pos2.z += nz * (m1 / totalMass) * overlap;
+
+            // MOTO VS MOTO
+            if (p1.role === 'bike' && p2.role === 'bike') {
+              applyDamage(p1, 38, p2.id, p2.team);
+              applyDamage(p2, 38, p1.id, p1.team);
+              audio.playExplosion();
+
+              p1.impulse.set(-nx * 28, 4, -nz * 28);
+              p2.impulse.set(nx * 28, 4, nz * 28);
+
+              if (p1.isLocal || p2.isLocal) {
+                showNotification('💥 CHOQUE FRONTAL DE MOTOS! AMBAS DANIFICADAS!');
+              }
+            } 
+            // MOTO VS ROBÔ
+            else if ((p1.role === 'bike' && p2.role === 'tank') || (p1.role === 'tank' && p2.role === 'bike')) {
+              const bike = p1.role === 'bike' ? p1 : p2;
+              const tank = p1.role === 'tank' ? p1 : p2;
+              const sign = (p1.role === 'bike') ? -1 : 1;
+
+              applyDamage(bike, 85, tank.id, tank.team);
+              applyDamage(tank, 12, bike.id, bike.team);
+
+              bike.impulse.set(sign * nx * 38, 7, sign * nz * 38);
+              tank.impulse.set(-sign * nx * 3, 0, -sign * nz * 3);
+              audio.playExplosion();
+
+              if (bike.isLocal) showNotification('🚨 IMPACTO CRÍTICO: BATEU NO ROBÔ BLINDADO!');
+            } 
+            // DRONE VS MOTO
+            else if ((p1.role === 'drone' && p2.role === 'bike') || (p1.role === 'bike' && p2.role === 'drone')) {
+              const drone = p1.role === 'drone' ? p1 : p2;
+              const bike = p1.role === 'bike' ? p1 : p2;
+              const sign = (p1.role === 'drone') ? -1 : 1;
+
+              applyDamage(drone, 65, bike.id, bike.team);
+              applyDamage(bike, 16, drone.id, drone.team);
+              drone.impulse.set(sign * nx * 20, 6, sign * nz * 20);
+              audio.playExplosion();
+
+              if (drone.isLocal) showNotification('💥 DRONE ESMAGADO POR MOTO EM ALTA VELOCIDADE!');
+            } 
+            // ROBÔ VS ROBÔ
+            else if (p1.role === 'tank' && p2.role === 'tank') {
+              applyDamage(p1, 24, p2.id, p2.team);
+              applyDamage(p2, 24, p1.id, p1.team);
+              p1.impulse.set(-nx * 8, 0, -nz * 8);
+              p2.impulse.set(nx * 8, 0, nz * 8);
+              audio.playExplosion();
+            }
+          }
+        }
+      }
+
+      // Colisão de Jogadores com as Barreiras do Labirinto
+      playerList.forEach(p => {
+        if (p.hp <= 0) return;
+        const pos = p.isLocal ? yawObject.position : (p.mesh ? p.mesh.position : null);
+        if (!pos) return;
+
+        if (p.role === 'drone' && pos.y > 2.8) return;
+
+        state.mazeObstacles.forEach(obs => {
+          if (pos.x >= obs.minX && pos.x <= obs.maxX && pos.z >= obs.minZ && pos.z <= obs.maxZ) {
+            const dLeft = Math.abs(pos.x - obs.minX);
+            const dRight = Math.abs(pos.x - obs.maxX);
+            const dTop = Math.abs(pos.z - obs.minZ);
+            const dBottom = Math.abs(pos.z - obs.maxZ);
+            const minEdge = Math.min(dLeft, dRight, dTop, dBottom);
+
+            if (minEdge === dLeft) pos.x = obs.minX - 0.2;
+            else if (minEdge === dRight) pos.x = obs.maxX + 0.2;
+            else if (minEdge === dTop) pos.z = obs.minZ - 0.2;
+            else pos.z = obs.maxZ + 0.2;
+          }
+        });
+      });
+    }
+
+    /* =====================================================================
+     * LOOP PRINCIPAL DO JOGO
+     * ===================================================================== */
+    let clock = new THREE.Clock();
+    let flagSecondTimer = 0;
+
+    function gameLoop() {
+      requestAnimationFrame(gameLoop);
+
+      const delta = Math.min(clock.getDelta(), 0.1);
+
+      if (state.isPlaying && !state.isGameOver) {
+        updateLocalPlayer(delta);
+        updateBots(delta);
+        resolveVehicleCollisions(delta);
+        updateProjectiles(delta);
+        updatePickups(delta);
+        updateFlagObjective(delta);
+        updateRadar();
+      }
+
+      if (flagMesh && flagMesh.crystalMesh) {
+        flagMesh.crystalMesh.rotation.y += delta * 2;
+        flagMesh.crystalMesh.rotation.x += delta * 1;
+      }
+      if (baseBlueMesh) baseBlueMesh.rotation.z += delta * 0.2;
+      if (baseOrangeMesh) baseOrangeMesh.rotation.z += delta * 0.2;
+
+      renderer.render(scene, camera);
+    }
+
+    function updateLocalPlayer(delta) {
+      const p = state.players[state.localPlayerId];
+      if (!p || p.hp <= 0) return;
+
+      const gp = pollGamepad();
+
+      // Rotação por Toque Touch na Tela (Sensibilidade aumentada para 0.0075)
+      if (touchState.lookDeltaX !== 0 || touchState.lookDeltaY !== 0) {
+        yawObject.rotation.y -= touchState.lookDeltaX * 0.0075;
+        pitchObject.rotation.x -= touchState.lookDeltaY * 0.0075;
+        pitchObject.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitchObject.rotation.x));
+        touchState.lookDeltaX = 0;
+        touchState.lookDeltaY = 0;
+      }
+
+      // Rotação por Acelerômetro / Giroscópio (Modo Híbrido Orientation + Gravidade Motion)
+      const gyroStatusEl = document.getElementById('gyro-status-text');
+      if (gyroState.enabled && gyroState.hasHardware) {
+        const isLandscape = window.innerWidth > window.innerHeight;
+        let tiltYaw = 0;
+        let tiltPitch = 0;
+
+        if (gyroState.mode === 'orientation') {
+          const dBeta = gyroState.rawBeta - gyroState.neutralBeta;
+          const dGamma = gyroState.rawGamma - gyroState.neutralGamma;
+
+          if (isLandscape) {
+            // Em modo paisagem: Beta inclina para esquerda/direita, Gamma inclina para frente/trás
+            tiltYaw = dBeta;
+            tiltPitch = -dGamma;
+          } else {
+            // Em modo retrato: Gamma inclina para esquerda/direita, Beta para frente/trás
+            tiltYaw = -dGamma;
+            tiltPitch = dBeta;
+          }
+
+          if (gyroStatusEl) {
+            gyroStatusEl.innerText = `GIRO: ${Math.round(tiltYaw)}°`;
+            gyroStatusEl.className = 'text-emerald-400 font-bold';
+          }
+        } else {
+          // Fallback via DeviceMotion (Vetor da gravidade física)
+          const dGravX = gyroState.rawGravX - gyroState.neutralGravX;
+          const dGravY = gyroState.rawGravY - gyroState.neutralGravY;
+
+          if (isLandscape) {
+            tiltYaw = -dGravY * 8.0;
+            tiltPitch = dGravX * 8.0;
+          } else {
+            tiltYaw = dGravX * 8.0;
+            tiltPitch = -dGravY * 8.0;
+          }
+
+          if (gyroStatusEl) {
+            gyroStatusEl.innerText = `GRAV: ${Math.round(tiltYaw)}`;
+            gyroStatusEl.className = 'text-amber-300 font-bold';
+          }
+        }
+
+        // Zona morta (deadzone) para estabilidade
+        const deadzone = 1.8;
+        if (Math.abs(tiltYaw) > deadzone) {
+          const effectiveYaw = Math.sign(tiltYaw) * (Math.abs(tiltYaw) - deadzone);
+          yawObject.rotation.y -= effectiveYaw * 0.05 * delta;
+        }
+        if (Math.abs(tiltPitch) > deadzone) {
+          const effectivePitch = Math.sign(tiltPitch) * (Math.abs(tiltPitch) - deadzone);
+          pitchObject.rotation.x -= effectivePitch * 0.04 * delta;
+          pitchObject.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitchObject.rotation.x));
+        }
+      } else if (gyroStatusEl) {
+        if (!gyroState.enabled) {
+          gyroStatusEl.innerText = 'GIRO: OFF';
+          gyroStatusEl.className = 'text-slate-400';
+        } else {
+          gyroStatusEl.innerText = window.isSecureContext ? 'SEM SENSOR' : 'SEM HTTPS';
+          gyroStatusEl.className = 'text-rose-400';
+        }
+      }
+
+      if (gp && (gp.lookX !== 0 || gp.lookY !== 0)) {
+        yawObject.rotation.y -= gp.lookX * 3.4 * delta;
+        pitchObject.rotation.x -= gp.lookY * 2.8 * delta;
+        pitchObject.rotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, pitchObject.rotation.x));
+      }
+
+      if (gp && gp.shoot && p.canShoot) {
+        const now = performance.now();
+        if (now - lastGpShoot > 140) {
+          playerShoot();
+          lastGpShoot = now;
+        }
+      }
+
+      const isTurbo = keys['ShiftLeft'] || keys['ShiftRight'] || touchState.isTurbo || (gp && gp.turbo);
+
+      if (p.impulse.lengthSq() > 0.01) {
+        yawObject.position.addScaledVector(p.impulse, delta);
+        p.impulse.multiplyScalar(Math.max(0, 1 - delta * 5.0));
+      }
+
+      let inputX = 0;
+      let inputZ = 0;
+      if (keys['KeyW']) inputZ -= 1;
+      if (keys['KeyS']) inputZ += 1;
+      if (keys['KeyA']) inputX -= 1;
+      if (keys['KeyD']) inputX += 1;
+
+      if (touchState.moveX !== 0 || touchState.moveZ !== 0) {
+        inputX += touchState.moveX;
+        inputZ += touchState.moveZ;
+      }
+      if (gp) {
+        inputX += gp.moveX;
+        inputZ += gp.moveZ;
+      }
+
+      if (p.role === 'drone') {
+        let targetSpeed = p.speed * (isTurbo ? 1.4 : 1.0);
+        const flyDir = new THREE.Vector3(inputX, 0, inputZ);
+        if (flyDir.lengthSq() > 1) flyDir.normalize();
+        flyDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawObject.rotation.y);
+
+        let verticalVelocity = 0;
+        if (keys['Space'] || touchState.isUp || (gp && gp.up)) verticalVelocity += 14;
+        if (keys['KeyC'] || keys['ControlLeft'] || touchState.isDown || (gp && gp.down)) verticalVelocity -= 14;
+
+        yawObject.position.addScaledVector(flyDir, targetSpeed * delta);
+        yawObject.position.y += verticalVelocity * delta;
+        yawObject.position.y = Math.max(1.8, Math.min(26.0, yawObject.position.y));
+
+      } else if (p.role === 'bike') {
+        let currentSpeed = p.speed * (isTurbo ? 1.6 : 1.0);
+
+        if (isTurbo && p.shield > 0) {
+          p.shield = Math.max(0, p.shield - delta * 30);
+        } else if (!isTurbo && p.shield < 100) {
+          p.shield = Math.min(100, p.shield + delta * 20);
+        }
+
+        createLightTrail(yawObject.position, p.team);
+
+        const moveDir = new THREE.Vector3(inputX, 0, inputZ);
+        if (moveDir.lengthSq() > 1) moveDir.normalize();
+        moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawObject.rotation.y);
+
+        yawObject.position.addScaledVector(moveDir, currentSpeed * delta);
+
+        if ((keys['Space'] || (gp && gp.up)) && p.isGrounded) {
+          p.vy = p.jumpPower;
+          p.isGrounded = false;
+        }
+        p.vy -= 26 * delta;
+        yawObject.position.y += p.vy * delta;
+
+        if (yawObject.position.y <= p.eyeHeight) {
+          yawObject.position.y = p.eyeHeight;
+          p.vy = 0;
+          p.isGrounded = true;
+        }
+
+      } else {
+        let heavySpeed = p.speed;
+        const moveDir = new THREE.Vector3(inputX, 0, inputZ);
+        if (moveDir.lengthSq() > 1) moveDir.normalize();
+        moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), yawObject.rotation.y);
+
+        yawObject.position.addScaledVector(moveDir, heavySpeed * delta);
+
+        if (moveDir.lengthSq() > 0.1) {
+          pitchObject.position.y = Math.sin(performance.now() * 0.007) * 0.04;
+        } else {
+          pitchObject.position.y = 0;
+        }
+
+        p.vy -= 30 * delta;
+        yawObject.position.y += p.vy * delta;
+
+        if (yawObject.position.y <= p.eyeHeight) {
+          yawObject.position.y = p.eyeHeight;
+          p.vy = 0;
+          p.isGrounded = true;
+        }
+      }
+
+      const limit = CONFIG.MAP_SIZE / 2 - 4;
+      yawObject.position.x = Math.max(-limit, Math.min(limit, yawObject.position.x));
+      yawObject.position.z = Math.max(-limit, Math.min(limit, yawObject.position.z));
+
+      updateHudStats();
+    }
+
+    function createLightTrail(pos, team) {
+      const geo = new THREE.BoxGeometry(0.25, 0.6, 1.4);
+      const trailColor = (CONFIG.TEAMS[team] || CONFIG.TEAMS.blue).color;
+      const mat = new THREE.MeshBasicMaterial({ color: trailColor, transparent: true, opacity: 0.85 });
+      const trail = new THREE.Mesh(geo, mat);
+      trail.position.set(pos.x, pos.y - 0.4, pos.z);
+      scene.add(trail);
+
+      state.trails.push({ mesh: trail, life: 1.0 });
+    }
+
+    function updateBots(delta) {
+      const targetFlagPos = new THREE.Vector3(state.flag.x, 1.8, state.flag.z);
+
+      Object.values(state.players).forEach(bot => {
+        if (!bot.isBot || bot.hp <= 0) return;
+
+        if (bot.impulse && bot.impulse.lengthSq() > 0.01) {
+          bot.mesh.position.addScaledVector(bot.impulse, delta);
+          bot.impulse.multiplyScalar(Math.max(0, 1 - delta * 4.5));
+        }
+
+        let dest = targetFlagPos;
+
+        if (bot.role === 'tank') {
+          if (bot.hasFlag) {
+            const base = CONFIG.TEAM_BASES[bot.team];
+            dest = new THREE.Vector3(base.x, 2.0, base.z);
+          } else {
+            dest = targetFlagPos;
+          }
+        } else if (bot.role === 'bike') {
+          const nearestLoot = state.pickups.find(l => !l.collected);
+          dest = nearestLoot ? new THREE.Vector3(nearestLoot.x, 1.2, nearestLoot.z) : new THREE.Vector3(0, 1.2, 0);
+          if (Math.random() < 0.3) createLightTrail(bot.mesh.position, bot.team);
+        } else if (bot.role === 'drone') {
+          const enemy = findNearestEnemy(bot);
+          if (enemy) {
+            const ePos = enemy.isLocal ? yawObject.position : enemy.mesh.position;
+            dest = new THREE.Vector3(ePos.x, 7.0, ePos.z);
+          } else {
+            dest = targetFlagPos;
+          }
+        }
+
+        const currentPos = bot.mesh.position;
+        const dx = dest.x - currentPos.x;
+        const dz = dest.z - currentPos.z;
+        const dist = Math.hypot(dx, dz);
+
+        if (dist > 1.5) {
+          const angle = Math.atan2(dx, dz);
+          bot.mesh.rotation.y = angle;
+          currentPos.x += Math.sin(angle) * bot.speed * delta;
+          currentPos.z += Math.cos(angle) * bot.speed * delta;
+        }
+
+        if (bot.role === 'drone') {
+          currentPos.y = 8.0 + Math.sin(performance.now() * 0.003 + bot.id.length) * 2.0;
+        }
+
+        if (bot.canShoot) {
+          const now = performance.now();
+          if (now - bot.lastShootTime > 1400) {
+            const enemy = findNearestEnemy(bot);
+            if (enemy) {
+              const ePos = enemy.isLocal ? yawObject.position : enemy.mesh.position;
+              if (currentPos.distanceTo(ePos) < 60) {
+                const shootDir = new THREE.Vector3().subVectors(ePos, currentPos).normalize();
+                spawnPlasmaBolt(currentPos.clone(), shootDir, bot.id, bot.team, CONFIG.ROLES.drone.damage);
+                bot.lastShootTime = now;
+              }
+            }
+          }
+        }
+      });
+
+      for (let i = state.trails.length - 1; i >= 0; i--) {
+        const t = state.trails[i];
+        t.life -= delta;
+        t.mesh.material.opacity = t.life;
+        if (t.life <= 0) {
+          scene.remove(t.mesh);
+          state.trails.splice(i, 1);
+        }
+      }
+    }
+
+    function findNearestEnemy(actor) {
+      let nearest = null;
+      let minDist = 999;
+      Object.values(state.players).forEach(other => {
+        if (other.id === actor.id || other.team === actor.team || other.hp <= 0) return;
+        const p1 = actor.isLocal ? yawObject.position : actor.mesh.position;
+        const p2 = other.isLocal ? yawObject.position : other.mesh.position;
+        const d = p1.distanceTo(p2);
+        if (d < minDist) {
+          minDist = d;
+          nearest = other;
+        }
+      });
+      return nearest;
+    }
+
+    function updateProjectiles(delta) {
+      for (let i = state.projectiles.length - 1; i >= 0; i--) {
+        const p = state.projectiles[i];
+        const step = p.speed * delta;
+        p.mesh.position.addScaledVector(p.dir, step);
+        p.distanceTraveled += step;
+
+        let hit = false;
+        Object.values(state.players).forEach(target => {
+          if (hit || target.team === p.team || target.hp <= 0) return;
+
+          const targetPos = target.isLocal ? yawObject.position : target.mesh.position;
+          const hitRadius = target.role === 'tank' ? 2.2 : 1.6;
+
+          if (p.mesh.position.distanceTo(targetPos) < hitRadius) {
+            applyDamage(target, p.damage, p.shooterId, p.team);
+            hit = true;
+          }
+        });
+
+        if (hit || p.distanceTraveled >= p.maxDistance) {
+          scene.remove(p.mesh);
+          state.projectiles.splice(i, 1);
+        }
+      }
+    }
+
+    function applyDamage(target, damage, shooterId, shooterTeam) {
+      const finalDamage = target.role === 'tank' ? damage * 0.7 : damage;
+      target.hp -= finalDamage;
+
+      if (target.hp <= 0) {
+        state.scores[shooterTeam].kills++;
+        const killer = state.players[shooterId];
+        if (killer) killer.kills++;
+
+        addKillFeed(`⚡ ${killer ? killer.name : 'Drone'} eliminou ${target.name}`);
+        showNotification(`${target.name} FOI ELIMINADO!`);
+
+        if (target.hasFlag) {
+          target.hasFlag = false;
+          state.flag.carrierId = null;
+          state.flag.carrierTeam = null;
+        }
+
+        updateScoreboardDisplay();
+        setTimeout(() => respawnPlayer(target), 3000);
+      }
+    }
+
+    function updatePickups(delta) {
+      state.pickups.forEach(item => {
+        if (item.collected) return;
+        item.mesh.rotation.y += delta * 2;
+        item.mesh.rotation.x += delta * 1;
+
+        Object.values(state.players).forEach(p => {
+          if (item.collected || p.hp <= 0) return;
+          const pos = p.isLocal ? yawObject.position : p.mesh.position;
+          const dist = Math.hypot(pos.x - item.x, pos.z - item.z);
+
+          if (dist < 3.2) {
+            if (!p.canCollectLoot) {
+              if (p.isLocal) {
+                showNotification('APENAS O MOTOQUEIRO PODE COLETAR SUPRIMENTOS NA PRAÇA!');
+              }
+              return;
+            }
+
+            item.collected = true;
+            item.mesh.visible = false;
+            audio.playPickup();
+
+            state.scores[p.team].loots++;
+            p.loots++;
+
+            Object.values(state.players).forEach(member => {
+              if (member.team === p.team) {
+                if (item.type === 'energy') {
+                  member.hp = Math.min(member.maxHp, member.hp + 40);
+                } else if (member.canShoot) {
+                  member.ammo = Math.min(member.maxAmmo, member.ammo + 25);
+                }
+              }
+            });
+
+            if (p.isLocal) {
+              showNotification(item.type === 'energy' 
+                ? '✦ BATERIA COLETADA! EQUIPE CURADA!' 
+                : '✦ MUNIÇÃO DE PLASMA COLETADA! O DRONE FOI RECARREGADO!');
+            }
+
+            updateScoreboardDisplay();
+            updateHudStats();
+
+            setTimeout(() => {
+              item.x = (Math.random() - 0.5) * (CONFIG.MAP_SIZE * 0.7);
+              item.z = (Math.random() - 0.5) * (CONFIG.MAP_SIZE * 0.7);
+              item.mesh.position.set(item.x, 1, item.z);
+              item.mesh.visible = true;
+              item.collected = false;
+            }, CONFIG.LOOT_RESPAWN_TIME_MS);
+          }
+        });
+      });
+    }
+
+    function updateFlagObjective(delta) {
+      flagSecondTimer += delta;
+      if (flagSecondTimer >= 1.0) {
+        flagSecondTimer = 0;
+        state.flag.timer--;
+
+        const timerEl = document.getElementById('hud-flag-timer');
+        if (timerEl) {
+          timerEl.innerText = `${state.flag.timer}s`;
+          if (state.flag.timer <= 10) timerEl.classList.add('text-rose-500');
+          else timerEl.classList.remove('text-rose-500');
+        }
+
+        if (state.flag.timer <= 0) repositionFlag();
+      }
+
+      checkFlagInteractions();
+    }
+
+    /* =====================================================================
+     * RADAR MINIMAP DA PRAÇA
+     * ===================================================================== */
+    const radarCanvas = document.getElementById('radar-canvas');
+    const radarCtx = radarCanvas.getContext('2d');
+
+    function updateRadar() {
+      radarCtx.clearRect(0, 0, 128, 128);
+
+      const mapScale = 128 / CONFIG.MAP_SIZE;
+      const cx = 64;
+      const cy = 64;
+
+      radarCtx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+      radarCtx.strokeRect(8, 8, 112, 112);
+
+      radarCtx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+      state.mazeObstacles.forEach(obs => {
+        const ox = cx + obs.cx * mapScale;
+        const oz = cy + obs.cz * mapScale;
+        const ow = Math.max(2, (obs.maxX - obs.minX) * mapScale);
+        const od = Math.max(2, (obs.maxZ - obs.minZ) * mapScale);
+        radarCtx.strokeRect(ox - ow / 2, oz - od / 2, ow, od);
+      });
+
+      radarCtx.fillStyle = CONFIG.TEAMS.blue.hex;
+      radarCtx.fillRect(cx - 8, 10, 16, 6);
+      radarCtx.fillStyle = CONFIG.TEAMS.orange.hex;
+      radarCtx.fillRect(cx - 8, 112, 16, 6);
+
+      const fx = cx + state.flag.x * mapScale;
+      const fz = cy + state.flag.z * mapScale;
+      radarCtx.fillStyle = '#facc15';
+      radarCtx.beginPath();
+      radarCtx.arc(fx, fz, 3.5, 0, Math.PI * 2);
+      radarCtx.fill();
+
+      Object.values(state.players).forEach(p => {
+        if (p.hp <= 0) return;
+        const pos = p.isLocal ? yawObject.position : (p.mesh ? p.mesh.position : null);
+        if (!pos) return;
+        const px = cx + pos.x * mapScale;
+        const pz = cy + pos.z * mapScale;
+
+        radarCtx.fillStyle = p.isLocal ? '#38bdf8' : (p.team === 'blue' ? CONFIG.TEAMS.blue.hex : CONFIG.TEAMS.orange.hex);
+        radarCtx.beginPath();
+        radarCtx.arc(px, pz, p.isLocal ? 3.5 : 2.2, 0, Math.PI * 2);
+        radarCtx.fill();
+      });
+    }
+
+    /* =====================================================================
+     * AUXILIARES DE HUD & UI
+     * ===================================================================== */
+    function updateScoreboardDisplay() {
+      document.getElementById('hud-score-blue-flags').innerText = `${state.scores.blue.flags} ⚑`;
+      document.getElementById('hud-score-blue-kills').innerText = state.scores.blue.kills;
+      document.getElementById('hud-score-blue-loots').innerText = state.scores.blue.loots;
+
+      document.getElementById('hud-score-orange-flags').innerText = `${state.scores.orange.flags} ⚑`;
+      document.getElementById('hud-score-orange-kills').innerText = state.scores.orange.kills;
+      document.getElementById('hud-score-orange-loots').innerText = state.scores.orange.loots;
+
+      const bluePct = (state.scores.blue.flags / CONFIG.TARGET_FLAG_CAPTURES) * 100;
+      const orangePct = (state.scores.orange.flags / CONFIG.TARGET_FLAG_CAPTURES) * 100;
+      document.getElementById('hud-bar-blue').style.width = `${bluePct}%`;
+      document.getElementById('hud-bar-orange').style.width = `${orangePct}%`;
+    }
+
+    function updateHudStats() {
+      const p = state.players[state.localPlayerId];
+      if (!p) return;
+
+      const hpPercent = Math.max(0, (p.hp / p.maxHp) * 100);
+      document.getElementById('hud-hp-bar').style.width = `${hpPercent}%`;
+      document.getElementById('hud-hp-text').innerText = `${Math.ceil(p.hp)} / ${p.maxHp}`;
+
+      document.getElementById('hud-shield-bar').style.width = `${p.shield}%`;
+      document.getElementById('hud-shield-text').innerText = `${Math.ceil(p.shield)}%`;
+
+      const ammoContainer = document.getElementById('hud-ammo-container');
+      if (p.canShoot) {
+        ammoContainer.style.display = 'flex';
+        document.getElementById('hud-ammo-text').innerText = `${p.ammo} / ${p.maxAmmo}`;
+      } else {
+        ammoContainer.style.display = 'none';
+      }
+    }
+
+    let bannerTimeout;
+    function showNotification(text) {
+      const banner = document.getElementById('hud-banner');
+      if (!banner) return;
+      banner.innerText = text;
+      banner.style.opacity = '1';
+      clearTimeout(bannerTimeout);
+      bannerTimeout = setTimeout(() => { banner.style.opacity = '0'; }, 3000);
+    }
+
+    function addKillFeed(msg) {
+      const feed = document.getElementById('hud-kill-feed');
+      if (!feed) return;
+      const el = document.createElement('div');
+      el.className = 'text-cyan-300 bg-slate-950/70 px-2 py-0.5 rounded border border-cyan-800/60';
+      el.innerText = msg;
+      feed.prepend(el);
+      if (feed.children.length > 3) feed.removeChild(feed.lastChild);
+    }
+
+    window.selectRole = function(roleKey) {
+      state.myRole = roleKey;
+      ['bike', 'drone', 'tank'].forEach(k => {
+        const card = document.getElementById(`card-role-${k}`);
+        if (!card) return;
+        if (k === roleKey) {
+          card.classList.add('border-cyan-400', 'bg-cyan-950/40', 'border-2');
+          card.classList.remove('border-slate-700', 'bg-slate-900/50', 'border');
+        } else {
+          card.classList.remove('border-cyan-400', 'bg-cyan-950/40', 'border-2');
+          card.classList.add('border-slate-700', 'bg-slate-900/50', 'border');
+        }
+      });
+    };
+
+    document.getElementById('btn-team-blue').addEventListener('click', () => {
+      state.myTeam = 'blue';
+      document.getElementById('btn-team-blue').className = 'p-3 rounded-xl border-2 border-white bg-white/10 text-white font-orbitron font-bold text-sm flex flex-col items-center gap-1 shadow-[0_0_20px_rgba(255,255,255,0.3)] transition transform active:scale-95';
+      document.getElementById('btn-team-orange').className = 'p-3 rounded-xl border-2 border-slate-700 bg-slate-900/40 text-slate-400 font-orbitron font-bold text-sm flex flex-col items-center gap-1 hover:border-purple-500/60 transition transform active:scale-95';
+    });
+
+    document.getElementById('btn-team-orange').addEventListener('click', () => {
+      state.myTeam = 'orange';
+      document.getElementById('btn-team-orange').className = 'p-3 rounded-xl border-2 border-purple-500 bg-purple-950/40 text-purple-300 font-orbitron font-bold text-sm flex flex-col items-center gap-1 shadow-[0_0_20px_rgba(147,51,234,0.3)] transition transform active:scale-95';
+      document.getElementById('btn-team-blue').className = 'p-3 rounded-xl border-2 border-slate-700 bg-slate-900/40 text-slate-400 font-orbitron font-bold text-sm flex flex-col items-center gap-1 hover:border-white/60 transition transform active:scale-95';
+    });
+
+    /* Botão Entrar no Grid */
+    document.getElementById('btn-start-game').addEventListener('click', async () => {
+      audio.init();
+      await requestGyroPermission();
+      onWindowResize();
+
+      document.getElementById('lobby-screen').style.display = 'none';
+      document.getElementById('game-hud').classList.remove('hidden');
+
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const touchOverlay = document.getElementById('touch-controls');
+      const touchShoot = document.getElementById('btn-touch-shoot');
+      const touchFlight = document.getElementById('touch-flight-group');
+      const touchTurbo = document.getElementById('btn-touch-turbo');
+
+      if (isTouch) {
+        touchOverlay.classList.remove('hidden');
+        if (state.myRole === 'drone') {
+          touchShoot.classList.remove('hidden');
+          touchFlight.classList.remove('hidden');
+          touchTurbo.classList.add('hidden');
+        } else if (state.myRole === 'bike') {
+          touchShoot.classList.add('hidden');
+          touchFlight.classList.add('hidden');
+          touchTurbo.classList.remove('hidden');
+          touchTurbo.innerText = 'TURBO';
+        } else {
+          touchShoot.classList.add('hidden');
+          touchFlight.classList.add('hidden');
+          touchTurbo.classList.add('hidden');
+        }
+      }
+
+      const crosshair = document.getElementById('hud-crosshair');
+      const shootTip = document.getElementById('ctrl-shoot-tip');
+      const vertTip = document.getElementById('ctrl-vertical-tip');
+
+      if (state.myRole === 'drone') {
+        crosshair.classList.remove('hidden');
+        crosshair.classList.add('flex');
+        shootTip.style.display = 'block';
+        vertTip.innerHTML = '<span class="px-1 py-0.5 bg-slate-800 border border-slate-600 rounded text-cyan-300 font-mono">ESPAÇO/C</span> Voo';
+      } else if (state.myRole === 'bike') {
+        crosshair.classList.add('hidden');
+        shootTip.style.display = 'none';
+        vertTip.innerHTML = '<span class="px-1 py-0.5 bg-slate-800 border border-slate-600 rounded text-cyan-300 font-mono">SHIFT</span> Turbo';
+      } else {
+        crosshair.classList.add('hidden');
+        shootTip.style.display = 'none';
+        vertTip.innerHTML = '<span class="px-1 py-0.5 bg-slate-800 border border-slate-600 rounded text-cyan-300 font-mono">MISSÃO</span> Bandeira';
+      }
+
+      document.getElementById('hud-player-role').innerText = CONFIG.ROLES[state.myRole].name;
+      const teamTag = document.getElementById('hud-team-tag');
+      const teamInfo = CONFIG.TEAMS[state.myTeam];
+      teamTag.innerText = teamInfo.name;
+      teamTag.className = `px-2 py-0.5 text-xs font-bold font-orbitron rounded border ${
+        state.myTeam === 'blue' ? 'border-white text-white shadow-[0_0_8px_#ffffff]' : 'border-purple-400 text-purple-400 shadow-[0_0_8px_#9333ea]'
+      }`;
+
+      initializePlayers();
+      updateScoreboardDisplay();
+      state.isPlaying = true;
+
+      try {
+        container.requestPointerLock?.();
+      } catch (err) {}
+    });
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      location.reload();
+    });
+
+    /* =====================================================================
+     * INICIALIZAÇÃO GERAL
+     * ===================================================================== */
+    window.onload = function() {
+      initThree();
+      setupControls();
+      gameLoop();
+    };
+  </script>
+</body>
+</html>
